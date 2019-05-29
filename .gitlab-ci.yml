@@ -1,0 +1,64 @@
+---
+stages:
+  - linting
+  - unit_test
+  - build
+  - test
+  - deploy
+
+image: docker:git
+services:
+  - docker:dind
+variables:
+  DOCKER_DRIVER: overlay
+  # Variables for Container-Scanning.gitlab-ci.yml
+  CI_APPLICATION_REPOSITORY: $CI_REGISTRY_IMAGE #/$CI_COMMIT_REF_SLUG
+  CI_APPLICATION_TAG: $CI_COMMIT_REF_SLUG #$CI_COMMIT_SHA
+  # Variable for pylint/pydocstyle/SAST/Code-Quality.gitlab-ci.yml
+  SRC_PATH: '/src'
+  DOC_PATH: '/docs'
+
+.before_script_docker: &before_script_docker
+  before_script:
+    - docker login -u gitlab-ci-token -p "$CI_BUILD_TOKEN" "$CI_REGISTRY"
+
+build_master:
+  stage: build
+  <<: *before_script_docker
+  script:
+    - docker build -t "$CI_REGISTRY_IMAGE:latest" .
+    - docker push "$CI_REGISTRY_IMAGE:latest"
+  only:
+    - master
+
+build_testing:
+  stage: build
+  <<: *before_script_docker
+  script:
+    - docker build -t "$CI_REGISTRY_IMAGE:${CI_COMMIT_REF_SLUG}" .
+    - docker push "$CI_REGISTRY_IMAGE:${CI_COMMIT_REF_SLUG}"
+  only:
+    - branches
+  except:
+    - master
+
+build_stable:
+  stage: build
+  <<: *before_script_docker
+  script:
+    - docker build -t "$CI_REGISTRY_IMAGE:${CI_COMMIT_REF_SLUG}" .
+    - docker push "$CI_REGISTRY_IMAGE:${CI_COMMIT_REF_SLUG}"
+  only:
+    - tags
+
+include:
+  - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/pylint.gitlab-ci.yml'
+  - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/pytest.gitlab-ci.yml'
+  - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/pydocstyle.gitlab-ci.yml'
+  - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/doc8.gitlab-ci.yml'
+  - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/sphinx-pages.gitlab-ci.yml'
+  - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/Container-Scanning.gitlab-ci.yml'
+  - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/Code-Quality.gitlab-ci.yml'
+  - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/SAST.gitlab-ci.yml'
+  - template: License-Management.gitlab-ci.yml
+  - template: Dependency-Scanning.gitlab-ci.yml
