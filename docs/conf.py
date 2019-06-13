@@ -36,7 +36,9 @@ release = package_version['__version__']
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
-    'sphinx.ext.intersphinx'
+    'sphinx.ext.intersphinx',
+    'sphinx.ext.napoleon',
+    'sphinx_autodoc_typehints'
 ]
 
 intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}
@@ -62,4 +64,3 @@ html_theme = 'sphinx_rtd_theme'
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 master_doc = 'contents'
-
