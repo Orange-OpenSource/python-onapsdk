@@ -58,6 +58,7 @@ pytest-coverage.xml
 
 # tests
 pytest-unit.xml
+pytest-integration.xml
 pytest.xml
 
 # Translations

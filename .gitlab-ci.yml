@@ -51,6 +51,21 @@ build_stable:
   only:
     - tags
 
+integration_tests:
+  stage: test
+  services:
+    - name: registry.gitlab.com/orange-opensource/lfn/onap/mock_servers/mock-sdc:feature-mock-vendor
+      alias: sdc.api.fe.simpledemo.onap.org
+  image: python:3.7
+  script:
+    - pip install .
+    - pip install pytest mock # mock is needed as pytest parse all files before selection
+    - mv setup.cfg setup.old # pytest tries to use setup.cfg but we don't want
+    - pytest -m integration --verbose --junitxml=pytest-integration.xml tests
+  artifacts:
+    reports:
+      junit: pytest-*.xml
+
 include:
   - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/pylint.gitlab-ci.yml'
   - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/pytest.gitlab-ci.yml'
