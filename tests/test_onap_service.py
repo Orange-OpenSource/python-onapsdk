@@ -12,17 +12,23 @@ from onapsdk.onap_service import OnapService
 def test_init():
     """Test initialization."""
     svc = OnapService()
-    assert isinstance(svc._jinja_env, Environment)
 
 def test_class_variables():
     """Test class variables."""
     assert OnapService.server == None
-    assert OnapService.header == {
+    assert OnapService.headers == {
         "Content-Type": "application/json",
         "Accept": "application/json",
     }
     assert OnapService.proxy == None
 
+def test_set_proxy():
+    """Test set_proxy()."""
+    assert OnapService.proxy == None
+    OnapService.set_proxy({'the', 'proxy'})
+    assert OnapService.proxy == {'the', 'proxy'}
+    OnapService.set_proxy(None)
+    assert OnapService.proxy == None
 
 @mock.patch.object(Session, 'request')
 def test_send_message_error_400_no_exception(mock_request):
@@ -102,6 +108,25 @@ def test_send_message_OK(mock_request):
         "Accept": "application/json",
     }
     response = svc.send_message("GET", 'test get', 'http://my.url/')
+    mock_request.assert_called_once_with('GET', 'http://my.url/',
+                                         headers=expect_headers, verify=False,
+                                         proxies=None)
+    assert response == mocked_response
+
+@mock.patch.object(Session, 'request')
+def test_send_message_specific_headers_OK(mock_request):
+    """Should give response of request if OK."""
+    svc = OnapService()
+    mocked_response = Response()
+    mocked_response.status_code = 200
+    mock_request.return_value = mocked_response
+    expect_headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Once": "Upon a time"
+    }
+    response = svc.send_message("GET", 'test get', 'http://my.url/',
+                                headers=expect_headers)
     mock_request.assert_called_once_with('GET', 'http://my.url/',
                                          headers=expect_headers, verify=False,
                                          proxies=None)

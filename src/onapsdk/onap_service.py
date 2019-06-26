@@ -12,7 +12,7 @@ from requests.adapters import HTTPAdapter
 import urllib3
 from urllib3.util.retry import Retry
 import simplejson.errors
-from jinja2 import Environment, PackageLoader, select_autoescape
+
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -30,19 +30,14 @@ class OnapService():
         server (str): nickname of the server we send the request.
                       used in logs strings. For example,'SDC' is the nickame
                       for SDC server...
-        header (Dict[str, str]): the header dictionnary to use
+        headers (Dict[str, str]): the headers dictionnary to use
         proxy (Dict[str, str]): the proxy configuration if needed
-
-    Examples:
-        >>> onapService = OnapService()
-        >>> template = onapService._jinja_env.get_template('vendor_create.json.j2')
-        >>> data = template.render(name="my_name")
 
     """
 
-    __logger: logging.Logger = logging.getLogger(__name__)
+    _logger: logging.Logger = logging.getLogger(__name__)
     server: str = None
-    header: Dict[str, str] = {
+    headers: Dict[str, str] = {
         "Content-Type": "application/json",
         "Accept": "application/json",
     }
@@ -50,20 +45,7 @@ class OnapService():
 
     def __init__(self) -> None:
         """Initialize the service."""
-        # _jinja_env allow to fetch simply jinja templates where they are.
-        # by default jinja engine will look for templates in `templates`
-        # directory of the package.
-        # so to load a template, you just have to do:
-        #
-        # ```python
-        # template = self._jinja_env.get_template('my_template.json.j2')
-        # data = template.render(template_var="a_value", another_var=self.var)
-        # ```
-        #
-        # see Vendor.create() for real use
-        self._jinja_env = Environment(
-            autoescape=select_autoescape(['html', 'htm', 'xml']),
-            loader=PackageLoader('onapsdk'))
+
 
     @classmethod
     def send_message(cls, method: str, action: str, url: str,
@@ -88,39 +70,40 @@ class OnapService():
 
         """
         exception = kwargs.pop('exception', None)
+        headers = kwargs.pop('headers', cls.headers)
         data = kwargs.get('data', None)
         try:
             # build the request with the requested method
             session = cls.__requests_retry_session()
-            response = session.request(method, url, headers=cls.header,
+            response = session.request(method, url, headers=headers,
                                        verify=False, proxies=cls.proxy,
                                        **kwargs)
 
             response.raise_for_status()
-            cls.__logger.info("[%s][%s] response code: %s", cls.server,
-                              action, response.status_code)
-            cls.__logger.debug("[%s][%s] sent header: %s",
-                               cls.server, action, cls.header)
-            cls.__logger.debug("[%s][%s] url used: %s", cls.server, action, url)
-            cls.__logger.debug("[%s][%s] data sent: %s", cls.server, action,
-                               data)
-            cls.__logger.debug("[%s][%s] response: %s", cls.server, action,
-                               response.text)
+            cls._logger.info("[%s][%s] response code: %s", cls.server,
+                             action, response.status_code)
+            cls._logger.debug("[%s][%s] sent header: %s",
+                              cls.server, action, headers)
+            cls._logger.debug("[%s][%s] url used: %s", cls.server, action, url)
+            cls._logger.debug("[%s][%s] data sent: %s", cls.server, action,
+                              data)
+            cls._logger.debug("[%s][%s] response: %s", cls.server, action,
+                              response.text)
             return response
         except requests.HTTPError:
-            cls.__logger.error(
+            cls._logger.error(
                 "[%s][%s] response code: %s", cls.server, action,
                 response.status_code)
-            cls.__logger.error("[%s][%s] response: %s", cls.server, action,
-                               response.text)
+            cls._logger.error("[%s][%s] response: %s", cls.server, action,
+                              response.text)
         except requests.RequestException as err:
-            cls.__logger.error("[%s][%s] Failed to perform: %s", cls.server,
-                               action, err)
+            cls._logger.error("[%s][%s] Failed to perform: %s", cls.server,
+                              action, err)
         # We are passing here only if we catched an error
-        cls.__logger.error("[%s][%s] sent header: %s", cls.server, action,
-                           cls.header)
-        cls.__logger.error("[%s][%s] url used: %s", cls.server, action, url)
-        cls.__logger.error("[%s][%s] data sent: %s", cls.server, action, data)
+        cls._logger.error("[%s][%s] sent header: %s", cls.server, action,
+                          headers)
+        cls._logger.error("[%s][%s] url used: %s", cls.server, action, url)
+        cls._logger.error("[%s][%s] data sent: %s", cls.server, action, data)
         # if specific exception predefined
         # for the given service, raise it
         if exception:
@@ -156,13 +139,13 @@ class OnapService():
             if response:
                 return response.json()
         except simplejson.errors.JSONDecodeError as err:
-            cls.__logger.error("[%s][%s]Failed to decode JSON: %s",
-                               cls.server, action, err)
-            cls.__logger.error("[%s][%s] sent header: %s", cls.server, action,
-                               cls.header)
-            cls.__logger.error("[%s][%s] url used: %s", cls.server, action, url)
-            cls.__logger.error("[%s][%s] data sent: %s", cls.server, action,
-                               data)
+            cls._logger.error("[%s][%s]Failed to decode JSON: %s",
+                              cls.server, action, err)
+            cls._logger.error("[%s][%s] sent header: %s", cls.server, action,
+                              cls.headers)
+            cls._logger.error("[%s][%s] url used: %s", cls.server, action, url)
+            cls._logger.error("[%s][%s] data sent: %s", cls.server, action,
+                              data)
             if exception:
                 raise exception
         return {}

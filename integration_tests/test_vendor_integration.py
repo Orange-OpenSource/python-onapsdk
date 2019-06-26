@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 """Integration test Vendor module."""
 import pytest
-pytestmark = pytest.mark.integration
 
 import requests
 
