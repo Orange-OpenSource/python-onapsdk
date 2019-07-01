@@ -421,7 +421,7 @@ def test_upload_not_OK(mock_send, mock_status):
     vsp._version = "1234"
     vsp._identifier = "12345"
     vsp.upload_files('data')
-    mock_send.assert_called_once_with('POST', 'upload ZIP for Vsp', "http://sdc.api.fe.simpledemo.onap.org:30206/sdc1/feProxy/onboarding-api/v1.0/vendor-software-products/12345/versions/1234/orchestration-template-candidate", files={'upload': 'data'}, headers={'Accept': 'application/json', 'USER_ID': 'cs0008', 'Authorization': 'Basic YWFpOktwOGJKNFNYc3pNMFdYbGhhazNlSGxjc2UyZ0F3ODR2YW9HR21KdlV5MlU=', 'Accept-Encoding': 'gzip, deflate'})
+    mock_send.assert_called_once_with('POST', 'upload ZIP for Vsp', "http://sdc.api.fe.simpledemo.onap.org:30206/sdc1/feProxy/onboarding-api/v1.0/vendor-software-products/12345/versions/1234/orchestration-template-candidate", files={'upload': 'data'}, headers={'Accept': 'application/json', 'USER_ID': 'cs0008', 'Authorization': 'Basic YWFpOktwOGJKNFNYc3pNMFdYbGhhazNlSGxjc2UyZ0F3ODR2YW9HR21KdlV5MlU=', 'X-ECOMP-InstanceID': 'onapsdk', 'Accept-Encoding': 'gzip, deflate'})
 
 @mock.patch.object(Vsp, 'load_status')
 @mock.patch.object(Vsp, 'send_message')
@@ -434,7 +434,7 @@ def test_upload_OK(mock_send, mock_status):
     vsp._version = "1234"
     vsp._identifier = "12345"
     vsp.upload_files('data')
-    mock_send.assert_called_once_with('POST', 'upload ZIP for Vsp', "http://sdc.api.fe.simpledemo.onap.org:30206/sdc1/feProxy/onboarding-api/v1.0/vendor-software-products/12345/versions/1234/orchestration-template-candidate", files={'upload': 'data'}, headers={'Accept': 'application/json', 'USER_ID': 'cs0008', 'Authorization': 'Basic YWFpOktwOGJKNFNYc3pNMFdYbGhhazNlSGxjc2UyZ0F3ODR2YW9HR21KdlV5MlU=', 'Accept-Encoding': 'gzip, deflate'})
+    mock_send.assert_called_once_with('POST', 'upload ZIP for Vsp', "http://sdc.api.fe.simpledemo.onap.org:30206/sdc1/feProxy/onboarding-api/v1.0/vendor-software-products/12345/versions/1234/orchestration-template-candidate", files={'upload': 'data'}, headers={'Accept': 'application/json', 'USER_ID': 'cs0008', 'Authorization': 'Basic YWFpOktwOGJKNFNYc3pNMFdYbGhhazNlSGxjc2UyZ0F3ODR2YW9HR21KdlV5MlU=', 'X-ECOMP-InstanceID': 'onapsdk', 'Accept-Encoding': 'gzip, deflate'})
 
 @pytest.mark.parametrize("status", [const.CERTIFIED, const.COMMITED, const.DRAFT, const.VALIDATED])
 @mock.patch.object(Vsp, 'load_status')

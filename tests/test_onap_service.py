@@ -8,6 +8,7 @@ from jinja2 import Environment
 from requests import Response, Timeout, Session
 
 from onapsdk.onap_service import OnapService
+from onapsdk.vendor import Vendor
 
 def test_init():
     """Test initialization."""
@@ -25,9 +26,9 @@ def test_class_variables():
 def test_set_proxy():
     """Test set_proxy()."""
     assert OnapService.proxy == None
-    OnapService.set_proxy({'the', 'proxy'})
+    Vendor.set_proxy({'the', 'proxy'})
     assert OnapService.proxy == {'the', 'proxy'}
-    OnapService.set_proxy(None)
+    Vendor.set_proxy(None)
     assert OnapService.proxy == None
 
 @mock.patch.object(Session, 'request')

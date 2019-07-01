@@ -21,6 +21,7 @@ VALIDATED = "Validated"
 ##
 # Actions
 ##
+CERTIFY = "Certify"
 COMMIT = "Commit"
 CREATE_PACKAGE = "Create_Package"
 SUBMIT = "Submit"

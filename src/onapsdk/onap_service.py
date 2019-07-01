@@ -16,6 +16,7 @@ import simplejson.errors
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+
 class OnapService():
     """
     Mother Class of all ONAP services.
@@ -46,7 +47,6 @@ class OnapService():
     def __init__(self) -> None:
         """Initialize the service."""
 
-
     @classmethod
     def send_message(cls, method: str, action: str, url: str,
                      **kwargs) -> Union[requests.Request, None]:
@@ -59,8 +59,8 @@ class OnapService():
             url (str): the url to use
             exception (Exception, optional): if an error occurs, raise the
                 exception given
-            **kwargs: Arbitrary keyword arguments. any arguments used by request
-                can be used here.
+            **kwargs: Arbitrary keyword arguments. any arguments used by
+                requests can be used here.
 
         Raises:
             exception (Exception): raise the Exception given in args (if given)
@@ -122,8 +122,8 @@ class OnapService():
             url (str): the url to use
             exception (Exception, optional): if an error occurs, raise the
                 exception given
-            **kwargs: Arbitrary keyword arguments. any arguments used by request
-                can be used here.
+            **kwargs: Arbitrary keyword arguments. any arguments used by
+                requests can be used here.
 
         Raises:
             exception (Exception): raise the Exception given in args (if given)
@@ -180,8 +180,8 @@ class OnapService():
         session.mount('https://', adapter)
         return session
 
-    @classmethod
-    def set_proxy(cls, proxy: Dict[str, str]) -> None:
+    @staticmethod
+    def set_proxy(proxy: Dict[str, str]) -> None:
         """
         Set the proxy for Onap Services rest calls.
 
@@ -194,4 +194,4 @@ class OnapService():
             ...     'https': 'socks5h://127.0.0.1:8082'})
 
         """
-        cls.proxy = proxy
+        OnapService.proxy = proxy

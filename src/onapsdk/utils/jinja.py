@@ -4,7 +4,8 @@
 
 from jinja2 import Environment, PackageLoader, select_autoescape
 
-def  jinja_env() -> Environment:
+
+def jinja_env() -> Environment:
     """
     Create Jinja environment.
 
