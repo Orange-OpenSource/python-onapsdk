@@ -23,7 +23,7 @@ def test_vsp_unknown():
     vsp = Vsp(name="test")
     vsp.vendor = vendor
     vsp.create()
-    assert vsp.identifier != None
+    assert vsp.identifier is not None
     assert vsp.status == const.DRAFT
     vsp.upload_files(open("{}/ubuntu16.zip".format(
         os.path.dirname(os.path.abspath(__file__))), 'rb'))
@@ -35,4 +35,4 @@ def test_vsp_unknown():
     vsp.submit()
     assert vsp.status == const.CERTIFIED
     vsp.create_csar()
-    assert vsp.csar_uuid != None
+    assert vsp.csar_uuid is not None

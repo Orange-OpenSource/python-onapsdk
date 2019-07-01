@@ -2,11 +2,10 @@
 # -*- coding: utf-8 -*-
 # SPDX-License-Identifier: Apache-2.0
 """VSP module."""
-from typing import List
-from typing import Callable
-from typing import BinaryIO
-from typing import Dict
 from typing import Any
+from typing import BinaryIO
+from typing import Callable
+from typing import Dict
 
 import logging
 
@@ -15,7 +14,8 @@ from onapsdk.vendor import Vendor
 import onapsdk.constants as const
 from onapsdk.utils.headers_creator import headers_sdc_creator
 
-class Vsp(SdcElement): # py
+
+class Vsp(SdcElement):
     """
     ONAP VSP Object used for SDC operations.
 
@@ -51,31 +51,10 @@ class Vsp(SdcElement): # py
         self.load_status()
         return self._status
 
-    @classmethod
-    def get_all(cls) -> List['Vsp']:
-        """
-        Get the Vsp list created in SDC.
-
-        Returns:
-            the list of the Vsp
-
-        """
-        return cls._get_all(Vsp)
-
-    def exists(self) -> bool:
-        """
-        Check if vsp already exists in SDC and update it.
-
-        Returns:
-            True if exists, False either
-
-        """
-        return self._exists(Vsp)
-
     def create(self) -> None:
         """Create the Vsp in SDC if not already existing."""
         if self.vendor:
-            self._create(Vsp, "vsp_create.json.j2", name=self.name,
+            self._create("vsp_create.json.j2", name=self.name,
                          vendor=self.vendor)
 
     def upload_files(self, file_to_upload: BinaryIO) -> None:
@@ -129,7 +108,6 @@ class Vsp(SdcElement): # py
                     "an error occured during file upload for Vsp %s",
                     self.name)
 
-
     def _validate_action(self):
         """Do validate for real."""
         url = "{}/{}/{}/orchestration-template-candidate/process".format(
@@ -148,11 +126,11 @@ class Vsp(SdcElement): # py
     def _generic_action(self, action=None):
         """Do a genric action for real."""
         if action:
-            self._action_to_sdc(Vsp, action)
+            self._action_to_sdc(action)
 
     def _create_csar_action(self):
         """Create CSAR package for real."""
-        result = self._action_to_sdc(Vsp, const.CREATE_PACKAGE)
+        result = self._action_to_sdc(const.CREATE_PACKAGE)
         if result:
             self._logger.info("result: %s", result.text)
             data = result.json()
@@ -188,7 +166,8 @@ class Vsp(SdcElement): # py
         UPLOADED = status == DRAFT and networkPackageName present and
                                    validationData not present
         VALIDATED = status == DRAFT and networkPackageName present and
-                                   validationData present and state.dirty = true
+                                   validationData present and
+                                   state.dirty = true
         COMMITED = status == DRAFT nd networkPackageName present and
                                    validationData present and
                                    state.dirty = false
@@ -228,7 +207,6 @@ class Vsp(SdcElement): # py
         elif vsp_details:
             self._status = const.DRAFT
 
-
     def _get_vsp_details(self) -> Dict[Any, Any]:
         """Get vsp details."""
         if self.created() and self.version:
@@ -238,8 +216,8 @@ class Vsp(SdcElement): # py
             return self.send_message_json('GET', 'get vsp version', url)
         return {}
 
-    @staticmethod
-    def import_from_sdc(values: Dict[str, Any]) -> 'Vsp':
+    @classmethod
+    def import_from_sdc(cls, values: Dict[str, Any]) -> 'Vsp':
         """
         Import Vsp from SDC.
 
@@ -254,3 +232,7 @@ class Vsp(SdcElement): # py
         vsp.identifier = values['id']
         vsp.vendor = Vendor(name=values['vendorName'])
         return vsp
+
+    def _really_submit(self) -> None:
+        """Really submit the SDC Vf in order to enable it."""
+        raise NotImplementedError("VSP don't need _really_submit")

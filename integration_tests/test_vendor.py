@@ -16,6 +16,6 @@ def test_vendor_unknown():
     response.raise_for_status()
     vendor = Vendor(name="test")
     vendor.create()
-    assert vendor.created
+    assert vendor.created()
     vendor.submit()
     assert vendor.status == const.CERTIFIED

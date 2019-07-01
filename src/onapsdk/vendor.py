@@ -4,13 +4,13 @@
 """Vendor module."""
 from typing import Any
 from typing import Dict
-from typing import List
 
 import logging
 
 from onapsdk.sdc_element import SdcElement
 import onapsdk.constants as const
 from onapsdk.utils.headers_creator import headers_sdc_creator
+
 
 class Vendor(SdcElement):
     """
@@ -38,46 +38,16 @@ class Vendor(SdcElement):
         super().__init__()
         self.name: str = name or "Generic-Vendor"
 
-    @property
-    def status(self) -> str:
-        """Return and lazy load the status."""
-        if self.created() and not self._status:
-            self.load()
-        return self._status
-
-    @classmethod
-    def get_all(cls) -> List['Vendor']:
-        """
-        Get the vendors list created in SDC.
-
-        Returns:
-            the list of the vendors
-
-        """
-        return cls._get_all(Vendor)
-
-    def exists(self) -> bool:
-        """
-        Check if vendor already exists in SDC and update infos.
-
-        Returns:
-            True if exists, False either
-
-        """
-        return self._exists(Vendor)
-
     def create(self) -> None:
         """Create the vendor in SDC if not already existing."""
-        self._create(Vendor, "vendor_create.json.j2", name=self.name)
+        self._create("vendor_create.json.j2", name=self.name)
 
     def submit(self) -> None:
         """Submit the SDC vendor in order to enable it."""
         self._logger.info("attempting to certify/sumbit vendor %s in SDC",
                           self.name)
         if self.status != const.CERTIFIED and self.created():
-            result = self._action_to_sdc(Vendor, const.SUBMIT)
-            if result:
-                self._status = const.CERTIFIED
+            self._really_submit()
         elif self.status == const.CERTIFIED:
             self._logger.warning(
                 "vendor %s in SDC is already submitted/certified",
@@ -96,8 +66,8 @@ class Vendor(SdcElement):
         """
         self._status = details['results'][-1]['status']
 
-    @staticmethod
-    def import_from_sdc(values: Dict[str, Any]) -> 'Vendor':
+    @classmethod
+    def import_from_sdc(cls, values: Dict[str, Any]) -> 'Vendor':
         """
         Import Vendor from SDC.
 
@@ -111,3 +81,9 @@ class Vendor(SdcElement):
         vendor = Vendor(values['name'])
         vendor.identifier = values['id']
         return vendor
+
+    def _really_submit(self) -> None:
+        """Really submit the SDC Vf in order to enable it."""
+        result = self._action_to_sdc(const.SUBMIT)
+        if result:
+            self._status = const.CERTIFIED
