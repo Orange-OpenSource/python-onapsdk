@@ -29,7 +29,7 @@ class Vsp(SdcElement):
 
     """
 
-    PATH = "vendor-software-products"
+    VSP_PATH = "vendor-software-products"
     _logger: logging.Logger = logging.getLogger(__name__)
     headers = headers_sdc_creator(SdcElement.headers)
 
@@ -39,10 +39,11 @@ class Vsp(SdcElement):
 
         Args:
             name (optional): the name of the vsp
+
         """
         super().__init__()
-        self.csar_uuid: str = None
-        self.vendor: Vendor = None
+        self._csar_uuid: str = None
+        self._vendor: Vendor = None
         self.name: str = name or "ONAP-test-VSP"
 
     @property
@@ -54,7 +55,8 @@ class Vsp(SdcElement):
     def create(self) -> None:
         """Create the Vsp in SDC if not already existing."""
         if self.vendor:
-            self._create("vsp_create.json.j2", name=self.name,
+            self._create("vsp_create.json.j2",
+                         name=self.name,
                          vendor=self.vendor)
 
     def upload_files(self, file_to_upload: BinaryIO) -> None:
@@ -65,40 +67,73 @@ class Vsp(SdcElement):
             file_to_upload (file): the zip file to upload
 
         """
-        self._action("upload files", const.DRAFT,
-                     self._upload_action, file_to_upload=file_to_upload)
+        self._action("upload files",
+                     const.DRAFT,
+                     self._upload_action,
+                     file_to_upload=file_to_upload)
 
     def validate(self) -> None:
         """Validate the artifacts uploaded."""
-        self._action("validate", const.UPLOADED,
-                     self._validate_action)
+        self._action("validate", const.UPLOADED, self._validate_action)
 
     def commit(self) -> None:
         """Commit the SDC Vsp."""
-        self._action("commit", const.VALIDATED,
-                     self._generic_action, action=const.COMMIT)
+        self._action("commit",
+                     const.VALIDATED,
+                     self._generic_action,
+                     action=const.COMMIT)
 
     def submit(self) -> None:
         """Submit the SDC Vsp in order to enable it."""
-        self._action("certify/sumbit", const.COMMITED,
-                     self._generic_action, action=const.SUBMIT)
+        self._action("certify/sumbit",
+                     const.COMMITED,
+                     self._generic_action,
+                     action=const.SUBMIT)
 
     def create_csar(self) -> None:
         """Create the CSAR package in the SDC Vsp."""
         self._action("create CSAR package", const.CERTIFIED,
                      self._create_csar_action)
 
+    @property
+    def vendor(self) -> Vendor:
+        """Return and lazy load the vendor."""
+        if self.created() and not self._vendor:
+            details = self._get_vsp_details()
+            if details:
+                self._vendor = Vendor(name=details['vendorName'])
+        return self._vendor
+
+    @vendor.setter
+    def vendor(self, vendor: Vendor) -> None:
+        """Set value for Vendor."""
+        self._vendor = vendor
+
+    @property
+    def csar_uuid(self) -> str:
+        """Return and lazy load the CSAR UUID."""
+        if self.created() and not self._csar_uuid:
+            self.create_csar()
+        return self._csar_uuid
+
+    @csar_uuid.setter
+    def csar_uuid(self, csar_uuid: str) -> None:
+        """Set value for csar uuid."""
+        self._csar_uuid = csar_uuid
+
     def _upload_action(self, file_to_upload: BinaryIO = None):
         """Do upload for real."""
         if file_to_upload:
             url = "{}/{}/{}/orchestration-template-candidate".format(
-                self._base_url(), Vsp.PATH, self._version_path())
+                self._base_url(), Vsp._sdc_path(), self._version_path())
             headers = self.headers.copy()
             headers.pop("Content-Type")
             headers["Accept-Encoding"] = "gzip, deflate"
             data = {'upload': file_to_upload}
-            upload_result = self.send_message('POST', 'upload ZIP for Vsp',
-                                              url, headers=headers,
+            upload_result = self.send_message('POST',
+                                              'upload ZIP for Vsp',
+                                              url,
+                                              headers=headers,
                                               files=data)
             if upload_result:
                 self._logger.info("Files for Vsp %s have been uploaded",
@@ -111,7 +146,7 @@ class Vsp(SdcElement):
     def _validate_action(self):
         """Do validate for real."""
         url = "{}/{}/{}/orchestration-template-candidate/process".format(
-            self._base_url(), Vsp.PATH, self._version_path())
+            self._base_url(), Vsp._sdc_path(), self._version_path())
         validate_result = self.send_message_json('PUT',
                                                  'Validate artifacts for Vsp',
                                                  url)
@@ -124,13 +159,14 @@ class Vsp(SdcElement):
                 self.name)
 
     def _generic_action(self, action=None):
-        """Do a genric action for real."""
+        """Do a generic action for real."""
         if action:
-            self._action_to_sdc(action)
+            self._action_to_sdc(action, action_type="lifecycleState")
 
     def _create_csar_action(self):
         """Create CSAR package for real."""
-        result = self._action_to_sdc(const.CREATE_PACKAGE)
+        result = self._action_to_sdc(const.CREATE_PACKAGE,
+                                     action_type="lifecycleState")
         if result:
             self._logger.info("result: %s", result.text)
             data = result.json()
@@ -179,8 +215,8 @@ class Vsp(SdcElement):
 
         """
         item_details = self._get_item_details()
-        if (item_details and
-                item_details['results'][-1]['status'] == const.CERTIFIED):
+        if (item_details
+                and item_details['results'][-1]['status'] == const.CERTIFIED):
             self._status = const.CERTIFIED
         else:
             self._check_status_not_certified()
@@ -189,9 +225,9 @@ class Vsp(SdcElement):
         """Check a status when it's not certified."""
         vsp_version_details = self._get_item_version_details()
         vsp_details = self._get_vsp_details()
-        if (vsp_version_details and 'state' in vsp_version_details and
-                not vsp_version_details['state']['dirty'] and vsp_details and
-                'validationData' in vsp_details):
+        if (vsp_version_details and 'state' in vsp_version_details
+                and not vsp_version_details['state']['dirty'] and vsp_details
+                and 'validationData' in vsp_details):
             self._status = const.COMMITED
         else:
             self._check_status_not_commited()
@@ -228,11 +264,19 @@ class Vsp(SdcElement):
             a Vsp instance with right values
 
         """
+        cls._logger.debug("importing VSP %s from SDC", values['name'])
         vsp = Vsp(values['name'])
         vsp.identifier = values['id']
         vsp.vendor = Vendor(name=values['vendorName'])
+        vsp.load_status()
+        cls._logger.info("status of VSP %s: %s", vsp.name, vsp.status)
         return vsp
 
     def _really_submit(self) -> None:
         """Really submit the SDC Vf in order to enable it."""
         raise NotImplementedError("VSP don't need _really_submit")
+
+    @classmethod
+    def _sdc_path(cls) -> None:
+        """Give back the end of SDC path."""
+        return cls.VSP_PATH

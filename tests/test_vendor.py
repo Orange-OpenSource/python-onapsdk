@@ -13,7 +13,7 @@ def test_get_all_no_vendors(mock_send):
     """Returns empty array if no vendors."""
     mock_send.return_value = {}
     assert Vendor.get_all() == []
-    mock_send.assert_called_once_with("GET", 'get Vendors', 'http://sdc.api.fe.simpledemo.onap.org:30206/sdc1/feProxy/onboarding-api/v1.0/vendor-license-models')
+    mock_send.assert_called_once_with("GET", 'get Vendors', 'https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/onboarding-api/v1.0/vendor-license-models')
 
 @mock.patch.object(Vendor, 'send_message_json')
 def test_get_all_some_vendors(mock_send):
@@ -30,10 +30,12 @@ def test_get_all_some_vendors(mock_send):
     assert vendor_2.name == "two"
     assert vendor_2.identifier == "1235"
     assert vendor_2.created()
-    mock_send.assert_called_with("GET", 'get Vendors', 'http://sdc.api.fe.simpledemo.onap.org:30206/sdc1/feProxy/onboarding-api/v1.0/vendor-license-models')
+    mock_send.assert_called_with("GET", 'get Vendors', 'https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/onboarding-api/v1.0/vendor-license-models')
 
-def test_init_no_name():
+@mock.patch.object(Vendor, 'exists')
+def test_init_no_name(mock_exists):
     """Check init with no names."""
+    mock_exists.return_value = False
     vendor = Vendor()
     assert isinstance(vendor, SdcElement)
     assert vendor._identifier == None
@@ -104,7 +106,7 @@ def test_load_created(mock_send, mock_get_all):
     vendor.identifier = "1234"
     vendor.load()
     mock_get_all.assert_not_called()
-    mock_send.assert_called_once_with('GET', 'get item', 'http://sdc.api.fe.simpledemo.onap.org:30206/sdc1/feProxy/onboarding-api/v1.0/items/1234/versions')
+    mock_send.assert_called_once_with('GET', 'get item', 'https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/onboarding-api/v1.0/items/1234/versions')
     assert vendor.status == "state_one"
     assert vendor.version == "5678"
 
@@ -120,20 +122,6 @@ def test_load_not_created(mock_send, mock_get_all):
     assert vendor._status == None
     assert vendor.version == None
     assert vendor._identifier == None
-
-@mock.patch.object(Vendor, 'get_all')
-@mock.patch.object(Vendor, 'send_message_json')
-def test_load_created_but_not_known(mock_send, mock_get_all):
-    mock_send.return_value = {'results':
-        [{'status': 'state_one', 'id': "5678"}]}
-    vendor = Vendor(name="one")
-    found_vendor = Vendor(name="one")
-    found_vendor._identifier = "1234"
-    mock_get_all.return_value = [found_vendor]
-    vendor.load()
-    mock_send.assert_not_called()
-    assert vendor._version == None
-    assert vendor.identifier == "1234"
 
 @mock.patch.object(Vendor, 'exists')
 @mock.patch.object(Vendor, 'send_message_json')
@@ -172,24 +160,33 @@ def test_create_OK(mock_send, mock_exists):
     assert vendor.identifier == "1234"
     assert vendor.version == "5678"
 
+@mock.patch.object(Vendor, 'exists')
+@mock.patch.object(Vendor, 'load')
 @mock.patch.object(Vendor, 'send_message')
-def test_submit_already_certified(mock_send):
+def test_submit_already_certified(mock_send, mock_load, mock_exists):
     """Do nothing if already certified."""
+    mock_exists.return_value = True
     vendor = Vendor()
     vendor._status = const.CERTIFIED
     vendor.submit()
     mock_send.assert_not_called()
 
+@mock.patch.object(Vendor, 'exists')
+@mock.patch.object(Vendor, 'load')
 @mock.patch.object(Vendor, 'send_message')
-def test_submit_not_created(mock_send):
+def test_submit_not_created(mock_send, mock_load, mock_exists):
     """Do nothing if not created."""
+    mock_exists.return_value = False
     vendor = Vendor()
     vendor.submit()
     mock_send.assert_not_called()
 
+@mock.patch.object(Vendor, 'exists')
+@mock.patch.object(Vendor, 'load')
 @mock.patch.object(Vendor, 'send_message')
-def test_submit_certified_NOK(mock_send):
+def test_submit_certified_NOK(mock_send, mock_load, mock_exists):
     """Don't update status if submission NOK."""
+    mock_exists.return_value = True
     vendor = Vendor()
     vendor._identifier = "12345"
     mock_send.return_value = None
@@ -197,12 +194,15 @@ def test_submit_certified_NOK(mock_send):
     vendor._status = "Draft"
     vendor._version = "1234"
     vendor.submit()
-    mock_send.assert_called_once_with("PUT", "Submit Vendor", 'http://sdc.api.fe.simpledemo.onap.org:30206/sdc1/feProxy/onboarding-api/v1.0/vendor-license-models/12345/versions/1234/actions', data=expected_data)
+    mock_send.assert_called_once_with("PUT", "Submit Vendor", 'https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/onboarding-api/v1.0/vendor-license-models/12345/versions/1234/actions', data=expected_data)
     assert vendor._status != const.CERTIFIED
 
+@mock.patch.object(Vendor, 'exists')
+@mock.patch.object(Vendor, 'load')
 @mock.patch.object(Vendor, 'send_message')
-def test_submit_certified_OK(mock_send):
+def test_submit_certified_OK(mock_send, mock_load, mock_exists):
     """Set status to CERTIFIED if submission OK."""
+    mock_exists.return_value = True
     vendor = Vendor()
     vendor._status = "Draft"
     vendor._version = "1234"
@@ -210,17 +210,21 @@ def test_submit_certified_OK(mock_send):
     mock_send.return_value = mock.Mock()
     expected_data = '{\n\n  "action": "Submit"\n}'
     vendor.submit()
-    mock_send.assert_called_once_with("PUT", "Submit Vendor", 'http://sdc.api.fe.simpledemo.onap.org:30206/sdc1/feProxy/onboarding-api/v1.0/vendor-license-models/12345/versions/1234/actions', data=expected_data)
+    mock_send.assert_called_once_with("PUT", "Submit Vendor", 'https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/onboarding-api/v1.0/vendor-license-models/12345/versions/1234/actions', data=expected_data)
     assert vendor.status == const.CERTIFIED
 
+@mock.patch.object(Vendor, 'created')
 @mock.patch.object(Vendor, 'load')
-def test_version_no_load_no_created(mock_load):
+def test_version_no_load_no_created(mock_load, mock_created):
+    mock_created.return_value = False
     vendor = Vendor()
     assert vendor.version == None
     mock_load.assert_not_called()
 
+@mock.patch.object(Vendor, 'created')
 @mock.patch.object(Vendor, 'load')
-def test_version_no_load_created(mock_load):
+def test_version_no_load_created(mock_load, mock_created):
+    mock_created.return_value = True
     vendor = Vendor()
     vendor._version = "64"
     assert vendor.version == "64"
@@ -233,14 +237,18 @@ def test_version_with_load(mock_load):
     assert vendor.version == None
     mock_load.assert_called_once()
 
+@mock.patch.object(Vendor, 'created')
 @mock.patch.object(Vendor, 'load')
-def test_status_no_load_no_created(mock_load):
+def test_status_no_load_no_created(mock_load, mock_created):
+    mock_created.return_value = False
     vendor = Vendor()
     assert vendor.status == None
     mock_load.assert_not_called()
 
+@mock.patch.object(Vendor, 'created')
 @mock.patch.object(Vendor, 'load')
-def test_status_no_load_created(mock_load):
+def test_status_no_load_created(mock_load, mock_created):
+    mock_created.return_value = True
     vendor = Vendor()
     vendor.identifier = "12345"
     vendor._status = "Draft"

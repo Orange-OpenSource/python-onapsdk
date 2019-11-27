@@ -2,9 +2,8 @@
 # -*- coding: utf-8 -*-
 # SPDX-License-Identifier: Apache-2.0
 """SDC Element module."""
-from typing import Any
-from typing import Dict
-from typing import List
+from typing import Any, Dict, List
+from abc import ABC, abstractmethod
 
 import logging
 from requests import Response
@@ -14,15 +13,14 @@ import onapsdk.constants as const
 from onapsdk.utils.jinja import jinja_env
 
 
-class SDC(OnapService):
+class SDC(OnapService, ABC):
     """Mother Class of all SDC elements."""
 
     server: str = "SDC"
-    PATH: str
     ACTION_TEMPLATE: str
     ACTION_METHOD: str
-    base_front_url = "http://sdc.api.fe.simpledemo.onap.org:30206"
-    base_back_url = "http://sdc.api.be.simpledemo.onap.org:30205"
+    base_front_url = "https://sdc.api.fe.simpledemo.onap.org:30207"
+    base_back_url = "https://sdc.api.be.simpledemo.onap.org:30204"
     _logger: logging.Logger = logging.getLogger(__name__)
 
     def __init__(self):
@@ -71,6 +69,8 @@ class SDC(OnapService):
 
     def created(self) -> bool:
         """Determine if SDC is created."""
+        if self.name and not self._identifier:
+            return self.exists()
         return bool(self._identifier)
 
     @classmethod
@@ -85,8 +85,8 @@ class SDC(OnapService):
         cls._logger.info("retrieving all objects of type %s from SDC",
                          cls.__name__)
         url = cls._get_all_url()
-        result = cls.send_message_json('GET', "get {}s".format(
-            cls.__name__), url)
+        result = cls.send_message_json('GET', "get {}s".format(cls.__name__),
+                                       url)
         objects = []
         if result:
             for obj_info in cls._get_objects_list(result):
@@ -103,8 +103,8 @@ class SDC(OnapService):
             True if exists, False either
 
         """
-        self._logger.debug("check if %s %s exists in SDC", type(self).__name__,
-                           self.name)
+        self._logger.debug("check if %s %s exists in SDC",
+                           type(self).__name__, self.name)
         objects = self.get_all()
         for obj in objects:
             self._logger.debug("checking if %s is the same", obj.name)
@@ -113,8 +113,8 @@ class SDC(OnapService):
                                   type(self).__name__)
                 self._copy_object(obj)
                 return True
-        self._logger.info("%s %s doesn't exist in SDC", type(self).__name__,
-                          self.name)
+        self._logger.info("%s %s doesn't exist in SDC",
+                          type(self).__name__, self.name)
         return False
 
     def submit(self) -> None:
@@ -124,9 +124,8 @@ class SDC(OnapService):
         if self.status != const.CERTIFIED and self.created():
             self._really_submit()
         elif self.status == const.CERTIFIED:
-            self._logger.warning(
-                "%s %s in SDC is already submitted/certified",
-                type(self).__name__, self.name)
+            self._logger.warning("%s %s in SDC is already submitted/certified",
+                                 type(self).__name__, self.name)
         elif not self.created():
             self._logger.warning("%s %s in SDC is not created",
                                  type(self).__name__, self.name)
@@ -136,13 +135,14 @@ class SDC(OnapService):
         self._logger.info("attempting to create %s %s in SDC",
                           type(self).__name__, self.name)
         if not self.exists():
-            url = "{}/{}".format(self._base_create_url(), self.PATH)
+            url = "{}/{}".format(self._base_create_url(), self._sdc_path())
             template = jinja_env().get_template(template_name)
             data = template.render(**kwargs)
             create_result = self.send_message_json('POST',
                                                    "create {}".format(
                                                        type(self).__name__),
-                                                   url, data=data)
+                                                   url,
+                                                   data=data)
             if create_result:
                 self._logger.info("%s %s is created in SDC",
                                   type(self).__name__, self.name)
@@ -158,12 +158,14 @@ class SDC(OnapService):
             self._logger.warning("%s %s is already created in SDC",
                                  type(self).__name__, self.name)
 
-    def _action_to_sdc(self, action: str, **kwargs) -> Response:
+    def _action_to_sdc(self, action: str, action_type: str = None,
+                       **kwargs) -> Response:
         """
         Really do an action in the SDC.
 
         Args:
             action (str): the action to perform
+            action_type (str, optional): the type of action
             headers (Dict[str, str], optional): headers to use if any
 
         Returns:
@@ -171,18 +173,25 @@ class SDC(OnapService):
 
         """
         subpath = self._generate_action_subpath(action)
-        url = self._action_url(self._base_url(), subpath, self._version_path())
+        url = self._action_url(self._base_create_url(),
+                               subpath,
+                               self._version_path(),
+                               action_type=action_type)
         template = jinja_env().get_template(self.ACTION_TEMPLATE)
         data = template.render(action=action, const=const)
-        result = self.send_message(self.ACTION_METHOD, "{} {}".format(
-            action, type(self).__name__), url, data=data, **kwargs)
+        result = self.send_message(self.ACTION_METHOD,
+                                   "{} {}".format(action,
+                                                  type(self).__name__),
+                                   url,
+                                   data=data,
+                                   **kwargs)
         if result:
-            self._logger.info("action %s has been performed on %s %s",
-                              action, type(self).__name__, self.name)
+            self._logger.info("action %s has been performed on %s %s", action,
+                              type(self).__name__, self.name)
             return result
-        self._logger.error(
-            "an error occured during action %s on %s %s in SDC", action,
-            type(self).__name__, self.name)
+        self._logger.error("an error occured during action %s on %s %s in SDC",
+                           action,
+                           type(self).__name__, self.name)
         return None
 
     def _get_item_details(self) -> Dict[str, Any]:
@@ -209,8 +218,9 @@ class SDC(OnapService):
         return {}
 
     @classmethod
-    def _get_objects_list(
-            cls, result: List[Dict[str, Any]]) -> List['SdcResource']:
+    @abstractmethod
+    def _get_objects_list(cls,
+                          result: List[Dict[str, Any]]) -> List['SdcResource']:
         """
         Import objects created in SDC.
 
@@ -221,9 +231,8 @@ class SDC(OnapService):
             NotImplementedError: this is an abstract method.
 
         """
-        raise NotImplementedError("SDC is an abstract class")
-
     @classmethod
+    @abstractmethod
     def _get_all_url(cls) -> str:
         """
         Get URL for all elements in SDC.
@@ -232,8 +241,6 @@ class SDC(OnapService):
             NotImplementedError: this is an abstract method.
 
         """
-        raise NotImplementedError("SDC is an abstract class")
-
     def __eq__(self, other: Any) -> bool:
         """
         Check equality for SDC and children.
@@ -249,6 +256,7 @@ class SDC(OnapService):
             return self.name == other.name
         return False
 
+    @abstractmethod
     def update_informations_from_sdc(self, details: Dict[str, Any]) -> None:
         """
 
@@ -256,8 +264,9 @@ class SDC(OnapService):
 
         Args:
             details ([type]): [description]
-        """
 
+        """
+    @abstractmethod
     def update_informations_from_sdc_creation(self,
                                               details: Dict[str, Any]) -> None:
         """
@@ -266,9 +275,10 @@ class SDC(OnapService):
 
         Args:
             details ([type]): the details from SDC
-        """
 
+        """
     @classmethod
+    @abstractmethod
     def _base_url(cls) -> str:
         """
         Give back the base url of Sdc.
@@ -277,9 +287,8 @@ class SDC(OnapService):
             NotImplementedError: this is an abstract method.
 
         """
-        raise NotImplementedError("SDC is an abstract class")
-
     @classmethod
+    @abstractmethod
     def _base_create_url(cls) -> str:
         """
         Give back the base url of Sdc.
@@ -288,9 +297,8 @@ class SDC(OnapService):
             NotImplementedError: this is an abstract method.
 
         """
-        raise NotImplementedError("SDC is an abstract class")
-
     @classmethod
+    @abstractmethod
     def import_from_sdc(cls, values: Dict[str, Any]) -> 'SDC':
         """
         Import Sdc object from SDC.
@@ -302,8 +310,7 @@ class SDC(OnapService):
             NotImplementedError: this is an abstract method.
 
         """
-        raise NotImplementedError("SDC is an abstract class")
-
+    @abstractmethod
     def load(self) -> None:
         """
         Load Object information from SDC.
@@ -312,8 +319,7 @@ class SDC(OnapService):
             NotImplementedError: this is an abstract method.
 
         """
-        raise NotImplementedError("SDC is an abstract class")
-
+    @abstractmethod
     def _copy_object(self, obj: 'SDC') -> None:
         """
         Copy relevant properties from object.
@@ -325,8 +331,7 @@ class SDC(OnapService):
             NotImplementedError: this is an abstract method.
 
         """
-        raise NotImplementedError("SDC is an abstract class")
-
+    @abstractmethod
     def _get_version_from_sdc(self, sdc_infos: Dict[str, Any]) -> str:
         """
         Get version from SDC results.
@@ -338,8 +343,7 @@ class SDC(OnapService):
             NotImplementedError: this is an abstract method.
 
         """
-        raise NotImplementedError("SDC is an abstract class")
-
+    @abstractmethod
     def _get_identifier_from_sdc(self, sdc_infos: Dict[str, Any]) -> str:
         """
         Get identifier from SDC results.
@@ -351,8 +355,7 @@ class SDC(OnapService):
             NotImplementedError: this is an abstract method.
 
         """
-        raise NotImplementedError("SDC is an abstract class")
-
+    @abstractmethod
     def _generate_action_subpath(self, action: str) -> str:
         """
 
@@ -365,8 +368,7 @@ class SDC(OnapService):
             NotImplementedError: this is an abstract method.
 
         """
-        raise NotImplementedError("SDC is an abstract class")
-
+    @abstractmethod
     def _version_path(self) -> str:
         """
         Give the end of the path for a version.
@@ -375,24 +377,23 @@ class SDC(OnapService):
             NotImplementedError: this is an abstract method.
 
         """
-        raise NotImplementedError("SDC is an abstract class")
-
+    @abstractmethod
     def _really_submit(self) -> None:
         """Really submit the SDC Vf in order to enable it."""
-        raise NotImplementedError("SDC is an abstract class")
-
     @staticmethod
-    def _action_url(base: str, subpath: str, version_path: str) -> str:
+    @abstractmethod
+    def _action_url(base: str,
+                    subpath: str,
+                    version_path: str,
+                    action_type: str = None) -> str:
         """
         Generate action URL for SDC.
-
-        Args:
-            base (str): base part of url
-            subpath (str): subpath of url
-            version_path (str): version path of the url
 
         Raises:
             NotImplementedError: this is an abstract method.
 
         """
-        raise NotImplementedError("SDC is an abstract class")
+    @classmethod
+    @abstractmethod
+    def _sdc_path(cls) -> None:
+        """Give back the end of SDC path."""

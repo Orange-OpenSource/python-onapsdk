@@ -1,0 +1,10 @@
+{
+  "name": "{{ resource.name }}",
+  "componentVersion": "{{ resource.version }}",
+  "posY": {{ posY| default(100) }},
+  "posX": {{ posX| default(200) }},
+  "uniqueId": "{{ resource.unique_identifier }}",
+  "originType": "{{ resource_type | upper }}",
+  "componentUid": "{{ resource.unique_identifier }}",
+  "icon": "defaulticon"
+}

@@ -5,6 +5,7 @@
 from typing import Dict
 from typing import Union
 from typing import Any
+from abc import ABC
 
 import logging
 import requests
@@ -13,11 +14,10 @@ import urllib3
 from urllib3.util.retry import Retry
 import simplejson.errors
 
-
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
-class OnapService():
+class OnapService(ABC):
     """
     Mother Class of all ONAP services.
 
@@ -46,7 +46,6 @@ class OnapService():
 
     def __init__(self) -> None:
         """Initialize the service."""
-
     @classmethod
     def send_message(cls, method: str, action: str, url: str,
                      **kwargs) -> Union[requests.Request, None]:
@@ -75,15 +74,18 @@ class OnapService():
         try:
             # build the request with the requested method
             session = cls.__requests_retry_session()
-            response = session.request(method, url, headers=headers,
-                                       verify=False, proxies=cls.proxy,
+            response = session.request(method,
+                                       url,
+                                       headers=headers,
+                                       verify=False,
+                                       proxies=cls.proxy,
                                        **kwargs)
 
             response.raise_for_status()
-            cls._logger.info("[%s][%s] response code: %s", cls.server,
-                             action, response.status_code)
-            cls._logger.debug("[%s][%s] sent header: %s",
-                              cls.server, action, headers)
+            cls._logger.info("[%s][%s] response code: %s", cls.server, action,
+                             response.status_code)
+            cls._logger.debug("[%s][%s] sent header: %s", cls.server, action,
+                              headers)
             cls._logger.debug("[%s][%s] url used: %s", cls.server, action, url)
             cls._logger.debug("[%s][%s] data sent: %s", cls.server, action,
                               data)
@@ -91,9 +93,8 @@ class OnapService():
                               response.text)
             return response
         except requests.HTTPError:
-            cls._logger.error(
-                "[%s][%s] response code: %s", cls.server, action,
-                response.status_code)
+            cls._logger.error("[%s][%s] response code: %s", cls.server, action,
+                              response.status_code)
             cls._logger.error("[%s][%s] response: %s", cls.server, action,
                               response.text)
         except requests.RequestException as err:
@@ -139,8 +140,8 @@ class OnapService():
             if response:
                 return response.json()
         except simplejson.errors.JSONDecodeError as err:
-            cls._logger.error("[%s][%s]Failed to decode JSON: %s",
-                              cls.server, action, err)
+            cls._logger.error("[%s][%s]Failed to decode JSON: %s", cls.server,
+                              action, err)
             cls._logger.error("[%s][%s] sent header: %s", cls.server, action,
                               cls.headers)
             cls._logger.error("[%s][%s] url used: %s", cls.server, action, url)
@@ -151,10 +152,10 @@ class OnapService():
         return {}
 
     @staticmethod
-    def __requests_retry_session(
-            retries: int = 10,
-            backoff_factor: float = 0.3,
-            session: requests.Session = None) -> requests.Session:
+    def __requests_retry_session(retries: int = 10,
+                                 backoff_factor: float = 0.3,
+                                 session: requests.Session = None
+                                 ) -> requests.Session:
         """
         Create a request Session with retries.
 

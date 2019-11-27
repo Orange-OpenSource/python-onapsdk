@@ -14,11 +14,12 @@ import onapsdk.constants as const
 
 
 @pytest.mark.integration
-def test_vsp_unknown():
+def test_vf_unknown():
     """Integration tests for Vf."""
+    Vendor.base_front_url = "http://sdc.api.fe.simpledemo.onap.org:30206"
+    Vendor.base_back_url = Vendor.base_front_url
     response = requests.post("{}/reset".format(Vendor.base_front_url))
     response.raise_for_status()
-    Vf.base_back_url = Vf.base_front_url
     vendor = Vendor(name="test")
     vendor.create()
     vendor.submit()

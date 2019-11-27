@@ -11,22 +11,24 @@ from onapsdk.vsp import Vsp
 
 def test_init():
     """Test the initialization."""
-    element = SdcElement()
+    element = Vendor()
     assert isinstance(element, OnapService)
 
 def test_class_variables():
     """Test the class variables."""
     assert SdcElement.server == "SDC"
-    assert SdcElement.base_front_url == "http://sdc.api.fe.simpledemo.onap.org:30206"
-    assert SdcElement.base_back_url == "http://sdc.api.be.simpledemo.onap.org:30205"
+    assert SdcElement.base_front_url == "https://sdc.api.fe.simpledemo.onap.org:30207"
+    assert SdcElement.base_back_url == "https://sdc.api.be.simpledemo.onap.org:30204"
     assert SdcElement.headers == {
             "Content-Type": "application/json",
             "Accept": "application/json"
         }
 
+@mock.patch.object(Vendor, 'created')
 @mock.patch.object(Vendor, 'send_message_json')
-def test__get_item_details_not_created(mock_send):
+def test__get_item_details_not_created(mock_send, mock_created):
     vendor = Vendor()
+    mock_created.return_value = False
     assert vendor._get_item_details() == {}
     mock_send.assert_not_called()
 
@@ -38,9 +40,11 @@ def test__get_item_details_created(mock_send):
     assert vsp._get_item_details() == {'return': 'value'}
     mock_send.assert_called_once_with('GET', 'get item', "{}/items/1234/versions".format(vsp._base_url()))
 
+@mock.patch.object(Vsp, 'created')
 @mock.patch.object(Vsp, 'send_message_json')
-def test__get_items_version_details_not_created(mock_send):
+def test__get_items_version_details_not_created(mock_send, mock_created):
     vsp = Vsp()
+    mock_created.return_value = False
     assert vsp._get_item_version_details() == {}
     mock_send.assert_not_called()
 
