@@ -1,0 +1,10 @@
+# Rules defined later in the file take precedence over the rules
+# defined before.
+
+# For everything except doc
+* @davidblaisonneau-orange @Rene_ROBERT @morganrOL @sylvainOL @jardellos
+
+# For doc
+# This will match all files for which the file name ends in `.rst`
+*.rst @eric_debeau
+/docs/ @eric_debeau
