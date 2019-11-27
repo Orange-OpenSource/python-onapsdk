@@ -2,9 +2,8 @@
 # -*- coding: utf-8 -*-
 # SPDX-License-Identifier: Apache-2.0
 """SDC Element module."""
-from typing import Any
-from typing import Dict
-from typing import List
+from typing import Any, Dict, List
+from abc import ABC, abstractmethod
 
 import logging
 
@@ -12,7 +11,7 @@ from onapsdk.sdc import SDC
 import onapsdk.constants as const
 
 
-class SdcElement(SDC):
+class SdcElement(SDC, ABC):
     """Mother Class of all SDC elements."""
 
     _logger: logging.Logger = logging.getLogger(__name__)
@@ -30,6 +29,25 @@ class SdcElement(SDC):
             # exists() method check if exists AND update identifier
             self.exists()
 
+    def update_informations_from_sdc(self, details: Dict[str, Any]) -> None:
+        """
+
+        Update instance with details from SDC.
+
+        Args:
+            details ([type]): [description]
+
+        """
+    def update_informations_from_sdc_creation(self,
+                                              details: Dict[str, Any]) -> None:
+        """
+
+        Update instance with details from SDC after creation.
+
+        Args:
+            details ([type]): the details from SDC
+
+        """
     @classmethod
     def _base_url(cls) -> str:
         """
@@ -64,7 +82,7 @@ class SdcElement(SDC):
             str: the subpath part
 
         """
-        subpath = self.PATH
+        subpath = self._sdc_path()
         if action == const.COMMIT:
             subpath = "items"
         return subpath
@@ -80,7 +98,10 @@ class SdcElement(SDC):
         return "{}/versions/{}".format(self.identifier, self.version)
 
     @staticmethod
-    def _action_url(base: str, subpath: str, version_path: str) -> str:
+    def _action_url(base: str,
+                    subpath: str,
+                    version_path: str,
+                    action_type: str = None) -> str:
         """
         Generate action URL for SDC.
 
@@ -88,17 +109,17 @@ class SdcElement(SDC):
             base (str): base part of url
             subpath (str): subpath of url
             version_path (str): version path of the url
+            action_type (str, optional): the type of action. UNUSED here
 
         Returns:
             str: the URL to use
 
         """
-        return "{}/{}/{}/actions".format(base, subpath,
-                                         version_path)
+        return "{}/{}/{}/actions".format(base, subpath, version_path)
 
     @classmethod
-    def _get_objects_list(
-            cls, result: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def _get_objects_list(cls, result: List[Dict[str, Any]]
+                          ) -> List[Dict[str, Any]]:
         """
         Import objects created in SDC.
 
@@ -120,7 +141,7 @@ class SdcElement(SDC):
             str: the url
 
         """
-        return "{}/{}".format(cls._base_url(), cls.PATH)
+        return "{}/{}".format(cls._base_url(), cls._sdc_path())
 
     def _copy_object(self, obj: 'SdcElement') -> None:
         """
@@ -159,6 +180,7 @@ class SdcElement(SDC):
         return sdc_infos['itemId']
 
     @classmethod
+    @abstractmethod
     def import_from_sdc(cls, values: Dict[str, Any]) -> 'SdcElement':
         """
         Import SdcElement from SDC.

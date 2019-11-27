@@ -1,3 +1,4 @@
 requests[socks]
 jinja2
 simplejson
+oyaml

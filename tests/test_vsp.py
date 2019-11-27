@@ -17,10 +17,13 @@ def test_get_all_no_vsp(mock_send):
     """Returns empty array if no vsps."""
     mock_send.return_value = {}
     assert Vsp.get_all() == []
-    mock_send.assert_called_once_with("GET", 'get Vsps', 'http://sdc.api.fe.simpledemo.onap.org:30206/sdc1/feProxy/onboarding-api/v1.0/vendor-software-products')
+    mock_send.assert_called_once_with(
+        "GET", 'get Vsps',
+        'https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/onboarding-api/v1.0/vendor-software-products')
 
+@mock.patch.object(Vsp, 'load_status')
 @mock.patch.object(Vsp, 'send_message_json')
-def test_get_all_some_vsps(mock_send):
+def test_get_all_some_vsps(mock_send, mock_load_status):
     """Returns a list of vsp."""
     mock_send.return_value = {'results':[
         {'name': 'one', 'id': '1234', 'vendorName': 'vspOne'},
@@ -35,10 +38,14 @@ def test_get_all_some_vsps(mock_send):
     assert vsp_2.identifier == "1235"
     assert vsp_2.vendor == vsp_1.vendor
     assert vsp_2.created()
-    mock_send.assert_called_with("GET", 'get Vsps', 'http://sdc.api.fe.simpledemo.onap.org:30206/sdc1/feProxy/onboarding-api/v1.0/vendor-software-products')
+    mock_send.assert_called_with(
+        "GET", 'get Vsps',
+        'https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/onboarding-api/v1.0/vendor-software-products')
 
-def test_init_no_name():
+@mock.patch.object(Vsp, 'created')
+def test_init_no_name(mock_created):
     """Check init with no names."""
+    mock_created.return_value = False
     vsp = Vsp()
     assert isinstance(vsp, SdcElement)
     assert vsp._identifier == None
@@ -49,9 +56,11 @@ def test_init_no_name():
     assert isinstance(vsp._base_url(), str)
     assert "sdc1/feProxy/onboarding-api/v1.0" in vsp._base_url()
 
-def test_init_with_name():
+@mock.patch.object(Vsp, 'exists')
+def test_init_with_name(mock_exists):
     """Check init with no names."""
     vsp = Vsp(name="YOLO")
+    mock_exists.return_value = False
     assert vsp._identifier == None
     assert vsp._version == None
     assert vsp.name == "YOLO"
@@ -111,7 +120,7 @@ def test_load_created(mock_send, mock_get_all):
     vsp.identifier = "1234"
     vsp.load()
     mock_get_all.assert_not_called()
-    mock_send.assert_called_once_with('GET', 'get item', 'http://sdc.api.fe.simpledemo.onap.org:30206/sdc1/feProxy/onboarding-api/v1.0/items/1234/versions')
+    mock_send.assert_called_once_with('GET', 'get item', 'https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/onboarding-api/v1.0/items/1234/versions')
     assert vsp._status == None
     assert vsp.version == "5678"
 
@@ -127,21 +136,6 @@ def test_load_not_created(mock_send, mock_get_all):
     assert vsp._status == None
     assert vsp.version == None
     assert vsp.identifier == None
-
-@mock.patch.object(Vsp, 'get_all')
-@mock.patch.object(Vsp, 'send_message_json')
-def test_load_created_but_not_known(mock_send, mock_get_all):
-    mock_send.return_value = {'results':
-        [{'status': 'state_one', 'id': "5678", 'vendorName': 'vspOne'}]}
-    vsp = Vsp(name="one")
-    found_vsp = Vsp(name="one")
-    found_vsp.identifier = "1234"
-    mock_get_all.return_value = [found_vsp]
-    vsp.load()
-    mock_send.assert_not_called()
-    assert vsp.created() == True
-    assert vsp._version == None
-    assert vsp.identifier == "1234"
 
 @mock.patch.object(Vsp, 'exists')
 @mock.patch.object(Vsp, 'send_message_json')
@@ -176,7 +170,7 @@ def test_create_issue_in_creation(mock_send, mock_exists):
     mock_exists.return_value = False
     mock_send.return_value = {}
     vsp.create()
-    mock_send.assert_called_once_with("POST", "create Vsp", 'http://sdc.api.fe.simpledemo.onap.org:30206/sdc1/feProxy/onboarding-api/v1.0/vendor-software-products', data=expected_data)
+    mock_send.assert_called_once_with("POST", "create Vsp", 'https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/onboarding-api/v1.0/vendor-software-products', data=expected_data)
     assert vsp.created() == False
 
 @mock.patch.object(Vsp, 'exists')
@@ -193,14 +187,16 @@ def test_create_OK(mock_send, mock_exists):
         'itemId': "1234",
         'version': {'id': "5678", 'status': 'state_created'}}
     vsp.create()
-    mock_send.assert_called_once_with("POST", "create Vsp", 'http://sdc.api.fe.simpledemo.onap.org:30206/sdc1/feProxy/onboarding-api/v1.0/vendor-software-products', data=expected_data)
+    mock_send.assert_called_once_with("POST", "create Vsp", 'https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/onboarding-api/v1.0/vendor-software-products', data=expected_data)
     assert vsp.created() == True
     assert vsp._status == const.DRAFT
     assert vsp.identifier == "1234"
     assert vsp.version == "5678"
 
+@mock.patch.object(Vsp, 'exists')
 @mock.patch.object(Vsp, 'load')
-def test_version_no_load_no_created(mock_load):
+def test_version_no_load_no_created(mock_load, mock_exists):
+    mock_exists.return_value = False
     vsp = Vsp()
     assert vsp.version == None
     mock_load.assert_not_called()
@@ -220,7 +216,55 @@ def test_version_with_load(mock_load):
     assert vsp.version == None
     mock_load.assert_called_once()
 
-def test_status_no_load_no_created():
+@mock.patch.object(Vsp, '_get_vsp_details')
+@mock.patch.object(Vsp, 'created')
+def test_vendor_not_created_not_vendor(mock_created, mock_details):
+    mock_created.return_value = False
+    vsp = Vsp()
+    assert vsp.vendor == None
+    mock_details.assert_not_called()
+
+@mock.patch.object(Vsp, '_get_vsp_details')
+@mock.patch.object(Vsp, 'created')
+def test_vendor_not_created_vendor(mock_created, mock_details):
+    mock_created.return_value = False
+    vsp = Vsp()
+    vendor = Vendor()
+    vsp.vendor = vendor
+    assert vsp.vendor == vendor
+    mock_details.assert_not_called()
+
+@mock.patch.object(Vsp, '_get_vsp_details')
+@mock.patch.object(Vsp, 'created')
+def test_vendor_created_not_details(mock_created, mock_details):
+    mock_created.return_value = True
+    mock_details.return_value = {}
+    vsp = Vsp()
+    assert vsp.vendor == None
+    mock_details.assert_called_once()
+
+@mock.patch.object(Vsp, '_get_vsp_details')
+@mock.patch.object(Vsp, 'created')
+def test_vendor_created_details(mock_created, mock_details):
+    mock_created.return_value = True
+    mock_details.return_value = {'vendorName': 'test'}
+    vsp = Vsp()
+    assert vsp.vendor.name == 'test'
+    mock_details.assert_called_once()
+
+@mock.patch.object(Vsp, '_get_vsp_details')
+@mock.patch.object(Vsp, 'created')
+def test_vendor_created_but_already_vendor(mock_created, mock_details):
+    mock_created.return_value = True
+    vsp = Vsp()
+    vendor = Vendor()
+    vsp.vendor = vendor
+    assert vsp.vendor == vendor
+    mock_details.assert_not_called()
+
+@mock.patch.object(Vsp, 'exists')
+def test_status_no_load_no_created(mock_exists):
+    mock_exists.return_value = False
     vsp = Vsp()
     assert vsp.status == None
 
@@ -291,8 +335,11 @@ def test_status_version_is_dirty_no_validation_data_but_networkPackageName(mock_
     mock_vsp_details.return_value={'no_validationData': {'some': 'thing'}, 'networkPackageName': 'ubuntu16'}
     assert vsp.status == const.UPLOADED
 
+
+@mock.patch.object(Vsp, 'exists')
 @mock.patch.object(Vsp, 'send_message_json')
-def test__get_vsp_details_not_created(mock_send):
+def test__get_vsp_details_not_created(mock_send, mock_exists):
+    mock_exists.return_value = False
     vsp = Vsp()
     assert vsp._get_vsp_details() == {}
     mock_send.assert_not_called()
@@ -334,7 +381,7 @@ def test_submit_OK(mock_send, mock_status):
     vsp._version = "1234"
     vsp._identifier = "12345"
     vsp.submit()
-    mock_send.assert_called_once_with("PUT", "Submit Vsp", 'http://sdc.api.fe.simpledemo.onap.org:30206/sdc1/feProxy/onboarding-api/v1.0/vendor-software-products/12345/versions/1234/actions', data=expected_data)
+    mock_send.assert_called_once_with("PUT", "Submit Vsp", 'https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/onboarding-api/v1.0/vendor-software-products/12345/versions/1234/actions', data=expected_data)
 
 @pytest.mark.parametrize("status", [const.DRAFT, const.COMMITED, const.UPLOADED, const.VALIDATED])
 @mock.patch.object(Vsp, 'load_status')
@@ -358,7 +405,7 @@ def test_create_csar_not_OK(mock_send, mock_status):
     vsp._version = "1234"
     vsp._identifier = "12345"
     vsp.create_csar()
-    mock_send.assert_called_once_with("PUT", "Create_Package Vsp", 'http://sdc.api.fe.simpledemo.onap.org:30206/sdc1/feProxy/onboarding-api/v1.0/vendor-software-products/12345/versions/1234/actions', data=expected_data)
+    mock_send.assert_called_once_with("PUT", "Create_Package Vsp", 'https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/onboarding-api/v1.0/vendor-software-products/12345/versions/1234/actions', data=expected_data)
     assert vsp.csar_uuid == None
 
 @mock.patch.object(Vsp, 'load_status')
@@ -375,7 +422,7 @@ def test_create_csar_OK(mock_send, mock_status):
     vsp._version = "1234"
     vsp._identifier = "12345"
     vsp.create_csar()
-    mock_send.assert_called_once_with("PUT", "Create_Package Vsp", 'http://sdc.api.fe.simpledemo.onap.org:30206/sdc1/feProxy/onboarding-api/v1.0/vendor-software-products/12345/versions/1234/actions', data=expected_data)
+    mock_send.assert_called_once_with("PUT", "Create_Package Vsp", 'https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/onboarding-api/v1.0/vendor-software-products/12345/versions/1234/actions', data=expected_data)
     assert vsp.csar_uuid == "64"
 
 @pytest.mark.parametrize("status", [const.DRAFT, const.CERTIFIED, const.UPLOADED, const.COMMITED])
@@ -398,7 +445,7 @@ def test_commit_OK(mock_send, mock_status):
     vsp._version = "1234"
     vsp._identifier = "12345"
     vsp.commit()
-    mock_send.assert_called_once_with("PUT", "Commit Vsp", 'http://sdc.api.fe.simpledemo.onap.org:30206/sdc1/feProxy/onboarding-api/v1.0/items/12345/versions/1234/actions', data=expected_data)
+    mock_send.assert_called_once_with("PUT", "Commit Vsp", 'https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/onboarding-api/v1.0/items/12345/versions/1234/actions', data=expected_data)
 
 @pytest.mark.parametrize("status", [const.CERTIFIED, const.COMMITED, const.UPLOADED, const.VALIDATED])
 @mock.patch.object(Vsp, 'load_status')
@@ -421,7 +468,7 @@ def test_upload_not_OK(mock_send, mock_status):
     vsp._version = "1234"
     vsp._identifier = "12345"
     vsp.upload_files('data')
-    mock_send.assert_called_once_with('POST', 'upload ZIP for Vsp', "http://sdc.api.fe.simpledemo.onap.org:30206/sdc1/feProxy/onboarding-api/v1.0/vendor-software-products/12345/versions/1234/orchestration-template-candidate", files={'upload': 'data'}, headers={'Accept': 'application/json', 'USER_ID': 'cs0008', 'Authorization': 'Basic YWFpOktwOGJKNFNYc3pNMFdYbGhhazNlSGxjc2UyZ0F3ODR2YW9HR21KdlV5MlU=', 'X-ECOMP-InstanceID': 'onapsdk', 'Accept-Encoding': 'gzip, deflate'})
+    mock_send.assert_called_once_with('POST', 'upload ZIP for Vsp', "https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/onboarding-api/v1.0/vendor-software-products/12345/versions/1234/orchestration-template-candidate", files={'upload': 'data'}, headers={'Accept': 'application/json', 'USER_ID': 'cs0008', 'Authorization': 'Basic YWFpOktwOGJKNFNYc3pNMFdYbGhhazNlSGxjc2UyZ0F3ODR2YW9HR21KdlV5MlU=', 'X-ECOMP-InstanceID': 'onapsdk', 'Accept-Encoding': 'gzip, deflate'})
 
 @mock.patch.object(Vsp, 'load_status')
 @mock.patch.object(Vsp, 'send_message')
@@ -434,7 +481,7 @@ def test_upload_OK(mock_send, mock_status):
     vsp._version = "1234"
     vsp._identifier = "12345"
     vsp.upload_files('data')
-    mock_send.assert_called_once_with('POST', 'upload ZIP for Vsp', "http://sdc.api.fe.simpledemo.onap.org:30206/sdc1/feProxy/onboarding-api/v1.0/vendor-software-products/12345/versions/1234/orchestration-template-candidate", files={'upload': 'data'}, headers={'Accept': 'application/json', 'USER_ID': 'cs0008', 'Authorization': 'Basic YWFpOktwOGJKNFNYc3pNMFdYbGhhazNlSGxjc2UyZ0F3ODR2YW9HR21KdlV5MlU=', 'X-ECOMP-InstanceID': 'onapsdk', 'Accept-Encoding': 'gzip, deflate'})
+    mock_send.assert_called_once_with('POST', 'upload ZIP for Vsp', "https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/onboarding-api/v1.0/vendor-software-products/12345/versions/1234/orchestration-template-candidate", files={'upload': 'data'}, headers={'Accept': 'application/json', 'USER_ID': 'cs0008', 'Authorization': 'Basic YWFpOktwOGJKNFNYc3pNMFdYbGhhazNlSGxjc2UyZ0F3ODR2YW9HR21KdlV5MlU=', 'X-ECOMP-InstanceID': 'onapsdk', 'Accept-Encoding': 'gzip, deflate'})
 
 @pytest.mark.parametrize("status", [const.CERTIFIED, const.COMMITED, const.DRAFT, const.VALIDATED])
 @mock.patch.object(Vsp, 'load_status')
@@ -456,7 +503,7 @@ def test_validate_not_OK(mock_send, mock_status):
     vsp._version = "1234"
     vsp._identifier = "12345"
     vsp.validate()
-    mock_send.assert_called_once_with('PUT', 'Validate artifacts for Vsp', 'http://sdc.api.fe.simpledemo.onap.org:30206/sdc1/feProxy/onboarding-api/v1.0/vendor-software-products/12345/versions/1234/orchestration-template-candidate/process')
+    mock_send.assert_called_once_with('PUT', 'Validate artifacts for Vsp', 'https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/onboarding-api/v1.0/vendor-software-products/12345/versions/1234/orchestration-template-candidate/process')
 
 @mock.patch.object(Vsp, 'load_status')
 @mock.patch.object(Vsp, 'send_message_json')
@@ -468,7 +515,7 @@ def test_validate_not_success(mock_send, mock_status):
     vsp._version = "1234"
     vsp._identifier = "12345"
     vsp.validate()
-    mock_send.assert_called_once_with('PUT', 'Validate artifacts for Vsp', 'http://sdc.api.fe.simpledemo.onap.org:30206/sdc1/feProxy/onboarding-api/v1.0/vendor-software-products/12345/versions/1234/orchestration-template-candidate/process')
+    mock_send.assert_called_once_with('PUT', 'Validate artifacts for Vsp', 'https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/onboarding-api/v1.0/vendor-software-products/12345/versions/1234/orchestration-template-candidate/process')
 
 @mock.patch.object(Vsp, 'load_status')
 @mock.patch.object(Vsp, 'send_message_json')
@@ -480,4 +527,4 @@ def test_validate_OK(mock_send, mock_status):
     vsp._version = "1234"
     vsp._identifier = "12345"
     vsp.validate()
-    mock_send.assert_called_once_with('PUT', 'Validate artifacts for Vsp', 'http://sdc.api.fe.simpledemo.onap.org:30206/sdc1/feProxy/onboarding-api/v1.0/vendor-software-products/12345/versions/1234/orchestration-template-candidate/process')
+    mock_send.assert_called_once_with('PUT', 'Validate artifacts for Vsp', 'https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/onboarding-api/v1.0/vendor-software-products/12345/versions/1234/orchestration-template-candidate/process')

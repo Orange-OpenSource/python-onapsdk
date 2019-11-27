@@ -4,11 +4,13 @@
 
 import mock
 import pytest
+from unittest.mock import MagicMock
 
 import onapsdk.constants as const
 from onapsdk.sdc_resource import SdcResource
 from onapsdk.vf import Vf
 from onapsdk.vsp import Vsp
+from onapsdk.vsp import Vendor
 
 
 @mock.patch.object(Vf, 'send_message_json')
@@ -16,7 +18,7 @@ def test_get_all_no_vf(mock_send):
     """Returns empty array if no vfs."""
     mock_send.return_value = {}
     assert Vf.get_all() == []
-    mock_send.assert_called_once_with("GET", 'get Vfs', 'http://sdc.api.be.simpledemo.onap.org:30205/sdc/v1/catalog/resources?resourceType=VF')
+    mock_send.assert_called_once_with("GET", 'get Vfs', 'https://sdc.api.be.simpledemo.onap.org:30204/sdc/v1/catalog/resources?resourceType=VF')
 
 
 @mock.patch.object(Vf, 'send_message_json')
@@ -41,7 +43,7 @@ def test_get_all_some_vfs(mock_send):
     assert vf_2.status == const.DRAFT
     assert vf_2.version == "1.0"
     assert vf_2.created()
-    mock_send.assert_called_once_with("GET", 'get Vfs', 'http://sdc.api.be.simpledemo.onap.org:30205/sdc/v1/catalog/resources?resourceType=VF')
+    mock_send.assert_called_once_with("GET", 'get Vfs', 'https://sdc.api.be.simpledemo.onap.org:30204/sdc/v1/catalog/resources?resourceType=VF')
 
 
 def test_init_no_name():
@@ -55,9 +57,10 @@ def test_init_no_name():
     assert vf.vsp is None
     assert isinstance(vf._base_url(), str)
 
-
-def test_init_with_name():
+@mock.patch.object(Vf, 'exists')
+def test_init_with_name(mock_exists):
     """Check init with no names."""
+    mock_exists.return_value = False
     vf = Vf(name="YOLO")
     assert vf._identifier == None
     assert vf._version == None
@@ -111,6 +114,7 @@ def test_exists_exists(mock_get_all):
     vf_1 = Vf(name="one")
     vf_1.identifier = "1234"
     vf_1.unique_uuid = "5689"
+    vf_1.unique_identifier = "71011"
     vf_1.status = const.DRAFT
     vf_1.version = "1.1"
     mock_get_all.return_value = [vf_1]
@@ -118,6 +122,7 @@ def test_exists_exists(mock_get_all):
     assert vf.exists()
     assert vf.identifier == "1234"
     assert vf.unique_uuid == "5689"
+    assert vf.unique_identifier == "71011"
     assert vf.status == const.DRAFT
     assert vf.version == "1.1"
 
@@ -152,20 +157,22 @@ def test_create_already_exists(mock_send, mock_exists):
     vf.create()
     mock_send.assert_not_called()
 
-
 @mock.patch.object(Vf, 'exists')
 @mock.patch.object(Vf, 'send_message_json')
 def test_create_issue_in_creation(mock_send, mock_exists):
     """Do nothing if not created but issue during creation."""
     vf = Vf()
     vsp = Vsp()
+    vendor = Vendor()
     vsp._identifier = "1232"
+    vsp.create_csar = MagicMock(return_value=True)
+    vsp.vendor = vendor
     vf.vsp = vsp
-    expected_data = '{\n    "artifacts": {},\n    "attributes": [],\n    "capabilities": {},\n    "categories":[\n        {\n            "name": "Generic",\n            "normalizedName": "generic",\n            "uniqueId": "resourceNewCategory.generic",\n            "icons": null,\n            "subcategories":[\n                {\n                    "name": "Abstract",\n                    "normalizedName": "abstract",\n                    "uniqueId": "resourceNewCategory.generic.abstract",\n                    "icons":[\n                        "objectStorage",\n                        "compute"\n                    ],\n                    "groupings": null,\n                    "ownerId": null,\n                    "empty": false\n                }\n            ],\n            "ownerId": null,\n            "empty": false\n        }\n    ],\n    "componentInstances": [],\n    "componentInstancesAttributes": {},\n    "componentInstancesProperties": {},\n    "componentType": "RESOURCE",\n    "contactId": "cs0008",\n    "csarUUID": "None",\n    "csarVersion": "1.0",\n    "deploymentArtifacts": {},\n    "description": "VF",\n    "icon": "defaulticon",\n    "name": "ONAP-test-VF",\n    "properties": [],\n    "groups": [],\n    "requirements": {},\n    "resourceType": "VF",\n    "tags": ["ONAP-test-VF"],\n    "toscaArtifacts": {},\n    "vendorName": "",\n    "vendorRelease": "1.0"\n}'
+    expected_data = '{\n    "artifacts": {},\n    "attributes": [],\n    "capabilities": {},\n    "categories":[\n        {\n            "name": "Generic",\n            "normalizedName": "generic",\n            "uniqueId": "resourceNewCategory.generic",\n            "icons": null,\n            "subcategories":[\n                {\n                    "name": "Abstract",\n                    "normalizedName": "abstract",\n                    "uniqueId": "resourceNewCategory.generic.abstract",\n                    "icons":[\n                        "objectStorage",\n                        "compute"\n                    ],\n                    "groupings": null,\n                    "ownerId": null,\n                    "empty": false\n                }\n            ],\n            "ownerId": null,\n            "empty": false\n        }\n    ],\n    "componentInstances": [],\n    "componentInstancesAttributes": {},\n    "componentInstancesProperties": {},\n    "componentType": "RESOURCE",\n    "contactId": "cs0008",\n    "csarUUID": "None",\n    "csarVersion": "1.0",\n    "deploymentArtifacts": {},\n    "description": "VF",\n    "icon": "defaulticon",\n    "name": "ONAP-test-VF",\n    "properties": [],\n    "groups": [],\n    "requirements": {},\n    "resourceType": "VF",\n    "tags": ["ONAP-test-VF"],\n    "toscaArtifacts": {},\n    "vendorName": "Generic-Vendor",\n    "vendorRelease": "1.0"\n}'
     mock_exists.return_value = False
     mock_send.return_value = {}
     vf.create()
-    mock_send.assert_called_once_with("POST", "create Vf", 'http://sdc.api.fe.simpledemo.onap.org:30206/sdc1/feProxy/rest/v1/catalog/resources', data=expected_data)
+    mock_send.assert_called_once_with("POST", "create Vf", 'https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/rest/v1/catalog/resources', data=expected_data)
     assert not vf.created()
 
 
@@ -175,27 +182,30 @@ def test_create_OK(mock_send, mock_exists):
     """Create and update object."""
     vf = Vf()
     vsp = Vsp()
+    vendor = Vendor()
     vsp._identifier = "1232"
     vf.vsp = vsp
-    expected_data = '{\n    "artifacts": {},\n    "attributes": [],\n    "capabilities": {},\n    "categories":[\n        {\n            "name": "Generic",\n            "normalizedName": "generic",\n            "uniqueId": "resourceNewCategory.generic",\n            "icons": null,\n            "subcategories":[\n                {\n                    "name": "Abstract",\n                    "normalizedName": "abstract",\n                    "uniqueId": "resourceNewCategory.generic.abstract",\n                    "icons":[\n                        "objectStorage",\n                        "compute"\n                    ],\n                    "groupings": null,\n                    "ownerId": null,\n                    "empty": false\n                }\n            ],\n            "ownerId": null,\n            "empty": false\n        }\n    ],\n    "componentInstances": [],\n    "componentInstancesAttributes": {},\n    "componentInstancesProperties": {},\n    "componentType": "RESOURCE",\n    "contactId": "cs0008",\n    "csarUUID": "None",\n    "csarVersion": "1.0",\n    "deploymentArtifacts": {},\n    "description": "VF",\n    "icon": "defaulticon",\n    "name": "ONAP-test-VF",\n    "properties": [],\n    "groups": [],\n    "requirements": {},\n    "resourceType": "VF",\n    "tags": ["ONAP-test-VF"],\n    "toscaArtifacts": {},\n    "vendorName": "",\n    "vendorRelease": "1.0"\n}'
+    vsp.vendor = vendor
+    vsp._csar_uuid = "1234"
+    expected_data = '{\n    "artifacts": {},\n    "attributes": [],\n    "capabilities": {},\n    "categories":[\n        {\n            "name": "Generic",\n            "normalizedName": "generic",\n            "uniqueId": "resourceNewCategory.generic",\n            "icons": null,\n            "subcategories":[\n                {\n                    "name": "Abstract",\n                    "normalizedName": "abstract",\n                    "uniqueId": "resourceNewCategory.generic.abstract",\n                    "icons":[\n                        "objectStorage",\n                        "compute"\n                    ],\n                    "groupings": null,\n                    "ownerId": null,\n                    "empty": false\n                }\n            ],\n            "ownerId": null,\n            "empty": false\n        }\n    ],\n    "componentInstances": [],\n    "componentInstancesAttributes": {},\n    "componentInstancesProperties": {},\n    "componentType": "RESOURCE",\n    "contactId": "cs0008",\n    "csarUUID": "1234",\n    "csarVersion": "1.0",\n    "deploymentArtifacts": {},\n    "description": "VF",\n    "icon": "defaulticon",\n    "name": "ONAP-test-VF",\n    "properties": [],\n    "groups": [],\n    "requirements": {},\n    "resourceType": "VF",\n    "tags": ["ONAP-test-VF"],\n    "toscaArtifacts": {},\n    "vendorName": "Generic-Vendor",\n    "vendorRelease": "1.0"\n}'
     mock_exists.return_value = False
-    mock_send.return_value = {'resourceType': 'VF', 'name': 'one', 'uuid': '1234', 'invariantUUID': '5678', 'version': '1.0', 'lifecycleState': 'NOT_CERTIFIED_CHECKOUT'}
+    mock_send.return_value = {'resourceType': 'VF', 'name': 'one', 'uuid': '1234', 'invariantUUID': '5678', 'version': '1.0', 'uniqueId': '91011', 'lifecycleState': 'NOT_CERTIFIED_CHECKOUT'}
     vf.create()
-    mock_send.assert_called_once_with("POST", "create Vf", 'http://sdc.api.fe.simpledemo.onap.org:30206/sdc1/feProxy/rest/v1/catalog/resources', data=expected_data)
+    mock_send.assert_called_once_with("POST", "create Vf", 'https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/rest/v1/catalog/resources', data=expected_data)
     assert vf.created()
     assert vf._status == const.DRAFT
     assert vf.identifier == "1234"
     assert vf.unique_uuid == "5678"
     assert vf.version == "1.0"
 
-
+@mock.patch.object(Vf, 'exists')
 @mock.patch.object(Vf, 'load')
-def test_version_no_load_no_created(mock_load):
+def test_version_no_load_no_created(mock_load, mock_exists):
     """Test versions when not created."""
+    mock_exists.return_value = False
     vf = Vf()
     assert vf.version is None
     mock_load.assert_not_called()
-
 
 @mock.patch.object(Vf, 'load')
 def test_version_no_load_created(mock_load):
@@ -215,33 +225,40 @@ def test_version_with_load(mock_load):
     assert vf.version is None
     mock_load.assert_called_once()
 
-
+@mock.patch.object(Vf, 'exists')
 @mock.patch.object(Vf, 'load')
-def test_status_no_load_no_created(mock_load):
+def test_status_no_load_no_created(mock_load, mock_exists):
     """Test status when not created."""
+    mock_exists.return_value = False
     vf = Vf()
     assert vf.status is None
 
 
 @pytest.mark.parametrize("status", [const.COMMITED, const.CERTIFIED, const.UPLOADED, const.VALIDATED])
+@mock.patch.object(Vf, 'exists')
 @mock.patch.object(Vf, 'load')
 @mock.patch.object(Vf, 'send_message')
-def test_submit_not_Commited(mock_send, mock_load, status):
+def test_submit_not_Commited(mock_send, mock_load, mock_exists, status):
     """Do nothing if not created."""
+    mock_exists.return_value = False
     vf = Vf()
     vf._status = status
     vf.submit()
     mock_send.assert_not_called()
 
-
+@mock.patch.object(Vf, 'exists')
 @mock.patch.object(Vf, 'load')
 @mock.patch.object(Vf, 'send_message')
-def test_submit_OK(mock_send, mock_load):
+def test_submit_OK(mock_send, mock_load, mock_exists):
     """Don't update status if submission NOK."""
+    mock_exists.return_value = True
     vf = Vf()
     vf._status = const.COMMITED
     expected_data = '{\n  "userRemarks": "certify"\n}'
     vf._version = "1234"
-    vf._identifier = "12345"
+    vf._unique_identifier = "12345"
     vf.submit()
-    mock_send.assert_called_once_with("POST", "Certify Vf", 'http://sdc.api.be.simpledemo.onap.org:30205/sdc/v1/catalog/resources/12345/lifecycleState/certify', data=expected_data)
+    mock_send.assert_called_once_with(
+        "POST", "Certify Vf",
+        'https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/rest/v1/catalog/resources/12345/lifecycleState/Certify',
+        data=expected_data)
