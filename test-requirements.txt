@@ -1,6 +1,6 @@
 bandit
 pylama
-pylint
+pylint==2.4.4
 pydocstyle==4.0.1
 doc8
 requests-mock
