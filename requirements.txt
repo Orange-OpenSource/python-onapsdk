@@ -1,4 +1,4 @@
 requests[socks]==2.22.0
 jinja2==2.10.3
-simplejson
+simplejson==3.17.0
 oyaml
