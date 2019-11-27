@@ -3,6 +3,6 @@ jinja2
 simplejson
 mock==3.0.5
 pytest
-pytest-cov
+pytest-cov==2.8.1
 pytest-mock
 yapf
