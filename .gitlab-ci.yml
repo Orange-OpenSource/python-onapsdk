@@ -66,6 +66,7 @@ integration_tests:
     - name: registry.gitlab.com/orange-opensource/lfn/onap/mock_servers/mock-sdc:develop
       alias: sdc.api.fe.simpledemo.onap.org
   image: python:3.7
+  allow_failure: true
   script:
     - pip install .
     - pip install pytest mock # mock is needed as pytest parse all files before selection
@@ -78,12 +79,22 @@ integration_tests:
     variables:
       - $JOBS_DISABLED
 
+pages:
+  stage: deploy
+  image:
+    name: python:3.7
+  script:
+    - chmod +x scripts/build_all_branches_in.sh
+    - scripts/build_all_branches_in.sh
+  artifacts:
+    paths:
+      - public
+
 include:
   - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/pylint.gitlab-ci.yml'
   - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/pytest.gitlab-ci.yml'
   - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/pydocstyle.gitlab-ci.yml'
   - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/doc8.gitlab-ci.yml'
-  - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/sphinx-pages.gitlab-ci.yml'
   - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/Container-Scanning.gitlab-ci.yml'
   - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/Code-Quality.gitlab-ci.yml'
   - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/SAST.gitlab-ci.yml'
