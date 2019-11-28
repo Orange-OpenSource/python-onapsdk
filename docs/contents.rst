@@ -1,12 +1,18 @@
 .. _contents:
 
-Chained-CI Documentation contents
-==================================
+ONAP SDK Documentation contents
+===============================
 
 .. toctree::
    :maxdepth: 2
 
    description
+   usage/intro
+   usage/installation
+   usage/usage
+
+   architecture
+   modules
 
 .. include:: description.rst
 
@@ -24,4 +30,3 @@ Indices and tables
 
    * :ref:`modindex`
    * :ref:`glossary`
-

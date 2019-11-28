@@ -25,14 +25,13 @@ class OnapService(ABC):
     it allows to fetch simply jinja templates where they are.
     by default jinja engine will look for templates in `templates` directory of
     the package.
-    See in Examples to see how to use
+    See in Examples to see how to use.
 
-    Class Attributes:
-        server (str): nickname of the server we send the request.
-                      used in logs strings. For example,'SDC' is the nickame
-                      for SDC server...
-        headers (Dict[str, str]): the headers dictionnary to use
-        proxy (Dict[str, str]): the proxy configuration if needed
+    Attributes:
+        server (str): nickname of the server we send the request. Used in logs
+            strings. For example, 'SDC' is the nickame for SDC server.
+        headers (Dict[str, str]): the headers dictionnary to use.
+        proxy (Dict[str, str]): the proxy configuration if needed.
 
     """
 

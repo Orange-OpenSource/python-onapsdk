@@ -198,16 +198,19 @@ class Vsp(SdcElement):
         Load Vsp status from SDC.
 
         rules are following:
-        DRAFT = status == DRAFT and networkPackageName not present
-        UPLOADED = status == DRAFT and networkPackageName present and
-                                   validationData not present
-        VALIDATED = status == DRAFT and networkPackageName present and
-                                   validationData present and
-                                   state.dirty = true
-        COMMITED = status == DRAFT nd networkPackageName present and
-                                   validationData present and
-                                   state.dirty = false
-        CERTIFIED = status == CERTIFIED
+
+        * DRAFT: status == DRAFT and networkPackageName not present
+
+        * UPLOADED: status == DRAFT and networkPackageName present and
+          validationData not present
+
+        * VALIDATED: status == DRAFT and networkPackageName present and
+          validationData present and state.dirty = true
+
+        * COMMITED: status == DRAFT and networkPackageName present and
+          validationData present and state.dirty = false
+
+        * CERTIFIED: status == CERTIFIED
 
         status is found in sdc items
         state is found in sdc version from items
