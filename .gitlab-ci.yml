@@ -89,6 +89,9 @@ pages:
   artifacts:
     paths:
       - public
+  except:
+    variables:
+      - $JOBS_DISABLED
 
 include:
   - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/pylint.gitlab-ci.yml'
