@@ -30,6 +30,9 @@ build_master:
     - docker push "$CI_REGISTRY_IMAGE:latest"
   only:
     - master
+  except:
+    variables:
+      - $JOBS_DISABLED
 
 build_testing:
   stage: build
@@ -40,7 +43,10 @@ build_testing:
   only:
     - branches
   except:
-    - master
+    refs:
+      - master
+    variables:
+      - $JOBS_DISABLED
 
 build_stable:
   stage: build
@@ -50,6 +56,9 @@ build_stable:
     - docker push "$CI_REGISTRY_IMAGE:${CI_COMMIT_REF_SLUG}"
   only:
     - tags
+  except:
+    variables:
+      - $JOBS_DISABLED
 
 integration_tests:
   stage: test
@@ -65,6 +74,9 @@ integration_tests:
   artifacts:
     reports:
       junit: pytest-*.xml
+  except:
+    variables:
+      - $JOBS_DISABLED
 
 include:
   - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/pylint.gitlab-ci.yml'
@@ -75,5 +87,6 @@ include:
   - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/Container-Scanning.gitlab-ci.yml'
   - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/Code-Quality.gitlab-ci.yml'
   - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/SAST.gitlab-ci.yml'
+  - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/pyup.gitlab-ci.yml'
   - template: License-Management.gitlab-ci.yml
   - template: Dependency-Scanning.gitlab-ci.yml
