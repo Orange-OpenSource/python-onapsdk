@@ -1,4 +1,4 @@
-bandit
+bandit==1.6.2
 pylama
 pylint==2.4.4
 pydocstyle==4.0.1
