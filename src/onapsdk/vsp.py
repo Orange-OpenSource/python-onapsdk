@@ -14,8 +14,8 @@ from onapsdk.vendor import Vendor
 import onapsdk.constants as const
 from onapsdk.utils.headers_creator import headers_sdc_creator
 
-
-class Vsp(SdcElement):
+# Hard to do fewer attributes and still mapping SDC VSP object.
+class Vsp(SdcElement): # pylint: disable=too-many-instance-attributes
     """
     ONAP VSP Object used for SDC operations.
 
@@ -33,7 +33,8 @@ class Vsp(SdcElement):
     _logger: logging.Logger = logging.getLogger(__name__)
     headers = headers_sdc_creator(SdcElement.headers)
 
-    def __init__(self, name: str = None):
+    def __init__(self, name: str = None, package: BinaryIO = None,
+                 vendor: Vendor = None):
         """
         Initialize vsp object.
 
@@ -43,14 +44,39 @@ class Vsp(SdcElement):
         """
         super().__init__()
         self._csar_uuid: str = None
-        self._vendor: Vendor = None
+        self._vendor: Vendor = vendor or None
         self.name: str = name or "ONAP-test-VSP"
+        self.package = package or None
 
     @property
     def status(self):
         """Return and load the status."""
         self.load_status()
         return self._status
+
+    def onboard(self) -> None:
+        """Onboard the VSP in SDC."""
+        if not self.status:
+            if not self.vendor:
+                raise ValueError("No Vendor was given")
+            self.create()
+            self.onboard()
+        elif self.status == const.DRAFT:
+            if not self.package:
+                raise ValueError("No file were given for upload")
+            self.upload_package(self.package)
+            self.onboard()
+        elif self.status == const.UPLOADED:
+            self.validate()
+            self.onboard()
+        elif self.status == const.VALIDATED:
+            self.commit()
+            self.onboard()
+        elif self.status == const.COMMITED:
+            self.submit()
+            self.onboard()
+        elif self.status == const.CERTIFIED:
+            self.create_csar()
 
     def create(self) -> None:
         """Create the Vsp in SDC if not already existing."""
@@ -59,18 +85,18 @@ class Vsp(SdcElement):
                          name=self.name,
                          vendor=self.vendor)
 
-    def upload_files(self, file_to_upload: BinaryIO) -> None:
+    def upload_package(self, package_to_upload: BinaryIO) -> None:
         """
         Upload given zip file into SDC as artifacts for this Vsp.
 
         Args:
-            file_to_upload (file): the zip file to upload
+            package_to_upload (file): the zip file to upload
 
         """
-        self._action("upload files",
+        self._action("upload package",
                      const.DRAFT,
                      self._upload_action,
-                     file_to_upload=file_to_upload)
+                     package_to_upload=package_to_upload)
 
     def validate(self) -> None:
         """Validate the artifacts uploaded."""
@@ -121,15 +147,15 @@ class Vsp(SdcElement):
         """Set value for csar uuid."""
         self._csar_uuid = csar_uuid
 
-    def _upload_action(self, file_to_upload: BinaryIO = None):
+    def _upload_action(self, package_to_upload: BinaryIO = None):
         """Do upload for real."""
-        if file_to_upload:
+        if package_to_upload:
             url = "{}/{}/{}/orchestration-template-candidate".format(
                 self._base_url(), Vsp._sdc_path(), self._version_path())
             headers = self.headers.copy()
             headers.pop("Content-Type")
             headers["Accept-Encoding"] = "gzip, deflate"
-            data = {'upload': file_to_upload}
+            data = {'upload': package_to_upload}
             upload_result = self.send_message('POST',
                                               'upload ZIP for Vsp',
                                               url,

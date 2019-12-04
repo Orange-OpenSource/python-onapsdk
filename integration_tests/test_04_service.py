@@ -23,23 +23,13 @@ def test_service_unknown():
     response = requests.post("{}/reset".format(SDC.base_front_url))
     response.raise_for_status()
     vendor = Vendor(name="test")
-    vendor.create()
-    vendor.submit()
-    vsp = Vsp(name="test")
-    vsp.vendor = vendor
-    vsp.create()
-    vsp.upload_files(open("{}/ubuntu16.zip".format(
+    vendor.onboard()
+    vsp = Vsp(name="test", package=open("{}/ubuntu16.zip".format(
         os.path.dirname(os.path.abspath(__file__))), 'rb'))
-    vsp.validate()
-    vsp.commit()
-    vsp.submit()
-    vsp.create_csar()
-    vf = Vf(name='test')
-    vf.vsp = vsp
-    vf.create()
-    vf.submit()
-    vf.load()
-    assert vf.unique_identifier is not None
+    vsp.vendor = vendor
+    vsp.onboard()
+    vf = Vf(name='test', vsp=vsp)
+    vf.onboard()
     svc = Service(name='test')
     assert svc.identifier is None
     assert svc.status is None
@@ -59,4 +49,23 @@ def test_service_unknown():
     assert svc.status == const.APPROVED
     svc.distribute()
     assert svc.status == const.DISTRIBUTED
+    assert svc.distributed
+
+@pytest.mark.integration
+def test_service_onboard_unknown():
+    """Integration tests for Service."""
+    SDC.base_front_url = "http://sdc.api.fe.simpledemo.onap.org:30206"
+    SDC.base_back_url = Vendor.base_front_url
+    response = requests.post("{}/reset".format(SDC.base_front_url))
+    response.raise_for_status()
+    vendor = Vendor(name="test")
+    vendor.onboard()
+    vsp = Vsp(name="test", package=open("{}/ubuntu16.zip".format(
+        os.path.dirname(os.path.abspath(__file__))), 'rb'))
+    vsp.vendor = vendor
+    vsp.onboard()
+    vf = Vf(name='test', vsp=vsp)
+    vf.onboard()
+    svc = Service(name='test', resources=[vf])
+    svc.onboard()
     assert svc.distributed

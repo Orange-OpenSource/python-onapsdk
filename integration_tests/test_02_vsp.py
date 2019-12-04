@@ -19,14 +19,13 @@ def test_vsp_unknown():
     response = requests.post("{}/reset".format(Vendor.base_front_url))
     response.raise_for_status()
     vendor = Vendor(name="test")
-    vendor.create()
-    vendor.submit()
+    vendor.onboard()
     vsp = Vsp(name="test")
     vsp.vendor = vendor
     vsp.create()
     assert vsp.identifier is not None
     assert vsp.status == const.DRAFT
-    vsp.upload_files(open("{}/ubuntu16.zip".format(
+    vsp.upload_package(open("{}/ubuntu16.zip".format(
         os.path.dirname(os.path.abspath(__file__))), 'rb'))
     assert vsp.status == const.UPLOADED
     vsp.validate()
@@ -36,4 +35,20 @@ def test_vsp_unknown():
     vsp.submit()
     assert vsp.status == const.CERTIFIED
     vsp.create_csar()
+    assert vsp.csar_uuid is not None
+
+@pytest.mark.integration
+def test_vsp_onboard_unknown():
+    """Integration tests for Vsp."""
+    Vendor.base_front_url = "http://sdc.api.fe.simpledemo.onap.org:30206"
+    Vendor.base_back_url = Vendor.base_front_url
+    response = requests.post("{}/reset".format(Vendor.base_front_url))
+    response.raise_for_status()
+    vendor = Vendor(name="test")
+    vendor.onboard()
+    vsp = Vsp(name="test", package=open("{}/ubuntu16.zip".format(
+        os.path.dirname(os.path.abspath(__file__))), 'rb'))
+    vsp.vendor = vendor
+    vsp.onboard()
+    assert vsp.status == const.CERTIFIED
     assert vsp.csar_uuid is not None

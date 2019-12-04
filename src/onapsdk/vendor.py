@@ -39,6 +39,14 @@ class Vendor(SdcElement):
         super().__init__()
         self.name: str = name or "Generic-Vendor"
 
+    def onboard(self) -> None:
+        """Onboard the vendor in SDC."""
+        if not self.status:
+            self.create()
+            self.onboard()
+        elif self.status == const.DRAFT:
+            self.submit()
+
     def create(self) -> None:
         """Create the vendor in SDC if not already existing."""
         self._create("vendor_create.json.j2", name=self.name)

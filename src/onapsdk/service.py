@@ -4,7 +4,7 @@
 """Service module."""
 from os import makedirs
 import logging
-from typing import Dict
+from typing import Dict, List
 from zipfile import ZipFile, BadZipFile
 
 import onapsdk.constants as const
@@ -42,7 +42,8 @@ class Service(SdcResource):
     _logger: logging.Logger = logging.getLogger(__name__)
     headers = headers_sdc_creator(SdcResource.headers)
 
-    def __init__(self, name: str = None, sdc_values: Dict[str, str] = None):
+    def __init__(self, name: str = None, sdc_values: Dict[str, str] = None,
+                 resources: List[SdcResource] = None):
         """
         Initialize vendor object.
 
@@ -55,10 +56,38 @@ class Service(SdcResource):
         self.distribution_status = None
         if sdc_values:
             self.distribution_status = sdc_values['distributionStatus']
-        self.resources = []
+        self.resources = resources or []
         self._distribution_id: str = None
         self._distributed: bool = False
         self._resource_type: str = "services"
+
+    def onboard(self) -> None:
+        """Onboard the Service in SDC."""
+        # first Lines are equivalent for all onboard functions but it's more readable
+        if not self.status: # # pylint: disable=R0801
+            self.create()
+            self.onboard()
+        elif self.status == const.DRAFT:
+            if not self.resources:
+                raise ValueError("No resources were given")
+            for resource in self.resources:
+                self.add_resource(resource)
+            self.checkin()
+            self.onboard()
+        elif self.status == const.CHECKED_IN:
+            self.submit()
+            self.onboard()
+        elif self.status == const.SUBMITTED:
+            self.start_certification()
+            self.onboard()
+        elif self.status == const.UNDER_CERTIFICATION:
+            self.certify()
+            self.onboard()
+        elif self.status == const.CERTIFIED:
+            self.approve()
+            self.onboard()
+        elif self.status == const.APPROVED:
+            self.distribute()
 
     @property
     def distribution_id(self) -> str:

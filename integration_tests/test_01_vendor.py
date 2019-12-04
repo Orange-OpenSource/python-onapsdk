@@ -22,3 +22,14 @@ def test_vendor_unknown():
     assert vendor.created()
     vendor.submit()
     assert vendor.status == const.CERTIFIED
+
+@pytest.mark.integration
+def test_vendor_onboard_unknown():
+    """Integration tests for Vendor."""
+    SDC.base_front_url = "http://sdc.api.fe.simpledemo.onap.org:30206"
+    SDC.base_back_url = Vendor.base_front_url
+    response = requests.post("{}/reset".format(SDC.base_front_url))
+    response.raise_for_status()
+    vendor = Vendor(name="test")
+    vendor.onboard()
+    assert vendor.status == const.CERTIFIED

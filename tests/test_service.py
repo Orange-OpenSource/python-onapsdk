@@ -421,3 +421,345 @@ def test_verify_action_to_sdc_OK(mock_created, mock_action, mock_load):
     mock_created.assert_called()
     mock_action.assert_called_once()
     mock_load.assert_called_once()
+
+@mock.patch.object(Service, 'distribute')
+@mock.patch.object(Service, 'approve')
+@mock.patch.object(Service, 'certify')
+@mock.patch.object(Service, 'start_certification')
+@mock.patch.object(Service, 'submit')
+@mock.patch.object(Service, 'checkin')
+@mock.patch.object(Service, 'add_resource')
+@mock.patch.object(Service, 'create')
+def test_onboard_new_service(mock_create, mock_add_resource,
+                             mock_checkin, mock_submit,
+                             mock_start_certification, mock_certify,
+                             mock_approve, mock_distribute):
+    getter_mock = mock.Mock(wraps=Service.status.fget)
+    mock_status = Service.status.getter(getter_mock)
+    with mock.patch.object(Service, 'status', mock_status):
+        getter_mock.side_effect = [None, const.DISTRIBUTED, const.DISTRIBUTED,
+                                const.DISTRIBUTED, const.DISTRIBUTED,
+                                const.DISTRIBUTED, const.DISTRIBUTED,
+                                const.DISTRIBUTED, None]
+        service = Service()
+        service.onboard()
+        mock_create.assert_called_once()
+        mock_add_resource.assert_not_called()
+        mock_checkin.assert_not_called()
+        mock_submit.assert_not_called()
+        mock_start_certification.assert_not_called()
+        mock_certify.assert_not_called()
+        mock_approve.assert_not_called()
+        mock_distribute.assert_not_called()
+
+@mock.patch.object(Service, 'distribute')
+@mock.patch.object(Service, 'approve')
+@mock.patch.object(Service, 'certify')
+@mock.patch.object(Service, 'start_certification')
+@mock.patch.object(Service, 'submit')
+@mock.patch.object(Service, 'checkin')
+@mock.patch.object(Service, 'add_resource')
+@mock.patch.object(Service, 'create')
+def test_onboard_service_no_resources(mock_create,
+                                      mock_add_resource, mock_checkin,
+                                      mock_submit, mock_start_certification,
+                                      mock_certify, mock_approve,
+                                      mock_distribute):
+    getter_mock = mock.Mock(wraps=Service.status.fget)
+    mock_status = Service.status.getter(getter_mock)
+    with mock.patch.object(Service, 'status', mock_status):
+        getter_mock.side_effect = [const.DRAFT, const.DRAFT, const.DISTRIBUTED,
+                                const.DISTRIBUTED, const.DISTRIBUTED,
+                                const.DISTRIBUTED, const.DISTRIBUTED,
+                                const.DISTRIBUTED, const.DISTRIBUTED, None]
+        service = Service()
+        with pytest.raises(ValueError):
+            service.onboard()
+            mock_create.assert_not_called()
+            mock_add_resource.assert_not_called()
+            mock_checkin.assert_not_called()
+            mock_submit.assert_not_called()
+            mock_start_certification.assert_not_called()
+            mock_certify.assert_not_called()
+            mock_approve.assert_not_called()
+            mock_distribute.assert_not_called()
+
+@mock.patch.object(Service, 'distribute')
+@mock.patch.object(Service, 'approve')
+@mock.patch.object(Service, 'certify')
+@mock.patch.object(Service, 'start_certification')
+@mock.patch.object(Service, 'submit')
+@mock.patch.object(Service, 'checkin')
+@mock.patch.object(Service, 'add_resource')
+@mock.patch.object(Service, 'create')
+def test_onboard_service_resources(mock_create, mock_add_resource,
+                                   mock_checkin, mock_submit,
+                                   mock_start_certification, mock_certify,
+                                   mock_approve, mock_distribute):
+    getter_mock = mock.Mock(wraps=Service.status.fget)
+    mock_status = Service.status.getter(getter_mock)
+    with mock.patch.object(Service, 'status', mock_status):
+        getter_mock.side_effect = [const.DRAFT, const.DRAFT, const.DISTRIBUTED,
+                               const.DISTRIBUTED, const.DISTRIBUTED,
+                               const.DISTRIBUTED, const.DISTRIBUTED,
+                               const.DISTRIBUTED, const.DISTRIBUTED, None]
+        resource = SdcResource()
+        service = Service(resources=[resource])
+        service.onboard()
+        mock_create.assert_not_called()
+        mock_add_resource.assert_called_once_with(resource)
+        mock_checkin.assert_called_once()
+        mock_submit.assert_not_called()
+        mock_start_certification.assert_not_called()
+        mock_certify.assert_not_called()
+        mock_approve.assert_not_called()
+        mock_distribute.assert_not_called()
+
+@mock.patch.object(Service, 'distribute')
+@mock.patch.object(Service, 'approve')
+@mock.patch.object(Service, 'certify')
+@mock.patch.object(Service, 'start_certification')
+@mock.patch.object(Service, 'submit')
+@mock.patch.object(Service, 'checkin')
+@mock.patch.object(Service, 'add_resource')
+@mock.patch.object(Service, 'create')
+def test_onboard_service_several_resources(mock_create,
+                                           mock_add_resource, mock_checkin,
+                                           mock_submit,
+                                           mock_start_certification,
+                                           mock_certify, mock_approve,
+                                           mock_distribute):
+    getter_mock = mock.Mock(wraps=Service.status.fget)
+    mock_status = Service.status.getter(getter_mock)
+    with mock.patch.object(Service, 'status', mock_status):
+        getter_mock.side_effect = [const.DRAFT, const.DRAFT, const.DISTRIBUTED,
+                               const.DISTRIBUTED, const.DISTRIBUTED,
+                               const.DISTRIBUTED, const.DISTRIBUTED,
+                               const.DISTRIBUTED, const.DISTRIBUTED, None]
+        resource1 = SdcResource()
+        resource2 = SdcResource()
+        service = Service(resources=[resource1, resource2])
+        service.onboard()
+        mock_create.assert_not_called()
+        calls = [mock.call(resource1), mock.call(resource2)]
+        mock_add_resource.assert_has_calls(calls, any_order=True)
+        assert  mock_add_resource.call_count == 2
+        mock_checkin.assert_called_once()
+        mock_submit.assert_not_called()
+        mock_start_certification.assert_not_called()
+        mock_certify.assert_not_called()
+        mock_approve.assert_not_called()
+        mock_distribute.assert_not_called()
+
+@mock.patch.object(Service, 'distribute')
+@mock.patch.object(Service, 'approve')
+@mock.patch.object(Service, 'certify')
+@mock.patch.object(Service, 'start_certification')
+@mock.patch.object(Service, 'submit')
+@mock.patch.object(Service, 'checkin')
+@mock.patch.object(Service, 'add_resource')
+@mock.patch.object(Service, 'create')
+def test_onboard_service_submit(mock_create, mock_add_resource,
+                                mock_checkin, mock_submit,
+                                mock_start_certification, mock_certify,
+                                mock_approve, mock_distribute):
+    getter_mock = mock.Mock(wraps=Service.status.fget)
+    mock_status = Service.status.getter(getter_mock)
+    with mock.patch.object(Service, 'status', mock_status):
+        getter_mock.side_effect = [const.CHECKED_IN, const.CHECKED_IN,
+                               const.CHECKED_IN, const.DISTRIBUTED,
+                               const.DISTRIBUTED, const.DISTRIBUTED,
+                               const.DISTRIBUTED, const.DISTRIBUTED,
+                               const.DISTRIBUTED, const.DISTRIBUTED, None]
+        service = Service()
+        service.onboard()
+        mock_create.assert_not_called()
+        mock_add_resource.assert_not_called()
+        mock_checkin.assert_not_called()
+        mock_submit.assert_called_once()
+        mock_start_certification.assert_not_called()
+        mock_certify.assert_not_called()
+        mock_approve.assert_not_called()
+        mock_distribute.assert_not_called()
+
+@mock.patch.object(Service, 'distribute')
+@mock.patch.object(Service, 'approve')
+@mock.patch.object(Service, 'certify')
+@mock.patch.object(Service, 'start_certification')
+@mock.patch.object(Service, 'submit')
+@mock.patch.object(Service, 'checkin')
+@mock.patch.object(Service, 'add_resource')
+@mock.patch.object(Service, 'create')
+def test_onboard_service_certification(mock_create,
+                                       mock_add_resource, mock_checkin,
+                                       mock_submit, mock_start_certification,
+                                       mock_certify, mock_approve,
+                                       mock_distribute):
+    getter_mock = mock.Mock(wraps=Service.status.fget)
+    mock_status = Service.status.getter(getter_mock)
+    with mock.patch.object(Service, 'status', mock_status):
+        getter_mock.side_effect = [const.SUBMITTED, const.SUBMITTED,
+                               const.SUBMITTED, const.SUBMITTED,
+                               const.DISTRIBUTED, const.DISTRIBUTED,
+                               const.DISTRIBUTED, const.DISTRIBUTED,
+                               const.DISTRIBUTED, const.DISTRIBUTED,
+                               const.DISTRIBUTED, None]
+        service = Service()
+        service.onboard()
+        mock_create.assert_not_called()
+        mock_add_resource.assert_not_called()
+        mock_checkin.assert_not_called()
+        mock_submit.assert_not_called()
+        mock_start_certification.assert_called_once()
+        mock_certify.assert_not_called()
+        mock_approve.assert_not_called()
+        mock_distribute.assert_not_called()
+
+@mock.patch.object(Service, 'distribute')
+@mock.patch.object(Service, 'approve')
+@mock.patch.object(Service, 'certify')
+@mock.patch.object(Service, 'start_certification')
+@mock.patch.object(Service, 'submit')
+@mock.patch.object(Service, 'checkin')
+@mock.patch.object(Service, 'add_resource')
+@mock.patch.object(Service, 'create')
+def test_onboard_service_certifi(mock_create,
+                                       mock_add_resource, mock_checkin,
+                                       mock_submit, mock_start_certification,
+                                       mock_certify, mock_approve,
+                                       mock_distribute):
+    getter_mock = mock.Mock(wraps=Service.status.fget)
+    mock_status = Service.status.getter(getter_mock)
+    with mock.patch.object(Service, 'status', mock_status):
+        getter_mock.side_effect = [const.UNDER_CERTIFICATION,
+                               const.UNDER_CERTIFICATION,
+                               const.UNDER_CERTIFICATION,
+                               const.UNDER_CERTIFICATION,
+                               const.UNDER_CERTIFICATION,
+                               const.DISTRIBUTED, const.DISTRIBUTED,
+                               const.DISTRIBUTED, const.DISTRIBUTED,
+                               const.DISTRIBUTED, const.DISTRIBUTED,
+                               const.DISTRIBUTED, None]
+        service = Service()
+        service.onboard()
+        mock_create.assert_not_called()
+        mock_add_resource.assert_not_called()
+        mock_checkin.assert_not_called()
+        mock_submit.assert_not_called()
+        mock_start_certification.assert_not_called()
+        mock_certify.assert_called_once()
+        mock_approve.assert_not_called()
+        mock_distribute.assert_not_called()
+
+@mock.patch.object(Service, 'distribute')
+@mock.patch.object(Service, 'approve')
+@mock.patch.object(Service, 'certify')
+@mock.patch.object(Service, 'start_certification')
+@mock.patch.object(Service, 'submit')
+@mock.patch.object(Service, 'checkin')
+@mock.patch.object(Service, 'add_resource')
+@mock.patch.object(Service, 'create')
+def test_onboard_service_approve(mock_create,
+                                 mock_add_resource, mock_checkin,
+                                 mock_submit, mock_start_certification,
+                                 mock_certify, mock_approve,
+                                 mock_distribute):
+    getter_mock = mock.Mock(wraps=Service.status.fget)
+    mock_status = Service.status.getter(getter_mock)
+    with mock.patch.object(Service, 'status', mock_status):
+        getter_mock.side_effect = [const.CERTIFIED, const.CERTIFIED,
+                               const.CERTIFIED, const.CERTIFIED,
+                               const.CERTIFIED, const.CERTIFIED,
+                               const.DISTRIBUTED, const.DISTRIBUTED,
+                               const.DISTRIBUTED, const.DISTRIBUTED,
+                               const.DISTRIBUTED, const.DISTRIBUTED,
+                               const.DISTRIBUTED, None]
+        service = Service()
+        service.onboard()
+        mock_create.assert_not_called()
+        mock_add_resource.assert_not_called()
+        mock_checkin.assert_not_called()
+        mock_submit.assert_not_called()
+        mock_start_certification.assert_not_called()
+        mock_certify.assert_not_called()
+        mock_approve.assert_called_once()
+        mock_distribute.assert_not_called()
+
+@mock.patch.object(Service, 'distribute')
+@mock.patch.object(Service, 'approve')
+@mock.patch.object(Service, 'certify')
+@mock.patch.object(Service, 'start_certification')
+@mock.patch.object(Service, 'submit')
+@mock.patch.object(Service, 'checkin')
+@mock.patch.object(Service, 'add_resource')
+@mock.patch.object(Service, 'create')
+def test_onboard_service_distribute(mock_create,
+                                    mock_add_resource, mock_checkin,
+                                    mock_submit, mock_start_certification,
+                                    mock_certify, mock_approve,
+                                    mock_distribute):
+    getter_mock = mock.Mock(wraps=Service.status.fget)
+    mock_status = Service.status.getter(getter_mock)
+    with mock.patch.object(Service, 'status', mock_status):
+        getter_mock.side_effect = [const.APPROVED, const.APPROVED, const.APPROVED,
+                               const.APPROVED, const.APPROVED, const.APPROVED,
+                               const.APPROVED, const.DISTRIBUTED,
+                               const.DISTRIBUTED, const.DISTRIBUTED,
+                               const.DISTRIBUTED, const.DISTRIBUTED,
+                               const.DISTRIBUTED, const.DISTRIBUTED, None]
+        service = Service()
+        service.onboard()
+        mock_create.assert_not_called()
+        mock_add_resource.assert_not_called()
+        mock_checkin.assert_not_called()
+        mock_submit.assert_not_called()
+        mock_start_certification.assert_not_called()
+        mock_certify.assert_not_called()
+        mock_approve.assert_not_called()
+        mock_distribute.assert_called_once()
+
+@mock.patch.object(Service, 'distribute')
+@mock.patch.object(Service, 'approve')
+@mock.patch.object(Service, 'certify')
+@mock.patch.object(Service, 'start_certification')
+@mock.patch.object(Service, 'submit')
+@mock.patch.object(Service, 'checkin')
+@mock.patch.object(Service, 'add_resource')
+@mock.patch.object(Service, 'create')
+def test_onboard_whole_service(mock_create,
+                               mock_add_resource, mock_checkin,
+                               mock_submit, mock_start_certification,
+                               mock_certify, mock_approve,
+                               mock_distribute):
+    getter_mock = mock.Mock(wraps=Service.status.fget)
+    mock_status = Service.status.getter(getter_mock)
+    with mock.patch.object(Service, 'status', mock_status):
+        getter_mock.side_effect = [None, const.DRAFT, const.DRAFT,const.CHECKED_IN,
+                               const.CHECKED_IN, const.CHECKED_IN,
+                               const.SUBMITTED, const.SUBMITTED,
+                               const.SUBMITTED, const.SUBMITTED,
+                               const.UNDER_CERTIFICATION,
+                               const.UNDER_CERTIFICATION,
+                               const.UNDER_CERTIFICATION,
+                               const.UNDER_CERTIFICATION,
+                               const.UNDER_CERTIFICATION,
+                               const.CERTIFIED, const.CERTIFIED,
+                               const.CERTIFIED, const.CERTIFIED,
+                               const.CERTIFIED, const.CERTIFIED,
+                               const.APPROVED, const.APPROVED, const.APPROVED,
+                               const.APPROVED, const.APPROVED, const.APPROVED,
+                               const.APPROVED, const.DISTRIBUTED,
+                               const.DISTRIBUTED, const.DISTRIBUTED,
+                               const.DISTRIBUTED, const.DISTRIBUTED,
+                               const.DISTRIBUTED, const.DISTRIBUTED, None]
+        resource = SdcResource()
+        service = Service(resources=[resource])
+        service.onboard()
+        mock_create.assert_called_once()
+        mock_add_resource.assert_called_once_with(resource)
+        mock_checkin.assert_called_once()
+        mock_submit.assert_called_once()
+        mock_start_certification.assert_called_once()
+        mock_certify.assert_called_once()
+        mock_approve.assert_called_once()
+        mock_distribute.assert_called_once()

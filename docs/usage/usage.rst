@@ -25,8 +25,7 @@ You will need the package of the VSP to onboard.
    # We assume here that the Vendor has been already onboarded
    vendor = Vendor(name="myVendor")
    vendor.onboard()
-   vsp = Vsp(name="myVSP")
-   vsp.upload_files(open(PATH_TO_PACKAGE), 'rb'))
+   vsp = Vsp(name="myVSP", vendor=vendor, package=open(PATH_TO_PACKAGE, 'rb'))
    vsp.onboard()
 
 Onboard a VF
@@ -39,8 +38,7 @@ Onboard a VF
 
    # We assume here that the VSP has been already onboarded
    vsp = Vsp(name="myVSP")
-   vf = Vf(name="myVF")
-   vf.vsp = vsp
+   vf = Vf(name="myVF", vsp=vsp)
    vf.onboard()
 
 Onboard a Service
@@ -53,6 +51,5 @@ Onboard a Service
 
    # We assume here that the VF has been already onboarded
    vf = Vf(name="myVF")
-   service = Service(name="myService")
-   service.add_resource(vf)
+   service = Service(name="myService", resources=[vf])
    service.onboard()

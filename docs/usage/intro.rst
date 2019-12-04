@@ -12,6 +12,5 @@ onboard a Service:
 
    # We assume here that the VF has been already onboarded
    vf = VF(name="myVF")
-   service = Service(name="myService")
-   service.add_resource(vf)
+   service = Service(name="myService", resources=[vf])
    service.onboard()
