@@ -31,7 +31,8 @@ class Vf(SdcResource):
     _logger: logging.Logger = logging.getLogger(__name__)
     headers = headers_sdc_creator(SdcResource.headers)
 
-    def __init__(self, name: str = None, sdc_values: Dict[str, str] = None):
+    def __init__(self, name: str = None, sdc_values: Dict[str, str] = None,
+                 vsp: Vsp = None):
         """
         Initialize vendor object.
 
@@ -41,7 +42,20 @@ class Vf(SdcResource):
         """
         super().__init__(sdc_values=sdc_values)
         self.name: str = name or "ONAP-test-VF"
-        self.vsp: Vsp = None
+        self.vsp: Vsp = vsp or None
+
+    def onboard(self) -> None:
+        """Onboard the VF in SDC."""
+        if not self.status:
+            if not self.vsp:
+                raise ValueError("No Vsp was given")
+            self.create()
+            self.onboard()
+        elif self.status == const.DRAFT:
+            self.submit()
+            self.onboard()
+        elif self.status == const.CERTIFIED:
+            self.load()
 
     def create(self) -> None:
         """Create the Vf in SDC if not already existing."""

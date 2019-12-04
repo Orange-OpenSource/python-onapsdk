@@ -454,7 +454,7 @@ def test_upload_not_Draft(mock_send, mock_status, status):
     """Do nothing if not created."""
     vsp = Vsp()
     vsp._status = status
-    vsp.upload_files('data')
+    vsp.upload_package('data')
     mock_send.assert_not_called()
 
 @mock.patch.object(Vsp, 'load_status')
@@ -467,7 +467,7 @@ def test_upload_not_OK(mock_send, mock_status):
     expected_data = '{\n\n  "action": "Create_Package"\n}'
     vsp._version = "1234"
     vsp._identifier = "12345"
-    vsp.upload_files('data')
+    vsp.upload_package('data')
     mock_send.assert_called_once_with('POST', 'upload ZIP for Vsp', "https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/onboarding-api/v1.0/vendor-software-products/12345/versions/1234/orchestration-template-candidate", files={'upload': 'data'}, headers={'Accept': 'application/json', 'USER_ID': 'cs0008', 'Authorization': 'Basic YWFpOktwOGJKNFNYc3pNMFdYbGhhazNlSGxjc2UyZ0F3ODR2YW9HR21KdlV5MlU=', 'X-ECOMP-InstanceID': 'onapsdk', 'Accept-Encoding': 'gzip, deflate'})
 
 @mock.patch.object(Vsp, 'load_status')
@@ -480,7 +480,7 @@ def test_upload_OK(mock_send, mock_status):
     expected_data = '{\n\n  "action": "Create_Package"\n}'
     vsp._version = "1234"
     vsp._identifier = "12345"
-    vsp.upload_files('data')
+    vsp.upload_package('data')
     mock_send.assert_called_once_with('POST', 'upload ZIP for Vsp', "https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/onboarding-api/v1.0/vendor-software-products/12345/versions/1234/orchestration-template-candidate", files={'upload': 'data'}, headers={'Accept': 'application/json', 'USER_ID': 'cs0008', 'Authorization': 'Basic YWFpOktwOGJKNFNYc3pNMFdYbGhhazNlSGxjc2UyZ0F3ODR2YW9HR21KdlV5MlU=', 'X-ECOMP-InstanceID': 'onapsdk', 'Accept-Encoding': 'gzip, deflate'})
 
 @pytest.mark.parametrize("status", [const.CERTIFIED, const.COMMITED, const.DRAFT, const.VALIDATED])
@@ -528,3 +528,244 @@ def test_validate_OK(mock_send, mock_status):
     vsp._identifier = "12345"
     vsp.validate()
     mock_send.assert_called_once_with('PUT', 'Validate artifacts for Vsp', 'https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/onboarding-api/v1.0/vendor-software-products/12345/versions/1234/orchestration-template-candidate/process')
+
+@mock.patch.object(Vsp, 'create_csar')
+@mock.patch.object(Vsp, 'submit')
+@mock.patch.object(Vsp, 'commit')
+@mock.patch.object(Vsp, 'validate')
+@mock.patch.object(Vsp, 'upload_package')
+@mock.patch.object(Vsp, 'create')
+@mock.patch.object(Vsp, 'created')
+def test_onboard_new_vsp_no_vendor(mock_created, mock_create, mock_upload_package,
+                                   mock_validate, mock_commit, mock_submit,
+                                   mock_create_csar):
+    mock_created.return_value = False
+    getter_mock = mock.Mock(wraps=Vsp.status.fget)
+    mock_status = Vsp.status.getter(getter_mock)
+    with mock.patch.object(Vsp, 'status', mock_status):
+        getter_mock.side_effect = [None, const.APPROVED, const.APPROVED,
+                               const.APPROVED, const.APPROVED,
+                               const.APPROVED, None]
+        vsp = Vsp()
+        with pytest.raises(ValueError):
+            vsp.onboard()
+            mock_create.assert_not_called()
+            mock_upload_package.assert_not_called()
+            mock_validate.assert_not_called()
+            mock_commit.assert_not_called()
+            mock_submit.assert_not_called()
+            mock_create_csar.assert_not_called()
+
+
+@mock.patch.object(Vsp, 'create_csar')
+@mock.patch.object(Vsp, 'submit')
+@mock.patch.object(Vsp, 'commit')
+@mock.patch.object(Vsp, 'validate')
+@mock.patch.object(Vsp, 'upload_package')
+@mock.patch.object(Vsp, 'create')
+@mock.patch.object(Vsp, 'created')
+def test_onboard_new_vsp(mock_created, mock_create, mock_upload_package,
+                         mock_validate, mock_commit, mock_submit,
+                         mock_create_csar):
+    mock_created.return_value = False
+    getter_mock = mock.Mock(wraps=Vsp.status.fget)
+    mock_status = Vsp.status.getter(getter_mock)
+    with mock.patch.object(Vsp, 'status', mock_status):
+        getter_mock.side_effect = [None, const.APPROVED, const.APPROVED,
+                               const.APPROVED, const.APPROVED,
+                               const.APPROVED, None]
+        vendor = Vendor()
+        vsp = Vsp(vendor=vendor)
+        vsp.onboard()
+        mock_create.assert_called_once()
+        mock_upload_package.assert_not_called()
+        mock_validate.assert_not_called()
+        mock_commit.assert_not_called()
+        mock_submit.assert_not_called()
+        mock_create_csar.assert_not_called()
+
+@mock.patch.object(Vsp, 'create_csar')
+@mock.patch.object(Vsp, 'submit')
+@mock.patch.object(Vsp, 'commit')
+@mock.patch.object(Vsp, 'validate')
+@mock.patch.object(Vsp, 'upload_package')
+@mock.patch.object(Vsp, 'create')
+def test_onboard_vsp_upload_no_files(mock_create, mock_upload_package,
+                                     mock_validate, mock_commit, mock_submit,
+                                     mock_create_csar):
+    getter_mock = mock.Mock(wraps=Vsp.status.fget)
+    mock_status = Vsp.status.getter(getter_mock)
+    with mock.patch.object(Vsp, 'status', mock_status):
+        getter_mock.side_effect = [const.DRAFT, const.DRAFT, const.APPROVED,
+                               const.APPROVED, const.APPROVED, const.APPROVED,
+                               const.APPROVED, None]
+        vsp = Vsp()
+        with pytest.raises(ValueError):
+            vsp.onboard()
+            mock_create.assert_not_called()
+            mock_upload_package.assert_not_called()
+            mock_validate.assert_not_called()
+            mock_commit.assert_not_called()
+            mock_submit.assert_not_called()
+            mock_create_csar.assert_not_called()
+
+@mock.patch.object(Vsp, 'create_csar')
+@mock.patch.object(Vsp, 'submit')
+@mock.patch.object(Vsp, 'commit')
+@mock.patch.object(Vsp, 'validate')
+@mock.patch.object(Vsp, 'upload_package')
+@mock.patch.object(Vsp, 'create')
+def test_onboard_vsp_upload_package(mock_create, mock_upload_package,
+                                  mock_validate, mock_commit, mock_submit,
+                                  mock_create_csar):
+    getter_mock = mock.Mock(wraps=Vsp.status.fget)
+    mock_status = Vsp.status.getter(getter_mock)
+    with mock.patch.object(Vsp, 'status', mock_status):
+        getter_mock.side_effect = [const.DRAFT, const.DRAFT, const.APPROVED,
+                               const.APPROVED, const.APPROVED, const.APPROVED,
+                               const.APPROVED, None]
+        vsp = Vsp(package="yes")
+        vsp.onboard()
+        mock_create.assert_not_called()
+        mock_upload_package.assert_called_once_with("yes")
+        mock_validate.assert_not_called()
+        mock_commit.assert_not_called()
+        mock_submit.assert_not_called()
+        mock_create_csar.assert_not_called()
+
+@mock.patch.object(Vsp, 'create_csar')
+@mock.patch.object(Vsp, 'submit')
+@mock.patch.object(Vsp, 'commit')
+@mock.patch.object(Vsp, 'validate')
+@mock.patch.object(Vsp, 'upload_package')
+@mock.patch.object(Vsp, 'create')
+def test_onboard_new_vsp_validate(mock_create, mock_upload_package,
+                                  mock_validate, mock_commit, mock_submit,
+                                  mock_create_csar):
+    getter_mock = mock.Mock(wraps=Vsp.status.fget)
+    mock_status = Vsp.status.getter(getter_mock)
+    with mock.patch.object(Vsp, 'status', mock_status):
+        getter_mock.side_effect = [const.UPLOADED, const.UPLOADED, const.UPLOADED,
+                               const.APPROVED, const.APPROVED, const.APPROVED,
+                               const.APPROVED, const.APPROVED, None]
+        vsp = Vsp()
+        vsp.onboard()
+        mock_create.assert_not_called()
+        mock_upload_package.assert_not_called()
+        mock_validate.assert_called_once()
+        mock_commit.assert_not_called()
+        mock_submit.assert_not_called()
+        mock_create_csar.assert_not_called()
+
+@mock.patch.object(Vsp, 'create_csar')
+@mock.patch.object(Vsp, 'submit')
+@mock.patch.object(Vsp, 'commit')
+@mock.patch.object(Vsp, 'validate')
+@mock.patch.object(Vsp, 'upload_package')
+@mock.patch.object(Vsp, 'create')
+def test_onboard_new_vsp_commit(mock_create, mock_upload_package,
+                                mock_validate, mock_commit, mock_submit,
+                                mock_create_csar):
+    getter_mock = mock.Mock(wraps=Vsp.status.fget)
+    mock_status = Vsp.status.getter(getter_mock)
+    with mock.patch.object(Vsp, 'status', mock_status):
+        getter_mock.side_effect = [const.VALIDATED, const.VALIDATED,
+                               const.VALIDATED, const.VALIDATED, const.APPROVED,
+                               const.APPROVED, const.APPROVED, const.APPROVED,
+                               const.APPROVED, None]
+        vsp = Vsp()
+        vsp.onboard()
+        mock_create.assert_not_called()
+        mock_upload_package.assert_not_called()
+        mock_validate.assert_not_called()
+        mock_commit.assert_called_once()
+        mock_submit.assert_not_called()
+        mock_create_csar.assert_not_called()
+
+@mock.patch.object(Vsp, 'create_csar')
+@mock.patch.object(Vsp, 'submit')
+@mock.patch.object(Vsp, 'commit')
+@mock.patch.object(Vsp, 'validate')
+@mock.patch.object(Vsp, 'upload_package')
+@mock.patch.object(Vsp, 'create')
+def test_onboard_new_vsp_submit(mock_create, mock_upload_package,
+                                mock_validate, mock_commit, mock_submit,
+                                mock_create_csar):
+    getter_mock = mock.Mock(wraps=Vsp.status.fget)
+    mock_status = Vsp.status.getter(getter_mock)
+    with mock.patch.object(Vsp, 'status', mock_status):
+        getter_mock.side_effect = [const.COMMITED, const.COMMITED, const.COMMITED,
+                               const.COMMITED, const.COMMITED, const.APPROVED,
+                               const.APPROVED, const.APPROVED, const.APPROVED,
+                               const.APPROVED, None]
+        vsp = Vsp()
+        vsp.onboard()
+        mock_create.assert_not_called()
+        mock_upload_package.assert_not_called()
+        mock_validate.assert_not_called()
+        mock_commit.assert_not_called()
+        mock_submit.assert_called_once()
+        mock_create_csar.assert_not_called()
+
+@mock.patch.object(Vsp, 'create_csar')
+@mock.patch.object(Vsp, 'submit')
+@mock.patch.object(Vsp, 'commit')
+@mock.patch.object(Vsp, 'validate')
+@mock.patch.object(Vsp, 'upload_package')
+@mock.patch.object(Vsp, 'create')
+def test_onboard_new_vsp_create_csar(mock_create,
+                                     mock_upload_package, mock_validate,
+                                     mock_commit, mock_submit,
+                                     mock_create_csar):
+    getter_mock = mock.Mock(wraps=Vsp.status.fget)
+    mock_status = Vsp.status.getter(getter_mock)
+    with mock.patch.object(Vsp, 'status', mock_status):
+        getter_mock.side_effect = [const.CERTIFIED, const.CERTIFIED,
+                               const.CERTIFIED, const.CERTIFIED,
+                               const.CERTIFIED, const.CERTIFIED, const.APPROVED,
+                               const.APPROVED, const.APPROVED, const.APPROVED,
+                               const.APPROVED, None]
+        vsp = Vsp()
+        vsp.onboard()
+        mock_create.assert_not_called()
+        mock_upload_package.assert_not_called()
+        mock_validate.assert_not_called()
+        mock_commit.assert_not_called()
+        mock_submit.assert_not_called()
+        mock_create_csar.assert_called_once()
+
+@mock.patch.object(Vsp, 'create_csar')
+@mock.patch.object(Vsp, 'submit')
+@mock.patch.object(Vsp, 'commit')
+@mock.patch.object(Vsp, 'validate')
+@mock.patch.object(Vsp, 'upload_package')
+@mock.patch.object(Vsp, 'create')
+@mock.patch.object(Vsp, 'created')
+@mock.patch.object(Vsp, 'load')
+def test_onboard_whole_vsp(mock_load, mock_created, mock_create,
+                           mock_upload_package, mock_validate,
+                           mock_commit, mock_submit,
+                           mock_create_csar):
+    getter_mock = mock.Mock(wraps=Vsp.status.fget)
+    mock_status = Vsp.status.getter(getter_mock)
+    with mock.patch.object(Vsp, 'status', mock_status):
+        getter_mock.side_effect = [None, const.DRAFT, const.DRAFT, const.UPLOADED,
+                               const.UPLOADED, const.UPLOADED, const.VALIDATED,
+                               const.VALIDATED, const.VALIDATED,
+                               const.VALIDATED, const.COMMITED, const.COMMITED,
+                               const.COMMITED, const.COMMITED, const.COMMITED,
+                               const.CERTIFIED, const.CERTIFIED,
+                               const.CERTIFIED, const.CERTIFIED,
+                               const.CERTIFIED, const.CERTIFIED,
+                               const.CERTIFIED, const.CERTIFIED,
+                               const.CERTIFIED, const.CERTIFIED,
+                               const.CERTIFIED, const.CERTIFIED, None]
+        vendor = Vendor()
+        vsp = Vsp(vendor=vendor, package="yes")
+        vsp.onboard()
+        mock_create.assert_called_once()
+        mock_upload_package.assert_called_once()
+        mock_validate.assert_called_once()
+        mock_commit.assert_called_once()
+        mock_submit.assert_called_once()
+        mock_create_csar.assert_called_once()
