@@ -2,17 +2,12 @@
 """CDS Blueprint module."""
 from typing import Generator
 
-from onapsdk.onap_service import OnapService
-
+from .cds_element import CdsElement
 from .data_dictionary import DataDictionary
 
 
-class Blueprint(OnapService):
+class Blueprint(CdsElement):
     """CDS blueprint representation."""
-
-    # These should be stored in configuration. There is even a task in Orange repo.
-    _url: str = "http://portal.api.simpledemo.onap.org:30499/api/v1"
-    auth: tuple = ("ccsdkapps", "ccsdkapps")
 
     def __init__(self, cba_file_bytes: bytes) -> None:
         """Blueprint initialization.
@@ -40,6 +35,20 @@ class Blueprint(OnapService):
 
         """
         return self._url
+
+    @classmethod
+    def load_from_file(cls, cba_file_path: str) -> "Blueprint":
+        """Load blueprint from file.
+
+        Raises:
+            FileNotFoundError: File to load blueprint from doesn't exist
+
+        Returns:
+            Blueprint: Blueprint object
+
+        """
+        with open(cba_file_path, "rb") as cba_file:
+            return Blueprint(cba_file.read())
 
     def enrich(self) -> "Blueprint":
         """Call CDS API to get enriched blueprint file.
