@@ -49,7 +49,7 @@ class DataDictionary(CdsElement):
             str: Object's string representation
 
         """
-        return f"DataDictionary[name: \"{self.name}\"]"
+        return f'DataDictionary[name: "{self.name}"]'
 
     @property
     def name(self) -> str:  # noqa: D401
@@ -135,6 +135,15 @@ class DataDictionarySet:
         self.logger.debug("Upload data dictionary")
         for data_dictionary in self.dd_set:  # type DataDictionary
             data_dictionary.upload()
+
+    def save_to_file(self, dd_file_path: str) -> None:
+        """Save data dictionaries to file.
+
+        Args:
+            dd_file_path (str): Data dictinary file path.
+        """
+        with open(dd_file_path, "w") as dd_file:
+            dd_file.write(json.dumps([dd.data_dictionary_json for dd in self.dd_set], indent=4))
 
     @classmethod
     def load_from_file(cls, dd_file_path: str) -> None:
