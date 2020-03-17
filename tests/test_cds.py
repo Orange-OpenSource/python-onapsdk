@@ -1,11 +1,12 @@
 # SPDX-License-Identifier: Apache-2.0
 import os.path
+from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import MagicMock, patch, PropertyMock
 
 from pytest import raises
 
-from onapsdk.cds.blueprint import Blueprint
+from onapsdk.cds.blueprint import Blueprint, CbaMetadata, Mapping, MappingSet
 from onapsdk.cds.cds_element import CdsElement
 from onapsdk.cds.data_dictionary import DataDictionary, DataDictionarySet
 
@@ -36,6 +37,11 @@ DD_1 = {
         }
     }
 }
+
+
+vLB_CBA_Python_meta_bytes = b'TOSCA-Meta-File-Version: 1.0.0\nCSAR-Version: 1.0\nCreated-By: PLATANIA, MARCO <platania@research.att.com>\nEntry-Definitions: Definitions/vLB_CDS.json\nTemplate-Tags: vDNS-CDS-test1\nContent-Type: application/vnd.oasis.bpmn\nTemplate-Name: vDNS-CDS-test1\nTemplate-Version: 1.0'
+
+vLB_CBA_Python_base_template_mapping_bytes = b'[\n  {\n    "name": "service-instance-id",\n    "property": {\n      "description": "",\n      "required": false,\n      "type": "string",\n      "status": "",\n      "constraints": [\n        {}\n      ],\n      "entry_schema": {\n        "type": ""\n      }\n    },\n    "input-param": false,\n    "dictionary-name": "service-instance-id",\n    "dictionary-source": "input",\n    "dependencies": [],\n    "version": 0\n  },\n  {\n    "name": "vnf-id",\n    "property": {\n      "description": "",\n      "required": false,\n      "type": "string",\n      "status": "",\n      "constraints": [\n        {}\n      ],\n      "entry_schema": {\n        "type": ""\n      }\n    },\n    "input-param": false,\n    "dictionary-name": "vnf-id",\n    "dictionary-source": "input",\n    "dependencies": [],\n    "version": 0\n  },\n  {\n    "name": "vdns_vf_module_id",\n    "property": {\n      "description": "",\n      "required": false,\n      "type": "string",\n      "status": "",\n      "constraints": [\n        {}\n      ],\n      "entry_schema": {\n        "type": ""\n      }\n    },\n    "input-param": false,\n    "dictionary-name": "vdns_vf_module_id",\n    "dictionary-source": "sdnc",\n    "dependencies": [\n\t  "service-instance-id",\n      "vnf-id"\n    ],\n    "version": 0\n  },\n  {\n    "name": "vdns_int_private_ip_0",\n    "property": {\n      "description": "",\n      "required": false,\n      "type": "string",\n      "status": "",\n      "constraints": [\n        {}\n      ],\n      "entry_schema": {\n        "type": ""\n      }\n    },\n    "input-param": false,\n    "dictionary-name": "vdns_int_private_ip_0",\n    "dictionary-source": "sdnc",\n    "dependencies": [\n      "service-instance-id",\n      "vnf-id",\n      "vdns_vf_module_id"\n    ],\n    "version": 0\n  },\n  {\n    "name": "vdns_onap_private_ip_0",\n    "property": {\n      "description": "",\n      "required": false,\n      "type": "string",\n      "status": "",\n      "constraints": [\n        {}\n      ],\n      "entry_schema": {\n        "type": ""\n      }\n    },\n    "input-param": false,\n    "dictionary-name": "vdns_onap_private_ip_0",\n    "dictionary-source": "sdnc",\n    "dependencies": [\n      "service-instance-id",\n      "vnf-id",\n      "vdns_vf_module_id"\n    ],\n    "version": 0\n  }\n]'
 
 
 @patch.object(Blueprint, "send_message")
@@ -72,6 +78,50 @@ def test_blueprint_save():
             assert f.read() == b"test cba - it will never work"
 
 
+def test_blueprint_read_cba_metadata():
+    b = Blueprint(b"test cba - it will never work")
+    with raises(ValueError):
+        b.get_cba_metadata(b"Invalid")
+        b.get_cba_metadata(b"123: 456")
+
+    cba_metadata = b.get_cba_metadata(vLB_CBA_Python_meta_bytes)
+    assert cba_metadata.tosca_meta_file_version == "1.0.0"
+    assert cba_metadata.csar_version == 1.0
+    assert cba_metadata.created_by == "PLATANIA, MARCO <platania@research.att.com>"
+    assert cba_metadata.entry_definitions == "Definitions/vLB_CDS.json"
+    assert cba_metadata.template_name == "vDNS-CDS-test1"
+    assert cba_metadata.template_version == 1.0
+    assert cba_metadata.template_tags == "vDNS-CDS-test1"
+
+    with open(Path(Path(__file__).resolve().parent, "data/vLB_CBA_Python.zip"), "rb") as cba_file:
+        b = Blueprint(cba_file.read())
+    assert b.metadata.tosca_meta_file_version == "1.0.0"
+    assert b.metadata.csar_version == 1.0
+    assert b.metadata.created_by == "PLATANIA, MARCO <platania@research.att.com>"
+    assert b.metadata.entry_definitions == "Definitions/vLB_CDS.json"
+    assert b.metadata.template_name == "vDNS-CDS-test1"
+    assert b.metadata.template_version == 1.0
+    assert b.metadata.template_tags == "vDNS-CDS-test1"
+
+
+def test_blueprint_get_mappings_from_mapping_file():
+    b = Blueprint(b"test cba - it will never work")
+    mappings = list(b.get_mappings_from_mapping_file(vLB_CBA_Python_base_template_mapping_bytes))
+    assert len(mappings) == 5
+    mapping = mappings[0]
+    assert mapping.name == "service-instance-id"
+    assert mapping.mapping_type == "string"
+    assert mapping.dictionary_name == "service-instance-id"
+    assert mapping.dictionary_sources == ["input"]
+
+
+def test_blueprint_generate_data_dictionary_set():
+    with open(Path(Path(__file__).resolve().parent, "data/vLB_CBA_Python.zip"), "rb") as cba_file:
+        b = Blueprint(cba_file.read())
+    dd_set = b.get_data_dictionaries()
+    print(dd_set)
+
+
 @patch.object(CdsElement, "_url", new_callable=PropertyMock)
 def test_data_dictionary(cds_element_url_property_mock):
     cds_element_url_property_mock.return_value = "http://127.0.0.1"
@@ -105,3 +155,35 @@ def test_data_dictionary_set(send_message_mock):
 
     dd_set.upload()
     assert send_message_mock.call_count == 2
+
+
+def test_mapping():
+    m1 = Mapping(name="test",
+                 mapping_type="string",
+                 dictionary_name="test_dictionary_name", 
+                 dictionary_sources=["dictionary_source_1"])
+
+    m2 = Mapping(name="test", mapping_type="string", dictionary_name="test_dictionary_name", dictionary_sources=["dictionary_source_2"])
+
+    assert m1 == m2
+    m1.merge(m2)
+    assert sorted(m1.dictionary_sources) == ["dictionary_source_1", "dictionary_source_2"]
+    m1.merge(m2)
+    assert sorted(m1.dictionary_sources) == ["dictionary_source_1", "dictionary_source_2"]
+
+
+def test_mapping_set():
+    ms = MappingSet()
+    assert len(ms) == 0
+    m1 = Mapping(name="test",
+                 mapping_type="string",
+                 dictionary_name="test_dictionary_name", 
+                 dictionary_sources=["dictionary_source_1"])
+
+    m2 = Mapping(name="test", mapping_type="string", dictionary_name="test_dictionary_name", dictionary_sources=["dictionary_source_2"])
+
+    ms.add(m1)
+    assert len(ms) == 1
+    ms.add(m2)
+    assert len(ms) == 1
+    assert sorted(ms[0].dictionary_sources) == ["dictionary_source_1", "dictionary_source_2"]

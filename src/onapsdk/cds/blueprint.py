@@ -1,13 +1,176 @@
 # SPDX-License-Identifier: Apache-2.0
 """CDS Blueprint module."""
-from typing import Generator
+import json
+import re
+from dataclasses import dataclass, field
+from io import BytesIO
+from typing import Generator, Iterator, List
+from zipfile import ZipFile
+
+import oyaml as yaml
+
+from onapsdk.utils.jinja import jinja_env
 
 from .cds_element import CdsElement
-from .data_dictionary import DataDictionary
+from .data_dictionary import DataDictionary, DataDictionarySet
+
+
+@dataclass
+class CbaMetadata:
+    """Class to hold CBA metadata values."""
+
+    tosca_meta_file_version: str
+    csar_version: str
+    created_by: str
+    entry_definitions: str
+    template_name: str
+    template_version: str
+    template_tags: str
+
+
+@dataclass
+class Mapping:
+    """Blueprint's template mapping.
+
+    Stores mapping data:
+      - name,
+      - type,
+      - name of dictionary from which value should be get,
+      - dictionary source of value.
+    """
+
+    name: str
+    mapping_type: str
+    dictionary_name: str
+    dictionary_sources: List[str] = field(default_factory=list)
+
+    def __hash__(self) -> int:  # noqa: D401
+        """Mapping object hash.
+
+        Based on mapping name.
+
+        Returns:
+            int: Mapping hash
+
+        """
+        return hash(self.name)
+
+    def __eq__(self, mapping: "Mapping") -> bool:
+        """Compare two mapping objects.
+
+        Mappings are equal if have the same name.
+
+        Args:
+            mapping (Mapping): Mapping object to compare with.
+
+        Returns:
+            bool: True if objects have the same name, False otherwise.
+
+        """
+        return self.name == mapping.name
+
+    def merge(self, mapping: "Mapping") -> None:
+        """Merge mapping objects.
+
+        Merge objects dictionary sources.
+
+        Args:
+            mapping (Mapping): Mapping object to merge.
+
+        """
+        self.dictionary_sources = list(
+            set(self.dictionary_sources) | set(mapping.dictionary_sources)
+        )
+
+    def generate_data_dictionary(self) -> dict:
+        """Generate data dictionary for mapping.
+
+        Data dictionary with required data sources, type and name for mapping will be created from
+            Jinja2 template.
+
+        Returns:
+            dict: Data dictionary
+
+        """
+        return json.loads(
+            jinja_env().get_template("data_dictionary_base.json.j2").render(mapping=self)
+        )
+
+
+class MappingSet:
+    """Set of mapping objects.
+
+    Mapping objects will be stored in dictionary where mapping name is a key.
+    No two mappings with the same name can be stored in this collection.
+    """
+
+    def __init__(self) -> None:
+        """Initialize mappings collection.
+
+        Create dictionary to store mappings.
+        """
+        self.mappings = {}
+
+    def __len__(self) -> int:  # noqa: D401
+        """Mapping set length.
+
+        Returns:
+            int: Number of stored mapping objects.
+
+        """
+        return len(self.mappings)
+
+    def __iter__(self) -> Iterator[Mapping]:
+        """Iterate through mapping stored in set.
+
+        Returns:
+            Iterator[Mapping]: Stored mappings iterator.
+
+        """
+        return iter(list(self.mappings.values()))
+
+    def __getitem__(self, index: int) -> Mapping:
+        """Get item stored on given index.
+
+        Args:
+            index (int): Index number.
+
+        Returns:
+            Mapping: Mapping stored on given index.
+
+        """
+        return list(self.mappings.values())[index]
+
+    def add(self, mapping: Mapping) -> None:
+        """Add mapping to set.
+
+        If there is already mapping object with the same name in collection
+            they will be merged.
+
+        Args:
+            mapping (Mapping): Mapping to add to collection.
+
+        """
+        if mapping.name not in self.mappings:
+            self.mappings.update({mapping.name: mapping})
+        else:
+            self.mappings[mapping.name].merge(mapping)
+
+    def extend(self, iterable: Iterator[Mapping]) -> None:
+        """Extend set with an iterator of mappings.
+
+        Args:
+            iterable (Iterator[Mapping]): Mappings iterator.
+        """
+        for mapping in iterable:
+            self.add(mapping)
 
 
 class Blueprint(CdsElement):
     """CDS blueprint representation."""
+
+    TEMPLATES_RE = r"Templates\/.*json$"
+    TOSCA_META = "TOSCA-Metadata/TOSCA.meta"
 
     def __init__(self, cba_file_bytes: bytes) -> None:
         """Blueprint initialization.
@@ -25,6 +188,8 @@ class Blueprint(CdsElement):
         """
         super().__init__()
         self.cba_file_bytes: bytes = cba_file_bytes
+        self._cba_metadata = None
+        self._cba_mappings = None
 
     @property
     def url(self) -> str:
@@ -35,6 +200,34 @@ class Blueprint(CdsElement):
 
         """
         return self._url
+
+    @property
+    def metadata(self) -> CbaMetadata:
+        """Blueprint metadata.
+
+        Data from TOSCA.meta file.
+
+        Returns:
+            CbaMetadata: Blueprint metadata object.
+
+        """
+        if not self._cba_metadata:
+            with ZipFile(BytesIO(self.cba_file_bytes)) as cba_zip_file:
+                self._cba_metadata = self.get_cba_metadata(cba_zip_file.read(self.TOSCA_META))
+        return self._cba_metadata
+
+    @property
+    def mappings(self) -> MappingSet:
+        """Blueprint mappings collection.
+
+        Returns:
+            MappingSet: Mappings collection.
+
+        """
+        if not self._cba_mappings:
+            with ZipFile(BytesIO(self.cba_file_bytes)) as cba_zip_file:
+                self._cba_mappings = self.get_mappings(cba_zip_file)
+        return self._cba_mappings
 
     @classmethod
     def load_from_file(cls, cba_file_path: str) -> "Blueprint":
@@ -100,8 +293,8 @@ class Blueprint(CdsElement):
         with open(dest_file_path, "wb") as cba_file:
             cba_file.write(self.cba_file_bytes)
 
-    def get_data_dictionaries(self) -> Generator[DataDictionary, None, None]:
-        """Get the generator of data dictionaries required by blueprint.
+    def get_data_dictionaries(self) -> DataDictionarySet:
+        """Get the generated data dictionaries required by blueprint.
 
         If mapping reqires other source than input it should be updated before upload to CDS.
 
@@ -109,4 +302,74 @@ class Blueprint(CdsElement):
             Generator[DataDictionary, None, None]: DataDictionary objects.
 
         """
-        raise NotImplementedError
+        dd_set: DataDictionarySet = DataDictionarySet()
+        for mapping in self.mappings:
+            dd_set.add(DataDictionary(mapping.generate_data_dictionary()))
+        return dd_set
+
+    def get_cba_metadata(self, cba_tosca_meta_bytes: bytes) -> CbaMetadata:  # pylint: disable=R0201
+        """Parse CBA TOSCA.meta file and get values from it.
+
+        Args:
+            cba_tosca_meta_bytes (bytes): TOSCA.meta file bytes.
+
+        Raises:
+            ValueError: File has invalid format.
+
+        Returns:
+            CbaMetadata: Dataclass with CBA metadata
+
+        """
+        meta_dict: dict = yaml.safe_load(cba_tosca_meta_bytes)
+        if not isinstance(meta_dict, dict):
+            raise ValueError("Invalid TOSCA Meta file")
+        return CbaMetadata(
+            tosca_meta_file_version=meta_dict.get("TOSCA-Meta-File-Version"),
+            csar_version=meta_dict.get("CSAR-Version"),
+            created_by=meta_dict.get("Created-By"),
+            entry_definitions=meta_dict.get("Entry-Definitions"),
+            template_name=meta_dict.get("Template-Name"),
+            template_version=meta_dict.get("Template-Version"),
+            template_tags=meta_dict.get("Template-Tags"),
+        )
+
+    def get_mappings_from_mapping_file(self,  # pylint: disable=R0201
+                                       cba_mapping_file_bytes: bytes
+                                       ) -> Generator[Mapping, None, None]:
+        """Read mapping file and create Mappping object for it.
+
+        Args:
+            cba_mapping_file_bytes (bytes): CBA mapping file bytes.
+
+        Yields:
+            Generator[Mapping, None, None]: Mapping object.
+
+        """
+        mapping_file_json = json.loads(cba_mapping_file_bytes)
+        for mapping in mapping_file_json:
+            yield Mapping(
+                name=mapping["name"],
+                mapping_type=mapping["property"]["type"],
+                dictionary_name=mapping["dictionary-name"],
+                dictionary_sources=[mapping["dictionary-source"]],
+            )
+
+    def get_mappings(self, cba_zip_file: ZipFile) -> MappingSet:
+        """Read mappings from CBA file.
+
+        Search mappings in CBA file and create Mapping object for each of them.
+
+        Args:
+            cba_zip_file (ZipFile): CBA file to get mappings from.
+
+        Returns:
+            MappingSet: Mappings set object.
+
+        """
+        mapping_set = MappingSet()
+        for info in cba_zip_file.infolist():
+            if re.match(self.TEMPLATES_RE, info.filename):
+                mapping_set.extend(
+                    self.get_mappings_from_mapping_file(cba_zip_file.read(info.filename))
+                )
+        return mapping_set
