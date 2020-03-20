@@ -3,8 +3,10 @@
 import json
 import re
 from dataclasses import dataclass, field
+from datetime import datetime
 from io import BytesIO
-from typing import Generator, Iterator, List
+from typing import Any, Dict, Generator, Iterator, List
+from uuid import uuid4
 from zipfile import ZipFile
 
 import oyaml as yaml
@@ -161,9 +163,198 @@ class MappingSet:
 
         Args:
             iterable (Iterator[Mapping]): Mappings iterator.
+
         """
         for mapping in iterable:
             self.add(mapping)
+
+
+class Workflow(CdsElement):
+    """Blueprint's workflow.
+
+    Stores workflow steps, inputs, outputs.
+    Executes workflow using CDS HTTP API.
+    """
+
+    @dataclass
+    class WorkflowStep:
+        """Workflow step class.
+
+        Stores step name, description, target and optional activities.
+        """
+
+        name: str
+        description: str
+        target: str
+        activities: List[Dict[str, str]] = field(default_factory=list)
+
+    @dataclass
+    class WorkflowInput:
+        """Workflow input class.
+
+        Stores input name, information if it's required, type, and optional description.
+        """
+
+        name: str
+        required: bool
+        type: str
+        description: str = ""
+
+    @dataclass
+    class WorkflowOutput:
+        """Workflow output class.
+
+        Stores output name, type na value.
+        """
+
+        name: str
+        type: str
+        value: Dict[str, Any]
+
+    def __init__(self,
+                 cba_workflow_name: str,
+                 cba_workflow_data: dict,
+                 blueprint: "Blueprint") -> None:
+        """Workflow initialization.
+
+        Args:
+            cba_workflow_name (str): Workflow name.
+            cba_workflow_data (dict): Workflow data.
+            blueprint (Blueprint): Blueprint object which contains workflow.
+
+        """
+        super().__init__()
+        self.name: str = cba_workflow_name
+        self.workflow_data: dict = cba_workflow_data
+        self.blueprint: "Blueprint" = blueprint
+        self._steps: List[self.WorkflowStep] = None
+        self._inputs: List[self.WorkflowInput] = None
+        self._outputs: List[self.WorkflowOutput] = None
+
+    def __repr__(self) -> str:
+        """Representation of object.
+
+        Returns:
+            str: Object's string representation
+
+        """
+        return (f"Workflow(name='{self.name}', "
+                f"blueprint_name='{self.blueprint.metadata.template_name})'")
+
+    @property
+    def steps(self) -> List["Workflow.WorkflowStep"]:
+        """Workflow's steps property.
+
+        Returns:
+            List[Workflow.WorkflowStep]: List of workflow's steps.
+
+        """
+        if self._steps is None:
+            self._steps = []
+            for step_name, step_data in self.workflow_data.get("steps", {}).items():
+                self._steps.append(
+                    self.WorkflowStep(
+                        name=step_name,
+                        description=step_data.get("description"),
+                        target=step_data.get("target"),
+                        activities=step_data.get("activities", []),
+                    )
+                )
+        return self._steps
+
+    @property
+    def inputs(self) -> List["Workflow.WorkflowInput"]:
+        """Workflow's inputs property.
+
+        Returns:
+            List[Workflow.WorkflowInput]: List of workflows's inputs.
+
+        """
+        if self._inputs is None:
+            self._inputs = []
+            for input_name, input_data in self.workflow_data.get("inputs", {}).items():
+                self._inputs.append(
+                    self.WorkflowInput(
+                        name=input_name,
+                        required=input_data.get("required"),
+                        type=input_data.get("type"),
+                        description=input_data.get("description"),
+                    )
+                )
+        return self._inputs
+
+    @property
+    def outputs(self) -> List["Workflow.WorkflowOutput"]:
+        """Workflow's outputs property.
+
+        Returns:
+            List[Workflow.WorkflowOutput]: List of workflows's outputs.
+
+        """
+        if self._outputs is None:
+            self._outputs = []
+            for output_name, output_data in self.workflow_data.get("outputs", {}).items():
+                self._outputs.append(
+                    self.WorkflowOutput(
+                        name=output_name,
+                        type=output_data.get("type"),
+                        value=output_data.get("value"),
+                    )
+                )
+        return self._outputs
+
+    @property
+    def url(self) -> str:
+        """Workflow execution url.
+
+        Returns:
+            str: Url to call warkflow execution.
+
+        """
+        return f"{self._url}/execution-service/process"
+
+    def execute(self, inputs: dict) -> dict:
+        """Execute workflow.
+
+        Call CDS HTTP API to execute workflow.
+
+        Args:
+            inputs (dict): Inputs dictionary.
+
+        Raises:
+            AttributeError: Execution returns error.
+
+        Returns:
+            dict: Response's payload.
+
+        """
+        # There should be some flague to check if CDS UI API is used or blueprintprocessor.
+        # For CDS UI API there is no endporint to execute workflow, so it has to be turned off.
+        execution_service_input: dict = {
+            "commonHeader": {
+                "originatorId": "onapsdk",
+                "requestId": str(uuid4()),
+                "subRequestId": str(uuid4()),
+                "timestamp": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+            },
+            "actionIdentifiers": {
+                "blueprintName": self.blueprint.metadata.template_name,
+                "blueprintVersion": self.blueprint.metadata.template_version,
+                "actionName": self.name,
+                "mode": "SYNC",  # Has to be SYNC for REST call
+            },
+            "payload": {f"{self.name}-request": inputs},
+        }
+        response: "requests.Response" = self.send_message_json(
+            "POST",
+            f"Execute {self.blueprint.metadata.template_name} blueprint {self.name} workflow",
+            self.url,
+            auth=self.auth,
+            data=json.dumps(execution_service_input),
+        )
+        if not response:
+            raise AttributeError("Can't execute workflow, look on logs to get more information.")
+        return response["payload"]
 
 
 class Blueprint(CdsElement):
@@ -185,11 +376,13 @@ class Blueprint(CdsElement):
 
         Args:
             cba_file_bytes (bytes): CBA ZIP file bytes
+
         """
         super().__init__()
         self.cba_file_bytes: bytes = cba_file_bytes
-        self._cba_metadata = None
-        self._cba_mappings = None
+        self._cba_metadata: CbaMetadata = None
+        self._cba_mappings: MappingSet = None
+        self._cba_workflows: List[Workflow] = None
 
     @property
     def url(self) -> str:
@@ -228,6 +421,21 @@ class Blueprint(CdsElement):
             with ZipFile(BytesIO(self.cba_file_bytes)) as cba_zip_file:
                 self._cba_mappings = self.get_mappings(cba_zip_file)
         return self._cba_mappings
+
+    @property
+    def workflows(self) -> List["Workflow"]:
+        """Blueprint's workflows property.
+
+        Returns:
+            List[Workflow]: Blueprint's workflow list.
+
+        """
+        if not self._cba_workflows:
+            with ZipFile(BytesIO(self.cba_file_bytes)) as cba_zip_file:
+                self._cba_workflows = list(
+                    self.get_workflows(cba_zip_file.read(self.metadata.entry_definitions))
+                )
+        return self._cba_workflows
 
     @classmethod
     def load_from_file(cls, cba_file_path: str) -> "Blueprint":
@@ -289,6 +497,7 @@ class Blueprint(CdsElement):
 
         Args:
             dest_file_path (str): Path of file where blueprint is going to be saved
+
         """
         with open(dest_file_path, "wb") as cba_file:
             cba_file.write(self.cba_file_bytes)
@@ -373,3 +582,21 @@ class Blueprint(CdsElement):
                     self.get_mappings_from_mapping_file(cba_zip_file.read(info.filename))
                 )
         return mapping_set
+
+    def get_workflows(self,
+                      cba_entry_definitions_file_bytes: bytes) -> Generator[Workflow, None, None]:
+        """Get worfklows from entry_definitions file.
+
+        Parse entry_definitions file and create Workflow objects for workflows stored in.
+
+        Args:
+            cba_entry_definitions_file_bytes (bytes): entry_definition file.
+
+        Yields:
+            Generator[Workflow, None, None]: Workflow object.
+
+        """
+        entry_definitions_json: dict = json.loads(cba_entry_definitions_file_bytes)
+        workflows: dict = entry_definitions_json.get("topology_template", {}).get("workflows", {})
+        for workflow_name, workflow_data in workflows.items():
+            yield Workflow(workflow_name, workflow_data, self)

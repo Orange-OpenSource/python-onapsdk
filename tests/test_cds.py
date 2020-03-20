@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch, PropertyMock
 
 from pytest import raises
 
-from onapsdk.cds.blueprint import Blueprint, CbaMetadata, Mapping, MappingSet
+from onapsdk.cds.blueprint import Blueprint, CbaMetadata, Mapping, MappingSet, Workflow
 from onapsdk.cds.cds_element import CdsElement
 from onapsdk.cds.data_dictionary import DataDictionary, DataDictionarySet
 
@@ -187,3 +187,28 @@ def test_mapping_set():
     ms.add(m2)
     assert len(ms) == 1
     assert sorted(ms[0].dictionary_sources) == ["dictionary_source_1", "dictionary_source_2"]
+
+
+def test_blueprint_get_workflows_from_entry_definitions_file():
+    with open(Path(Path(__file__).resolve().parent, "data/vLB_CBA_Python.zip"), "rb") as cba_file:
+        b = Blueprint(cba_file.read())
+    assert len(b.workflows) == 3
+    workflow = b.workflows[0]
+    assert len(workflow.steps) == 1
+    assert workflow.steps[0].name == "resource-assignment"
+    assert workflow.steps[0].description == "Resource Assign Workflow"
+    assert workflow.steps[0].target == "resource-assignment"
+    assert len(workflow.inputs) == 2
+    assert len(workflow.outputs) == 1
+
+
+@patch.object(Workflow, "send_message")
+def test_workflow_execute(send_message_mock):
+    metadata = MagicMock(template_name="test", template_version="test")
+    blueprint = MagicMock(metadata=metadata)
+    workflow = Workflow("test_workflow", {}, blueprint)
+    assert len(workflow.steps) == 0
+    assert len(workflow.inputs) == 0
+    assert len(workflow.outputs) == 0
+    workflow.execute({})
+    send_message_mock.assert_called_once()
