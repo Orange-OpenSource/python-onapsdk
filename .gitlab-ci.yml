@@ -104,3 +104,4 @@ include:
   - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/pyup.gitlab-ci.yml'
   - template: License-Management.gitlab-ci.yml
   - template: Dependency-Scanning.gitlab-ci.yml
+
