@@ -69,7 +69,7 @@ class DataDictionary(CdsElement):
             str: CDS dictionary API url
 
         """
-        return f"{self._url}/dictionary"
+        return f"{self._url}/resourcedictionary"
 
     def upload(self) -> None:
         """Upload data dictionary using CDS API.
@@ -82,9 +82,8 @@ class DataDictionary(CdsElement):
         response: "requests.Response" = self.send_message(
             "POST",
             "Publish CDS data dictionary",
-            self.url,
+            f"{self.url}/save",
             data=json.dumps(self.data_dictionary_json),
-            auth=self.auth,
         )
         if response is None:
             raise RuntimeError(f"Data dictionary {self.name} not uploaded")

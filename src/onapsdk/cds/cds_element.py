@@ -8,10 +8,8 @@ from onapsdk.onap_service import OnapService
 class CdsElement(OnapService, ABC):
     """Base CDS class.
 
-    Stores url to CDS API (edit if you want to use other) and authentication tuple
-    (username, password).
+    Stores url to CDS API (edit if you want to use other).
     """
 
     # These should be stored in configuration. There is even a task in Orange repo.
-    _url: str = "http://portal.api.simpledemo.onap.org:30499/api/v1"
-    auth: tuple = ("ccsdkapps", "ccsdkapps")
+    _url: str = "https://portal.api.simpledemo.onap.org:30497"
