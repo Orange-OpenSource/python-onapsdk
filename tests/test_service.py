@@ -3,12 +3,11 @@
 """Test Service module."""
 
 from os import path
+from unittest import mock
+from unittest.mock import MagicMock
 import shutil
 
-import mock
-from unittest.mock import MagicMock
 import pytest
-import requests
 
 import onapsdk.constants as const
 from onapsdk.service import Service

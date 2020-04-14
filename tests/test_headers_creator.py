@@ -4,7 +4,7 @@ from onapsdk.utils.headers_creator import headers_sdc_creator
 from onapsdk.utils.headers_creator import headers_sdc_tester
 from onapsdk.utils.headers_creator import headers_sdc_governor
 from onapsdk.utils.headers_creator import headers_sdc_operator
-
+from onapsdk.utils.headers_creator import headers_aai_creator
 
 def test_headers_sdc_creator():
     base_header = {}
@@ -33,3 +33,12 @@ def test_headers_sdc_operator():
     assert base_header != sdc_headers_operator
     assert sdc_headers_operator["USER_ID"] == "op0001"
     assert sdc_headers_operator["Authorization"]
+
+
+def test_headers_aai_creator():
+    base_header = {}
+    aai_headers_creator = headers_aai_creator(base_header)
+    assert base_header != aai_headers_creator
+    assert aai_headers_creator["x-fromappid"] == "AAI"
+    assert aai_headers_creator["authorization"]
+    assert aai_headers_creator["x-transactionid"]

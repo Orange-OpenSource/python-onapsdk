@@ -1,0 +1,31 @@
+{
+ "cloudOwner": "{{ cloud_owner }}",
+ "cloudRegionId": "{{ cloud_region_id }}",
+ "cloudType": "{{ cloud_type }}",
+ "cloudRegionVersion": "{{ cloud_region_version }}"
+ {% if owner_defined_type %}
+    , "ownerDefinedType": "{{ owner_defined_type }}"
+ {% endif %}
+ {% if cloud_zone %}
+    , "cloudZone": "{{ cloud_zone }}"
+ {% endif %}
+ {% if complex_name %}
+    , "physicalLocationId": "{{ physical_location_id }}"
+ {% endif %}
+ {% if cloud_extra_info %}
+    , "cloudExtraInfo": "{{ cloud_extra_info }}"
+ {% endif %}
+ , "vimAuthInfos": 
+    [{
+        "userName": "{{ auth_info_username }}",
+        "password": "{{ auth_info_password }}",
+        "authUrl": "{{ auth_info_url }}",
+        "cloudDomain": "{{ auth_info_cloud_domain }}"
+        {% if auth_info_ssl_cacert %}
+            , "sslCacert": "{{ auth_info_ssl_cacert }}"
+        {% endif %}
+        {% if auth_info_ssl_insecure is not none %}
+            , "sslInsecure": {{ auth_info_ssl_insecure | tojson }}
+        {% endif %}
+    }]
+}

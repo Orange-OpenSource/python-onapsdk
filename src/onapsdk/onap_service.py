@@ -112,7 +112,7 @@ class OnapService(ABC):
 
     @classmethod
     def send_message_json(cls, method: str, action: str, url: str,
-                          **kwargs) -> Union[Dict[Any, Any], None]:
+                          **kwargs) -> Dict[Any, Any]:
         """
         Send a message to an ONAP service and parse the response as JSON.
 

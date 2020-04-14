@@ -104,3 +104,37 @@ def headers_sdc_generic(base_header: Dict[str, str],
                                                  "9HR21KdlV5MlU=")
     headers["X-ECOMP-InstanceID"] = "onapsdk"
     return headers
+
+
+def headers_aai_creator(base_header: Dict[str, str]):
+    """
+    Create the right headers for AAI creator type.
+
+    Args:
+        base_header (Dict[str, str]): the base header to use
+
+    Returns:
+        Dict[str, str]: the needed headers
+
+    """
+    headers = base_header.copy()
+    headers["x-fromappid"] = "AAI"
+    headers["x-transactionid"] = "0a3f6713-ba96-4971-a6f8-c2da85a3176e"
+    headers["authorization"] = "Basic QUFJOkFBSQ=="
+    return headers
+
+
+def headers_msb_creator(base_header: Dict[str, str]):
+    """
+    Create the right headers for MSB.
+
+    Args:
+        base_header (Dict[str, str]): the base header to use
+
+    Returns:
+        Dict[str, str]: the needed headers
+
+    """
+    headers = base_header.copy()
+    headers["cache-control"] = "no-cache"
+    return headers

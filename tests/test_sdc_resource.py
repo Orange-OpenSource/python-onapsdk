@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 """Test SdcResource module."""
-import mock
-import pytest
+from unittest import mock
 import logging
+
+import pytest
 
 import onapsdk.constants as const
 from onapsdk.onap_service import OnapService

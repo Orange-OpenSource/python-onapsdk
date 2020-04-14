@@ -1,0 +1,54 @@
+{
+    "esr-system-info-id": "{{ esr_system_info_id }}",
+    "user-name": "{{ user_name }}",
+    "password": "{{ password }}",
+    "system-type": "{{ system_type }}"
+    {% if system_name %}
+        , "system-name": "{{ system_name }}"
+    {% endif %}
+    {% if esr_type %}
+        , "type": "{{ esr_type }}"
+    {% endif %}
+    {% if vendor %}
+        , "vendor": "{{ vendor }}"
+    {% endif %}
+    {% if version %}
+        , "version": "{{ version }}"
+    {% endif %}
+    {% if service_url %}
+        , "service-url": "{{ service_url }}"
+    {% endif %}
+    {% if protocol %}
+        , "protocol": "{{ protocol }}"
+    {% endif %}
+    {% if ssl_cacert %}
+        , "ssl-cacert": "{{ ssl_cacert }}"
+    {% endif %}
+    {% if ssl_insecure is not none %}
+        , "ssl-insecure": {{ ssl_insecure | tojson }}
+    {% endif %}
+    {% if ip_address %}
+        , "ip-address": "{{ ip_address }}"
+    {% endif %}
+    {% if port %}
+        , "port": "{{ port }}"
+    {% endif %}
+    {% if cloud_domain %}
+        , "cloud-domain": "{{ cloud_domain }}"
+    {% endif %}
+    {% if default_tenant %}
+        , "default-tenant": "{{ default_tenant }}"
+    {% endif %}
+    {% if passive is not none %}
+        , "passive": {{ passive | tojson }}
+    {% endif %}
+    {% if remote_path %}
+        , "remote-path": "{{ remote_path }}"
+    {% endif %}
+    {% if system_status %}
+        , "system-status": "{{ system_status }}"
+    {% endif %}
+    {% if openstack_region_id %}
+        , "openstack-region-id": "{{ openstack_region_id }}"
+    {% endif %}
+}

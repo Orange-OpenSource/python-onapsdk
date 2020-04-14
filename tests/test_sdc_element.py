@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 """Test SdcElement module."""
-import mock
+from unittest import mock
+
 import pytest
 
 from onapsdk.onap_service import OnapService
