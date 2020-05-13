@@ -1,6 +1,6 @@
 bandit==1.6.2
 pylama==7.7.1
-pylint==2.4.4
+pylint==2.5.2
 pydocstyle==5.0.2
 doc8==0.8.0
 requests-mock==1.7.0
