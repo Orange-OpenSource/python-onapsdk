@@ -7,6 +7,8 @@ from typing import BinaryIO
 from typing import Callable
 from typing import Dict
 
+import logging
+
 from onapsdk.sdc_element import SdcElement
 from onapsdk.vendor import Vendor
 import onapsdk.constants as const
@@ -28,6 +30,7 @@ class Vsp(SdcElement): # pylint: disable=too-many-instance-attributes
     """
 
     VSP_PATH = "vendor-software-products"
+    _logger: logging.Logger = logging.getLogger(__name__)
     headers = headers_sdc_creator(SdcElement.headers)
 
     def __init__(self, name: str = None, package: BinaryIO = None,

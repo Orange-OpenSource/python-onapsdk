@@ -2,10 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 """Test vf module."""
 
-from unittest import mock
-from unittest.mock import MagicMock
-
+import mock
 import pytest
+from unittest.mock import MagicMock
 
 import onapsdk.constants as const
 from onapsdk.sdc_resource import SdcResource

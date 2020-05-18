@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 """Test OnapService module."""
-from unittest import mock
-
+import mock
 import pytest
+
 from jinja2 import Environment
 from requests import Response, Timeout, Session
 

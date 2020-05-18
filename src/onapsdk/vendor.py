@@ -5,6 +5,8 @@
 from typing import Any
 from typing import Dict
 
+import logging
+
 from onapsdk.sdc_element import SdcElement
 import onapsdk.constants as const
 from onapsdk.utils.headers_creator import headers_sdc_creator
@@ -23,6 +25,7 @@ class Vendor(SdcElement):
     """
 
     VENDOR_PATH = "vendor-license-models"
+    _logger: logging.Logger = logging.getLogger(__name__)
     headers = headers_sdc_creator(SdcElement.headers)
 
     def __init__(self, name: str = None):

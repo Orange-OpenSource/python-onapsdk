@@ -35,21 +35,13 @@ class OnapService(ABC):
 
     """
 
-    _logger: logging.Logger = logging.getLogger(__qualname__)
+    _logger: logging.Logger = logging.getLogger(__name__)
     server: str = None
     headers: Dict[str, str] = {
         "Content-Type": "application/json",
         "Accept": "application/json",
     }
     proxy: Dict[str, str] = None
-
-    def __init_subclass__(cls):
-        """Subclass initialization.
-
-        Add _logger property for any OnapService with it's class name as a logger name
-        """
-        super().__init_subclass__()
-        cls._logger: logging.Logger = logging.getLogger(cls.__qualname__)
 
     def __init__(self) -> None:
         """Initialize the service."""
@@ -120,7 +112,7 @@ class OnapService(ABC):
 
     @classmethod
     def send_message_json(cls, method: str, action: str, url: str,
-                          **kwargs) -> Dict[Any, Any]:
+                          **kwargs) -> Union[Dict[Any, Any], None]:
         """
         Send a message to an ONAP service and parse the response as JSON.
 
