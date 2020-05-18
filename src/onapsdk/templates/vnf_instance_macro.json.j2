@@ -1,0 +1,16 @@
+{
+	"modelInfo": {{ vnf_model_info }},
+	"cloudConfiguration": {{ cloud_configuration }},
+	"platform": {
+		"platformName": "Useless_But_Mandatory"
+                     },
+         "productFamilyId": "Useless_But_Mandatory",
+         "instanceName": "{{ vnf_instance_name }}",
+         "instanceParams": [{{ vnf_instance_param }}],
+         "vfModules": {{ vf_modules }}
+     {#{
+          "modelInfo": "{{ vf_model }}",
+          "instanceName": "{{ vnf_model_instance_name }}",
+          "instanceParams": [ "{{ vf_instance_params }}"]
+      }]#}
+}

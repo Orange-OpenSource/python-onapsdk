@@ -1,0 +1,31 @@
+{
+    "input": {
+        "request-information": {
+            "notification-url": "onap.org",
+            "order-number": "1",
+            "order-version": "1",
+            "request-action": "PreloadVNFRequest",
+            "request-id": "test"
+        },
+        "sdnc-request-header": {
+            "svc-action": "reserve",
+            "svc-notification-url": "http:\/\/onap.org:8080\/adapters\/rest\/SDNCNotify",
+            "svc-request-id": "test"
+        },
+        "vnf-topology-information": {
+            "vnf-assignments": {
+                "availability-zones": [],
+                "vnf-networks": [],
+                "vnf-vms": []
+            },
+            "vnf-parameters": {{ vnf_parameters }},
+            "vnf-topology-identifier": {
+                "generic-vnf-name": "{{ vnf_instance.vnf_name }}",
+                "generic-vnf-type": "{{ vnf_instance.vnf_type }}",
+                "service-type": "{{ vnf_instance.service_instance.instance_id }}",
+                "vnf-name": "{{ vf_module_instance_name }}",
+                "vnf-type": "{{ vf_module.metadata["vfModuleModelName"] }}"
+            }
+        }
+    }
+}

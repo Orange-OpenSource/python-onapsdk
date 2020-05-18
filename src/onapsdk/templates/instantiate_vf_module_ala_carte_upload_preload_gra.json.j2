@@ -1,0 +1,41 @@
+{
+   "input":{
+      "preload-vf-module-topology-information":{
+         "vf-module-topology":{
+            "vf-module-topology-identifier":{
+               "vf-module-name":"{{vf_module_instance_name}}"
+            },
+            "vf-module-parameters": {
+                "param": {{ vnf_parameters }}
+                }
+         },
+         "vnf-topology-identifier-structure":{
+            "vnf-name":"{{vnf_instance.vnf_name}}",
+            "vnf-type":"{{vnf_instance.vnf_type}}"
+         },
+         "vnf-resource-assignments":{
+                "availability-zones":{
+               "availability-zone":[
+               "nova"
+               ],
+               "max-count":1
+            },
+            "vnf-networks":{
+               "vnf-network":[]
+            }
+         }
+      },
+      "request-information":{
+         "request-id":"test",
+         "order-version":"1",
+         "notification-url":"onap.org",
+         "order-number":"1",
+         "request-action":"PreloadVfModuleRequest"
+      },
+      "sdnc-request-header":{
+         "svc-request-id":"test",
+         "svc-notification-url":"http:\/\/onap.org:8080\/adapters\/rest\/SDNCNotify",
+         "svc-action":"reserve"
+      }
+   }
+}

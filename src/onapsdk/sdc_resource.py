@@ -17,7 +17,6 @@ from onapsdk.utils.headers_creator import (headers_sdc_creator,
 class SdcResource(SDC, ABC):  # pylint: disable=too-many-instance-attributes
     """Mother Class of all SDC resources."""
 
-    _logger: logging.Logger = logging.getLogger(__name__)
     RESOURCE_PATH = 'resources'
     ACTION_TEMPLATE = 'sdc_resource_action.json.j2'
     ACTION_METHOD = 'POST'
@@ -73,7 +72,10 @@ class SdcResource(SDC, ABC):  # pylint: disable=too-many-instance-attributes
 
     def deep_load(self) -> None:
         """Deep load Object informations from SDC."""
-        url = "{}/sdc1/feProxy/rest/v1/followed".format(self.base_front_url)
+        url = (
+            f"{self.base_front_url}/sdc1/feProxy/rest/v1/"
+            "screen?excludeTypes=VFCMT&excludeTypes=Configuration"
+        )
         headers = headers_sdc_creator(SdcResource.headers)
         if self.status == const.UNDER_CERTIFICATION:
             headers = headers_sdc_tester(SdcResource.headers)

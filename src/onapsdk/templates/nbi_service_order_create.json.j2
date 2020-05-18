@@ -1,0 +1,28 @@
+{
+  "externalId": "{{ external_id }}",
+  "priority": "1",
+  "description": "{{ service_specification.name }} order for {{ customer.global_customer_id }} customer via Python ONAP SDK",
+  "category": "Consumer",
+  "requestedStartDate": "{{ request_time }}",
+  "requestedCompletionDate": "{{ request_time }}",
+  "relatedParty": [
+    {
+      "id": "{{ customer.global_customer_id }}",
+      "role": "ONAPcustomer",
+      "name": "{{ customer.global_customer_id }}"
+    }
+  ],
+  "orderItem": [
+    {
+      "id": "1",
+      "action": "add",
+      "service": {
+        "name": "{{ service_instance_name }}",
+        "serviceState": "active",
+        "serviceSpecification": {
+          "id": "{{ service_specification.unique_id }}"
+        }
+      }
+    }
+  ]
+}
