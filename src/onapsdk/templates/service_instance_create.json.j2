@@ -1,0 +1,22 @@
+{
+  "requestDetails": {
+    "requestInfo": {
+      "instanceName": "{{ instance_name }}",
+      "source": "VID",
+      "suppressRollback": false
+    },
+    "modelInfo": {{ service_model }}"
+    },
+    "requestParameters": {
+      "userParams": [],
+      "subscriptionServiceType": "{{ subscription_service_type }}"
+    },
+    "cloudConfiguration": {
+      "lcpCloudRegionId": "{{ cloud[name] }}",
+      "tenantId": "{{ cloud[tenant_id] }}"
+    },
+    "subscriberInfo": {
+      "globalSubscriberId": "{{ global_subscriber_id }}"
+    }
+  }
+}

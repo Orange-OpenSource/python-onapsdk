@@ -5,7 +5,6 @@
 from typing import Any, Dict, List
 from abc import ABC, abstractmethod
 
-import logging
 from requests import Response
 
 from onapsdk.onap_service import OnapService
@@ -21,7 +20,6 @@ class SDC(OnapService, ABC):
     ACTION_METHOD: str
     base_front_url = "https://sdc.api.fe.simpledemo.onap.org:30207"
     base_back_url = "https://sdc.api.be.simpledemo.onap.org:30204"
-    _logger: logging.Logger = logging.getLogger(__name__)
 
     def __init__(self):
         """Initialize the object."""
@@ -178,6 +176,8 @@ class SDC(OnapService, ABC):
                                self._version_path(),
                                action_type=action_type)
         template = jinja_env().get_template(self.ACTION_TEMPLATE)
+        # if action == "certificationRequest":
+        #     action = "submit"
         data = template.render(action=action, const=const)
         result = self.send_message(self.ACTION_METHOD,
                                    "{} {}".format(action,

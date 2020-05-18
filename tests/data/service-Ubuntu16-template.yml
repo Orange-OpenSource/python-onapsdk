@@ -1,0 +1,543 @@
+tosca_definitions_version: tosca_simple_yaml_1_1
+metadata:
+  invariantUUID: d65b4e82-06e7-424a-8944-284558b94ff4
+  UUID: b54a8c68-d520-42c3-8f8e-08f3866f4fc1
+  name: ubuntu16
+  description: ubuntu16
+  type: Service
+  category: Network Service
+  serviceType: ''
+  serviceRole: ''
+  instantiationType: A-la-carte
+  serviceEcompNaming: true
+  ecompGeneratedNaming: true
+  namingPolicy: ''
+  environmentContext: General_Revenue-Bearing
+imports:
+- nodes:
+    file: nodes.yml
+- datatypes:
+    file: data.yml
+- capabilities:
+    file: capabilities.yml
+- relationships:
+    file: relationships.yml
+- groups:
+    file: groups.yml
+- policies:
+    file: policies.yml
+- annotations:
+    file: annotations.yml
+- service-ubuntu16-interface:
+    file: service-Ubuntu16-template-interface.yml
+- resource-ubuntu16_VF:
+    file: resource-Ubuntu16Vf-template.yml
+- resource-ubuntu16_VF-interface:
+    file: resource-Ubuntu16Vf-template-interface.yml
+topology_template:
+  node_templates:
+    ubuntu16_VF 0:
+      type: org.openecomp.resource.vf.Ubuntu16Vf
+      metadata:
+        invariantUUID: 712e6e88-404e-49cb-99db-19460b29c2ac
+        UUID: dc4f02bb-f318-49c4-bd70-2a1ee95b439a
+        customizationUUID: 1066c03b-0aab-43b3-a661-7543de231e7c
+        version: '1.0'
+        name: ubuntu16_VF
+        description: VF
+        type: VF
+        category: Generic
+        subcategory: Abstract
+        resourceVendor: Generic-Vendor
+        resourceVendorRelease: '1.0'
+        resourceVendorModelNumber: ''
+      properties:
+        vf_module_id: Ubuntu16-VF-module
+        ubuntu16_name_0: ubuntu16
+        nf_naming:
+          ecomp_generated_naming: true
+        ubuntu16_flavor_name: onap.small
+        multi_stage_design: false
+        ubuntu16_pub_key: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDY15cdBmIs2XOpe4EiFCsaY6bmUmK/GysMoLl4UG51JCfJwvwoWCoA+6mDIbymZxhxq9IGxilp/yTA6WQ9s/5pBag1cUMJmFuda9PjOkXl04jgqh5tR6I+GZ97AvCg93KAECis5ubSqw1xOCj4utfEUtPoF1OuzqM/lE5mY4N6VKXn+fT7pCD6cifBEs6JHhVNvs5OLLp/tO8Pa3kKYQOdyS0xc3rh+t2lrzvKUSWGZbX+dLiFiEpjsUL3tDqzkEMNUn4pdv69OJuzWHCxRWPfdrY9Wg0j3mJesP29EBht+w+EC9/kBKq+1VKdmsXUXAcjEvjovVL8l1BrX3BY0R8D imported-openssh-key
+        availability_zone_max_count: 1
+        vnf_id: Ubuntu16-VNF
+        vnf_name: Ubuntu16-VNF-name
+        ubuntu16_image_name: ubuntu-16.04-daily
+        admin_plane_net_name: admin
+        ubuntu16_key_name: cleouverte
+      capabilities:
+        abstract_ubuntu16.port_mirroring_ubuntu16_ubuntu16_admin_plane_port:
+          properties:
+            connection_point:
+              network_role:
+                get_input: port_ubuntu16_admin_plane_port_network_role
+              nfc_naming_code: ubuntu16
+        abstract_ubuntu16.cpu_util_ubuntu16:
+          properties:
+            unit: '%'
+            description: Average CPU utilization
+            type: Gauge
+            category: compute
+        abstract_ubuntu16.network.outpoing.packets_ubuntu16_ubuntu16_admin_plane_port:
+          properties:
+            unit: packet
+            description: Number of outgoing packets
+            type: Cumulative
+            category: network
+        abstract_ubuntu16.disk.device.read.bytes.rate_ubuntu16:
+          properties:
+            unit: B/s
+            description: Average rate of reads
+            type: Gauge
+            category: disk
+        abstract_ubuntu16.endpoint_ubuntu16:
+          properties:
+            secure: true
+        abstract_ubuntu16.disk.ephemeral.size_ubuntu16:
+          properties:
+            unit: GB
+            description: Size of ephemeral disk
+            type: Gauge
+            category: compute
+        abstract_ubuntu16.disk.write.bytes_ubuntu16:
+          properties:
+            unit: B
+            description: Volume of writes
+            type: Cumulative
+            category: compute
+        abstract_ubuntu16.cpu.delta_ubuntu16:
+          properties:
+            unit: ns
+            description: CPU time used since previous datapoint
+            type: Delta
+            category: compute
+        abstract_ubuntu16.network.incoming.bytes.rate_ubuntu16_ubuntu16_admin_plane_port:
+          properties:
+            unit: B/s
+            description: Average rate of incoming bytes
+            type: Gauge
+            category: network
+        abstract_ubuntu16.network.incoming.bytes_ubuntu16_ubuntu16_admin_plane_port:
+          properties:
+            unit: B
+            description: Number of incoming bytes
+            type: Cumulative
+            category: network
+        abstract_ubuntu16.disk.write.requests.rate_ubuntu16:
+          properties:
+            unit: request/s
+            description: Average rate of write requests
+            type: Gauge
+            category: compute
+        abstract_ubuntu16.memory_ubuntu16:
+          properties:
+            unit: MB
+            description: Volume of RAM allocated to the instance
+            type: Gauge
+            category: compute
+        abstract_ubuntu16.disk.root.size_ubuntu16:
+          properties:
+            unit: GB
+            description: Size of root disk
+            type: Gauge
+            category: compute
+        abstract_ubuntu16.disk.device.usage_ubuntu16:
+          properties:
+            unit: B
+            description: The physical size in bytes of the image container on the host per device
+            type: Gauge
+            category: disk
+        abstract_ubuntu16.disk.write.requests_ubuntu16:
+          properties:
+            unit: request
+            description: Number of write requests
+            type: Cumulative
+            category: compute
+        abstract_ubuntu16.disk.device.read.bytes_ubuntu16:
+          properties:
+            unit: B
+            description: Volume of reads
+            type: Cumulative
+            category: disk
+        abstract_ubuntu16.vcpus_ubuntu16:
+          properties:
+            unit: vcpu
+            description: Number of virtual CPUs allocated to the instance
+            type: Gauge
+            category: compute
+        abstract_ubuntu16.network.incoming.packets.rate_ubuntu16_ubuntu16_admin_plane_port:
+          properties:
+            unit: packet/s
+            description: Average rate of incoming packets
+            type: Gauge
+            category: network
+        abstract_ubuntu16.network.incoming.packets_ubuntu16_ubuntu16_admin_plane_port:
+          properties:
+            unit: packet
+            description: Number of incoming packets
+            type: Cumulative
+            category: network
+        abstract_ubuntu16.disk.read.bytes_ubuntu16:
+          properties:
+            unit: B
+            description: Volume of reads
+            type: Cumulative
+            category: compute
+        abstract_ubuntu16.disk.latency_ubuntu16:
+          properties:
+            unit: ms
+            description: Average disk latency
+            type: Gauge
+            category: disk
+        abstract_ubuntu16.disk.device.read.requests.rate_ubuntu16:
+          properties:
+            unit: request/s
+            description: Average rate of read requests
+            type: Gauge
+            category: disk
+        abstract_ubuntu16.network.outgoing.bytes_ubuntu16_ubuntu16_admin_plane_port:
+          properties:
+            unit: B
+            description: Number of outgoing bytes
+            type: Cumulative
+            category: network
+        abstract_ubuntu16.scalable_ubuntu16:
+          properties:
+            max_instances: 1
+            min_instances: 1
+        abstract_ubuntu16.disk.device.write.requests.rate_ubuntu16:
+          properties:
+            unit: request/s
+            description: Average rate of write requests
+            type: Gauge
+            category: disk
+        abstract_ubuntu16.disk.device.allocation_ubuntu16:
+          properties:
+            unit: B
+            description: The amount of disk per device occupied by the instance on the host machine
+            type: Gauge
+            category: disk
+        abstract_ubuntu16.disk.device.write.bytes_ubuntu16:
+          properties:
+            unit: B
+            description: Volume of writes
+            type: Cumulative
+            category: disk
+        abstract_ubuntu16.disk.device.capacity_ubuntu16:
+          properties:
+            unit: B
+            description: The amount of disk per device that the instance can see
+            type: Gauge
+            category: disk
+        abstract_ubuntu16.disk.device.latency_ubuntu16:
+          properties:
+            unit: ms
+            description: Average disk latency per device
+            type: Gauge
+            category: disk
+        abstract_ubuntu16.disk.write.bytes.rate_ubuntu16:
+          properties:
+            unit: B/s
+            description: Average rate of writes
+            type: Gauge
+            category: compute
+        abstract_ubuntu16.instance_ubuntu16:
+          properties:
+            unit: instance
+            description: Existence of instance
+            type: Gauge
+            category: compute
+        abstract_ubuntu16.disk.iops_ubuntu16:
+          properties:
+            unit: count/s
+            description: Average disk iops
+            type: Gauge
+            category: disk
+        abstract_ubuntu16.disk.capacity_ubuntu16:
+          properties:
+            unit: B
+            description: The amount of disk that the instance can see
+            type: Gauge
+            category: disk
+        abstract_ubuntu16.memory.resident_ubuntu16:
+          properties:
+            unit: MB
+            description: Volume of RAM used by the instance on the physical machine
+            type: Gauge
+            category: compute
+        abstract_ubuntu16.disk.allocation_ubuntu16:
+          properties:
+            unit: B
+            description: The amount of disk occupied by the instance on the host machine
+            type: Gauge
+            category: disk
+        abstract_ubuntu16.network.outgoing.packets.rate_ubuntu16_ubuntu16_admin_plane_port:
+          properties:
+            unit: packet/s
+            description: Average rate of outgoing packets
+            type: Gauge
+            category: network
+        abstract_ubuntu16.disk.read.requests_ubuntu16:
+          properties:
+            unit: request
+            description: Number of read requests
+            type: Cumulative
+            category: compute
+        abstract_ubuntu16.network.outgoing.bytes.rate_ubuntu16_ubuntu16_admin_plane_port:
+          properties:
+            unit: B/s
+            description: Average rate of outgoing bytes
+            type: Gauge
+            category: network
+        abstract_ubuntu16.cpu_ubuntu16:
+          properties:
+            unit: ns
+            description: CPU time used
+            type: Cumulative
+            category: compute
+        abstract_ubuntu16.disk.device.iops_ubuntu16:
+          properties:
+            unit: count/s
+            description: Average disk iops per device
+            type: Gauge
+            category: disk
+        abstract_ubuntu16.disk.device.read.requests_ubuntu16:
+          properties:
+            unit: request
+            description: Number of read requests
+            type: Cumulative
+            category: disk
+        abstract_ubuntu16.memory.usage_ubuntu16:
+          properties:
+            unit: MB
+            description: Volume of RAM used by the instance from the amount of its allocated memory
+            type: Gauge
+            category: compute
+        abstract_ubuntu16.disk.usage_ubuntu16:
+          properties:
+            unit: B
+            description: The physical size in bytes of the image container on the host
+            type: Gauge
+            category: disk
+        abstract_ubuntu16.disk.device.write.bytes.rate_ubuntu16:
+          properties:
+            unit: B/s
+            description: Average rate of writes
+            type: Gauge
+            category: disk
+        abstract_ubuntu16.disk.read.bytes.rate_ubuntu16:
+          properties:
+            unit: B/s
+            description: Average rate of reads
+            type: Gauge
+            category: compute
+        abstract_ubuntu16.disk.device.write.requests_ubuntu16:
+          properties:
+            unit: request
+            description: Number of write requests
+            type: Cumulative
+            category: disk
+  groups:
+    ubuntu16_vf0..Ubuntu16Vf..base_ubuntu16..module-0:
+      type: org.openecomp.groups.VfModule
+      metadata:
+        vfModuleModelName: Ubuntu16Vf..base_ubuntu16..module-0
+        vfModuleModelInvariantUUID: f47c3a9b-6a5f-4d1a-8a0b-b7f56ebb9a90
+        vfModuleModelUUID: ed041b38-63fc-486d-9d4d-4e2531bc7e54
+        vfModuleModelVersion: '1'
+        vfModuleModelCustomizationUUID: d946ea06-ec4b-4ed2-921a-117e1379b913
+      properties:
+        min_vf_module_instances: 1
+        vf_module_label: base_ubuntu16
+        max_vf_module_instances: 1
+        vf_module_type: Base
+        isBase: true
+        initial_count: 1
+        volume_group: false
+  substitution_mappings:
+    node_type: org.openecomp.service.Ubuntu16
+    capabilities:
+      ubuntu16_vf0.abstract_ubuntu16.disk.device.write.bytes_ubuntu16:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.disk.device.write.bytes_ubuntu16
+      ubuntu16_vf0.abstract_ubuntu16.memory.resident_ubuntu16:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.memory.resident_ubuntu16
+      ubuntu16_vf0.abstract_ubuntu16.forwarder_ubuntu16_ubuntu16_admin_plane_port:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.forwarder_ubuntu16_ubuntu16_admin_plane_port
+      ubuntu16_vf0.abstract_ubuntu16.binding_ubuntu16_ubuntu16_admin_plane_port:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.binding_ubuntu16_ubuntu16_admin_plane_port
+      ubuntu16_vf0.abstract_ubuntu16.vcpus_ubuntu16:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.vcpus_ubuntu16
+      ubuntu16_vf0.abstract_ubuntu16.disk.latency_ubuntu16:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.disk.latency_ubuntu16
+      ubuntu16_vf0.abstract_ubuntu16.disk.device.latency_ubuntu16:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.disk.device.latency_ubuntu16
+      ubuntu16_vf0.abstract_ubuntu16.disk.read.bytes_ubuntu16:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.disk.read.bytes_ubuntu16
+      ubuntu16_vf0.abstract_ubuntu16.network.outgoing.bytes.rate_ubuntu16_ubuntu16_admin_plane_port:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.network.outgoing.bytes.rate_ubuntu16_ubuntu16_admin_plane_port
+      ubuntu16_vf0.abstract_ubuntu16.disk.device.usage_ubuntu16:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.disk.device.usage_ubuntu16
+      ubuntu16_vf0.abstract_ubuntu16.cpu.delta_ubuntu16:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.cpu.delta_ubuntu16
+      ubuntu16_vf0.abstract_ubuntu16.endpoint_ubuntu16:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.endpoint_ubuntu16
+      ubuntu16_vf0.abstract_ubuntu16.disk.device.read.bytes_ubuntu16:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.disk.device.read.bytes_ubuntu16
+      ubuntu16_vf0.abstract_ubuntu16.disk.device.write.requests_ubuntu16:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.disk.device.write.requests_ubuntu16
+      ubuntu16_vf0.abstract_ubuntu16.network.outgoing.bytes_ubuntu16_ubuntu16_admin_plane_port:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.network.outgoing.bytes_ubuntu16_ubuntu16_admin_plane_port
+      ubuntu16_vf0.abstract_ubuntu16.disk.capacity_ubuntu16:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.disk.capacity_ubuntu16
+      ubuntu16_vf0.abstract_ubuntu16.attachment_ubuntu16_ubuntu16_admin_plane_port:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.attachment_ubuntu16_ubuntu16_admin_plane_port
+      ubuntu16_vf0.abstract_ubuntu16.network.incoming.bytes.rate_ubuntu16_ubuntu16_admin_plane_port:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.network.incoming.bytes.rate_ubuntu16_ubuntu16_admin_plane_port
+      ubuntu16_vf0.abstract_ubuntu16.disk.device.iops_ubuntu16:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.disk.device.iops_ubuntu16
+      ubuntu16_vf0.abstract_ubuntu16.disk.device.capacity_ubuntu16:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.disk.device.capacity_ubuntu16
+      ubuntu16_vf0.abstract_ubuntu16.disk.write.bytes.rate_ubuntu16:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.disk.write.bytes.rate_ubuntu16
+      ubuntu16_vf0.abstract_ubuntu16.disk.device.write.requests.rate_ubuntu16:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.disk.device.write.requests.rate_ubuntu16
+      ubuntu16_vf0.abstract_ubuntu16.feature_ubuntu16_ubuntu16_admin_plane_port:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.feature_ubuntu16_ubuntu16_admin_plane_port
+      ubuntu16_vf0.abstract_ubuntu16.port_mirroring_ubuntu16_ubuntu16_admin_plane_port:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.port_mirroring_ubuntu16_ubuntu16_admin_plane_port
+      ubuntu16_vf0.abstract_ubuntu16.disk.write.requests.rate_ubuntu16:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.disk.write.requests.rate_ubuntu16
+      ubuntu16_vf0.abstract_ubuntu16.disk.root.size_ubuntu16:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.disk.root.size_ubuntu16
+      ubuntu16_vf0.abstract_ubuntu16.disk.allocation_ubuntu16:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.disk.allocation_ubuntu16
+      ubuntu16_vf0.abstract_ubuntu16.feature_ubuntu16:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.feature_ubuntu16
+      ubuntu16_vf0.abstract_ubuntu16.disk.device.read.bytes.rate_ubuntu16:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.disk.device.read.bytes.rate_ubuntu16
+      ubuntu16_vf0.abstract_ubuntu16.disk.device.read.requests_ubuntu16:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.disk.device.read.requests_ubuntu16
+      ubuntu16_vf0.abstract_ubuntu16.network.incoming.packets.rate_ubuntu16_ubuntu16_admin_plane_port:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.network.incoming.packets.rate_ubuntu16_ubuntu16_admin_plane_port
+      ubuntu16_vf0.ubuntu16_admin_security_group.feature:
+      - ubuntu16_vf0
+      - ubuntu16_admin_security_group.feature
+      ubuntu16_vf0.abstract_ubuntu16.host_ubuntu16:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.host_ubuntu16
+      ubuntu16_vf0.abstract_ubuntu16.disk.write.bytes_ubuntu16:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.disk.write.bytes_ubuntu16
+      ubuntu16_vf0.abstract_ubuntu16.memory_ubuntu16:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.memory_ubuntu16
+      ubuntu16_vf0.abstract_ubuntu16.cpu_ubuntu16:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.cpu_ubuntu16
+      ubuntu16_vf0.abstract_ubuntu16.disk.usage_ubuntu16:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.disk.usage_ubuntu16
+      ubuntu16_vf0.abstract_ubuntu16.cpu_util_ubuntu16:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.cpu_util_ubuntu16
+      ubuntu16_vf0.abstract_ubuntu16.disk.write.requests_ubuntu16:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.disk.write.requests_ubuntu16
+      ubuntu16_vf0.abstract_ubuntu16.os_ubuntu16:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.os_ubuntu16
+      ubuntu16_vf0.abstract_ubuntu16.network.outgoing.packets.rate_ubuntu16_ubuntu16_admin_plane_port:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.network.outgoing.packets.rate_ubuntu16_ubuntu16_admin_plane_port
+      ubuntu16_vf0.abstract_ubuntu16.disk.ephemeral.size_ubuntu16:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.disk.ephemeral.size_ubuntu16
+      ubuntu16_vf0.abstract_ubuntu16.network.outpoing.packets_ubuntu16_ubuntu16_admin_plane_port:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.network.outpoing.packets_ubuntu16_ubuntu16_admin_plane_port
+      ubuntu16_vf0.abstract_ubuntu16.disk.device.write.bytes.rate_ubuntu16:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.disk.device.write.bytes.rate_ubuntu16
+      ubuntu16_vf0.abstract_ubuntu16.binding_ubuntu16:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.binding_ubuntu16
+      ubuntu16_vf0.abstract_ubuntu16.disk.read.requests_ubuntu16:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.disk.read.requests_ubuntu16
+      ubuntu16_vf0.abstract_ubuntu16.memory.usage_ubuntu16:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.memory.usage_ubuntu16
+      ubuntu16_vf0.abstract_ubuntu16.disk.read.bytes.rate_ubuntu16:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.disk.read.bytes.rate_ubuntu16
+      ubuntu16_vf0.abstract_ubuntu16.disk.device.allocation_ubuntu16:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.disk.device.allocation_ubuntu16
+      ubuntu16_vf0.abstract_ubuntu16.scalable_ubuntu16:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.scalable_ubuntu16
+      ubuntu16_vf0.abstract_ubuntu16.network.incoming.bytes_ubuntu16_ubuntu16_admin_plane_port:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.network.incoming.bytes_ubuntu16_ubuntu16_admin_plane_port
+      ubuntu16_vf0.abstract_ubuntu16.disk.device.read.requests.rate_ubuntu16:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.disk.device.read.requests.rate_ubuntu16
+      ubuntu16_vf0.abstract_ubuntu16.instance_ubuntu16:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.instance_ubuntu16
+      ubuntu16_vf0.abstract_ubuntu16.network.incoming.packets_ubuntu16_ubuntu16_admin_plane_port:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.network.incoming.packets_ubuntu16_ubuntu16_admin_plane_port
+      ubuntu16_vf0.abstract_ubuntu16.disk.iops_ubuntu16:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.disk.iops_ubuntu16
+    requirements:
+      ubuntu16_vf0.ubuntu16_admin_security_group.port:
+      - ubuntu16_vf0
+      - ubuntu16_admin_security_group.port
+      ubuntu16_vf0.abstract_ubuntu16.local_storage_ubuntu16:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.local_storage_ubuntu16
+      ubuntu16_vf0.abstract_ubuntu16.dependency_ubuntu16_ubuntu16_admin_plane_port:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.dependency_ubuntu16_ubuntu16_admin_plane_port
+      ubuntu16_vf0.abstract_ubuntu16.dependency_ubuntu16:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.dependency_ubuntu16
+      ubuntu16_vf0.abstract_ubuntu16.link_ubuntu16_ubuntu16_admin_plane_port:
+      - ubuntu16_vf0
+      - abstract_ubuntu16.link_ubuntu16_ubuntu16_admin_plane_port
+      ubuntu16_vf0.ubuntu16_admin_security_group.dependency:
+      - ubuntu16_vf0
+      - ubuntu16_admin_security_group.dependency

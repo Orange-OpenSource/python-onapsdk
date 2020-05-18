@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 """Test vsp module."""
-import mock
-import pytest
-
+from unittest import mock
 import json
+
+import pytest
 import requests
 
 from onapsdk.vsp import Vsp
