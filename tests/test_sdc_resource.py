@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 """Test SdcResource module."""
-from unittest import mock
-import logging
-
+import mock
 import pytest
+import logging
 
 import onapsdk.constants as const
 from onapsdk.onap_service import OnapService
@@ -124,7 +123,7 @@ def test__deep_load_no_response(mock_send, mock_created):
     vf.deep_load()
     assert vf._unique_identifier is None
     mock_send.assert_called_once_with('GET', 'Deep Load Vf',
-                                      "{}/sdc1/feProxy/rest/v1/screen?excludeTypes=VFCMT&excludeTypes=Configuration".format(vf.base_front_url),
+                                      "{}/sdc1/feProxy/rest/v1/followed".format(vf.base_front_url),
                                       headers=headers_sdc_creator(vf.headers))
 
 @mock.patch.object(Vf, 'created')
@@ -139,7 +138,7 @@ def test__deep_load_response_OK(mock_send, mock_created):
     vf.deep_load()
     assert vf.unique_identifier == "71011"
     mock_send.assert_called_once_with('GET', 'Deep Load Vf',
-                                      "{}/sdc1/feProxy/rest/v1/screen?excludeTypes=VFCMT&excludeTypes=Configuration".format(vf.base_front_url),
+                                      "{}/sdc1/feProxy/rest/v1/followed".format(vf.base_front_url),
                                       headers=headers_sdc_creator(vf.headers))
 
 @mock.patch.object(Vf, 'created')
@@ -154,7 +153,7 @@ def test__deep_load_response_NOK(mock_send, mock_created):
     vf.deep_load()
     assert vf._unique_identifier is None
     mock_send.assert_called_once_with('GET', 'Deep Load Vf',
-                                      "{}/sdc1/feProxy/rest/v1/screen?excludeTypes=VFCMT&excludeTypes=Configuration".format(vf.base_front_url),
+                                      "{}/sdc1/feProxy/rest/v1/followed".format(vf.base_front_url),
                                       headers=headers_sdc_creator(vf.headers))
 
 @mock.patch.object(Vf, 'created')
@@ -169,7 +168,7 @@ def test__deep_load_response_OK_under_cert(mock_send, mock_created):
     vf.deep_load()
     assert vf.unique_identifier == "71011"
     mock_send.assert_called_once_with('GET', 'Deep Load Vf',
-                                      "{}/sdc1/feProxy/rest/v1/screen?excludeTypes=VFCMT&excludeTypes=Configuration".format(vf.base_front_url),
+                                      "{}/sdc1/feProxy/rest/v1/followed".format(vf.base_front_url),
                                       headers=headers_sdc_tester(vf.headers))
 
 @mock.patch.object(Vf, 'created')
@@ -184,7 +183,7 @@ def test__deep_load_response_NOK_under_cert(mock_send, mock_created):
     vf.deep_load()
     assert vf._unique_identifier is None
     mock_send.assert_called_once_with('GET', 'Deep Load Vf',
-                                      "{}/sdc1/feProxy/rest/v1/screen?excludeTypes=VFCMT&excludeTypes=Configuration".format(vf.base_front_url),
+                                      "{}/sdc1/feProxy/rest/v1/followed".format(vf.base_front_url),
                                       headers=headers_sdc_tester(vf.headers))
 
 def test__parse_sdc_status_certified():

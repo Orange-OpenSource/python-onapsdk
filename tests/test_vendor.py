@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 """Test vendor module."""
-from unittest import mock
-
+import mock
 import pytest
 
 from onapsdk.vendor import Vendor

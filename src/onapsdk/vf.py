@@ -4,7 +4,8 @@
 """Vf module."""
 from typing import Dict
 
-import time
+import logging
+
 from onapsdk.sdc_resource import SdcResource
 from onapsdk.vsp import Vsp
 import onapsdk.constants as const
@@ -27,6 +28,7 @@ class Vf(SdcResource):
 
     """
 
+    _logger: logging.Logger = logging.getLogger(__name__)
     headers = headers_sdc_creator(SdcResource.headers)
 
     def __init__(self, name: str = None, sdc_values: Dict[str, str] = None,
@@ -48,11 +50,9 @@ class Vf(SdcResource):
             if not self.vsp:
                 raise ValueError("No Vsp was given")
             self.create()
-            time.sleep(10)
             self.onboard()
         elif self.status == const.DRAFT:
             self.submit()
-            time.sleep(10)
             self.onboard()
         elif self.status == const.CERTIFIED:
             self.load()
