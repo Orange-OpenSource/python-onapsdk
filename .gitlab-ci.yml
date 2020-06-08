@@ -1,107 +1,116 @@
 ---
-stages:
-  - linting
-  - unit_test
-  - build
-  - test
-  - deploy
-
-image: docker:git
-services:
-  - docker:dind
-variables:
-  DOCKER_DRIVER: overlay
-  # Variables for Container-Scanning.gitlab-ci.yml
-  CI_APPLICATION_REPOSITORY: $CI_REGISTRY_IMAGE #/$CI_COMMIT_REF_SLUG
-  CI_APPLICATION_TAG: $CI_COMMIT_REF_SLUG #$CI_COMMIT_SHA
-  # Variable for pylint/pydocstyle/SAST/Code-Quality.gitlab-ci.yml
-  SRC_PATH: '/src'
-  DOC_PATH: '/docs'
-
-.before_script_docker: &before_script_docker
-  before_script:
-    - docker login -u gitlab-ci-token -p "$CI_BUILD_TOKEN" "$CI_REGISTRY"
-
-build_master:
-  stage: build
-  <<: *before_script_docker
-  script:
-    - docker build -t "$CI_REGISTRY_IMAGE:latest" .
-    - docker push "$CI_REGISTRY_IMAGE:latest"
-  only:
-    - master
-  except:
-    variables:
-      - $JOBS_DISABLED
-
-build_testing:
-  stage: build
-  <<: *before_script_docker
-  script:
-    - docker build -t "$CI_REGISTRY_IMAGE:${CI_COMMIT_REF_SLUG}" .
-    - docker push "$CI_REGISTRY_IMAGE:${CI_COMMIT_REF_SLUG}"
-  only:
-    - branches
-  except:
-    refs:
-      - master
-    variables:
-      - $JOBS_DISABLED
-
-build_stable:
-  stage: build
-  <<: *before_script_docker
-  script:
-    - docker build -t "$CI_REGISTRY_IMAGE:${CI_COMMIT_REF_SLUG}" .
-    - docker push "$CI_REGISTRY_IMAGE:${CI_COMMIT_REF_SLUG}"
-  only:
-    - tags
-  except:
-    variables:
-      - $JOBS_DISABLED
-
-integration_tests:
-  stage: test
+  stages:
+    - linting
+    - unit_test
+    - build
+    - test
+    - deploy
+  
+  image: docker:git
   services:
-    - name: registry.gitlab.com/orange-opensource/lfn/onap/mock_servers/mock-sdc:develop
-      alias: sdc.api.fe.simpledemo.onap.org
-  image: python:3.7
-  allow_failure: true
-  script:
-    - pip install .
-    - pip install pytest mock # mock is needed as pytest parse all files before selection
-    - mv setup.cfg setup.old # pytest tries to use setup.cfg but we don't want
-    - pytest --verbose --junitxml=pytest-integration.xml integration_tests
-  artifacts:
-    reports:
-      junit: pytest-*.xml
-  except:
+    - docker:dind
+  variables:
+    DOCKER_DRIVER: overlay
+    # Variables for Container-Scanning.gitlab-ci.yml
+    CI_APPLICATION_REPOSITORY: $CI_REGISTRY_IMAGE #/$CI_COMMIT_REF_SLUG
+    CI_APPLICATION_TAG: $CI_COMMIT_REF_SLUG #$CI_COMMIT_SHA
+    # Variable for pylint/pydocstyle/SAST/Code-Quality.gitlab-ci.yml
+    SRC_PATH: '/src'
+    DOC_PATH: '/docs'
+  
+  .before_script_docker: &before_script_docker
+    before_script:
+      - docker login -u gitlab-ci-token -p "$CI_BUILD_TOKEN" "$CI_REGISTRY"
+  
+  build_master:
+    stage: build
+    <<: *before_script_docker
+    script:
+      - docker build -t "$CI_REGISTRY_IMAGE:latest" .
+      - docker push "$CI_REGISTRY_IMAGE:latest"
+    only:
+      - master
+    except:
+      variables:
+        - $JOBS_DISABLED
+  
+  build_testing:
+    stage: build
+    <<: *before_script_docker
+    script:
+      - docker build -t "$CI_REGISTRY_IMAGE:${CI_COMMIT_REF_SLUG}" .
+      - docker push "$CI_REGISTRY_IMAGE:${CI_COMMIT_REF_SLUG}"
+    only:
+      - branches
+    except:
+      refs:
+        - master
+      variables:
+        - $JOBS_DISABLED
+  
+  build_stable:
+    stage: build
+    <<: *before_script_docker
+    script:
+      - docker build -t "$CI_REGISTRY_IMAGE:${CI_COMMIT_REF_SLUG}" .
+      - docker push "$CI_REGISTRY_IMAGE:${CI_COMMIT_REF_SLUG}"
+    only:
+      - tags
+    except:
+      variables:
+        - $JOBS_DISABLED
+  
+  integration_tests:
+    stage: test
     variables:
-      - $JOBS_DISABLED
-
-pages:
-  stage: deploy
-  image:
-    name: python:3.7
-  script:
-    - chmod +x scripts/build_all_branches_in.sh
-    - scripts/build_all_branches_in.sh
-  artifacts:
-    paths:
-      - public
-  except:
-    variables:
-      - $JOBS_DISABLED
-
-include:
-  - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/pylint.gitlab-ci.yml'
-  - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/pytest.gitlab-ci.yml'
-  - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/pydocstyle.gitlab-ci.yml'
-  - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/doc8.gitlab-ci.yml'
-  - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/Container-Scanning.gitlab-ci.yml'
-  - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/Code-Quality.gitlab-ci.yml'
-  - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/SAST.gitlab-ci.yml'
-  - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/pyup.gitlab-ci.yml'
-  - template: License-Scanning.gitlab-ci.yml
-  - template: Dependency-Scanning.gitlab-ci.yml
-
+      FF_NETWORK_PER_BUILD: 1  # Enable https://docs.gitlab.com/runner/executors/docker.html#network-per-build feature
+    services:
+      - name: registry.gitlab.com/orange-opensource/lfn/onap/mock_servers/mock-sdc:develop
+        alias: sdc.api.fe.simpledemo.onap.org
+      - name: registry.gitlab.com/orange-opensource/lfn/onap/mock_servers/mock-sdnc:latest
+        alias: sdnc.api.simpledemo.onap.org
+      - name: registry.gitlab.com/orange-opensource/lfn/onap/mock_servers/mock-so:latest
+        alias: so.api.simpledemo.onap.org
+      - name: registry.gitlab.com/orange-opensource/lfn/onap/mock_servers/mock-aai:latest
+        alias: aai.api.sparky.simpledemo.onap.org
+    image: python:3.7
+    allow_failure: true
+    script:
+      - pip install .
+      - pip install pytest mock # mock is needed as pytest parse all files before selection
+      - mv setup.cfg setup.old # pytest tries to use setup.cfg but we don't want
+      - pytest --verbose --junitxml=pytest-integration.xml integration_tests
+    artifacts:
+      reports:
+        junit: pytest-*.xml
+    except:
+      variables:
+        - $JOBS_DISABLED
+  
+  pages:
+    stage: deploy
+    image:
+      name: python:3.7
+    script:
+      - chmod +x scripts/build_all_branches_in.sh
+      - scripts/build_all_branches_in.sh
+    artifacts:
+      paths:
+        - public
+    except:
+      variables:
+        - $JOBS_DISABLED
+  
+  include:
+    - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/pylint.gitlab-ci.yml'
+    - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/pytest.gitlab-ci.yml'
+    - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/pydocstyle.gitlab-ci.yml'
+    - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/doc8.gitlab-ci.yml'
+    - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/Container-Scanning.gitlab-ci.yml'
+    - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/Code-Quality.gitlab-ci.yml'
+    - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/SAST.gitlab-ci.yml'
+    - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/pyup.gitlab-ci.yml'
+    - template: License-Scanning.gitlab-ci.yml
+    - template: Dependency-Scanning.gitlab-ci.yml
+  
+  

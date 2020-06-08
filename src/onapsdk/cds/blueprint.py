@@ -458,7 +458,8 @@ class Blueprint(CdsElement):
             dd_set.add(DataDictionary(mapping.generate_data_dictionary()))
         return dd_set
 
-    def get_cba_metadata(self, cba_tosca_meta_bytes: bytes) -> CbaMetadata:  # pylint: disable=R0201
+    @staticmethod
+    def get_cba_metadata(cba_tosca_meta_bytes: bytes) -> CbaMetadata:
         """Parse CBA TOSCA.meta file and get values from it.
 
         Args:
@@ -484,8 +485,8 @@ class Blueprint(CdsElement):
             template_tags=meta_dict.get("Template-Tags"),
         )
 
-    def get_mappings_from_mapping_file(self,  # pylint: disable=R0201
-                                       cba_mapping_file_bytes: bytes
+    @staticmethod
+    def get_mappings_from_mapping_file(cba_mapping_file_bytes: bytes
                                        ) -> Generator[Mapping, None, None]:
         """Read mapping file and create Mappping object for it.
 

@@ -3,12 +3,13 @@
 """Test Service module."""
 
 from os import path
+from pathlib import Path
+from unittest import mock
+from unittest.mock import MagicMock
 import shutil
 
-import mock
-from unittest.mock import MagicMock
+import oyaml as yaml
 import pytest
-import requests
 
 import onapsdk.constants as const
 from onapsdk.service import Service
@@ -190,36 +191,20 @@ def test_submit(mock_verify):
     mock_verify.assert_called_once_with(const.CHECKED_IN, const.SUBMIT_FOR_TESTING, 'lifecycleState')
 
 @mock.patch.object(Service, '_verify_action_to_sdc')
-def test_start_certification(mock_verify):
-    svc = Service()
-    svc.start_certification()
-    mock_verify.assert_called_once_with(
-        const.SUBMITTED, const.START_CERTIFICATION, 'lifecycleState',
-        headers=headers_sdc_tester(svc.headers))
-
-@mock.patch.object(Service, '_verify_action_to_sdc')
 def test_certify(mock_verify):
     svc = Service()
     svc.certify()
     mock_verify.assert_called_once_with(
-        const.UNDER_CERTIFICATION, const.CERTIFY, 'lifecycleState',
-        headers=headers_sdc_tester(svc.headers))
-
-@mock.patch.object(Service, '_verify_action_to_sdc')
-def test_approve(mock_verify):
-    svc = Service()
-    svc.approve()
-    mock_verify.assert_called_once_with(
-        const.CERTIFIED, const.APPROVE, 'distribution-state',
-        headers=headers_sdc_governor(svc.headers))
+        const.CHECKED_IN, const.CERTIFY, 'lifecycleState',
+        headers=headers_sdc_creator(svc.headers))
 
 @mock.patch.object(Service, '_verify_action_to_sdc')
 def test_distribute(mock_verify):
     svc = Service()
     svc.distribute()
     mock_verify.assert_called_once_with(
-        const.APPROVED, const.DISTRIBUTE, 'distribution',
-        headers=headers_sdc_operator(svc.headers))
+        const.CERTIFIED, const.DISTRIBUTE, 'distribution',
+        headers=headers_sdc_creator(svc.headers))
 
 @mock.patch.object(Service, 'send_message')
 def test_get_tosca_no_result(mock_send):
@@ -297,7 +282,7 @@ def test_distributed_not_distributed(mock_send):
     mock_send.assert_called_once_with(
         'GET', 'Check distribution for ONAP-test-Service',
         'https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/rest/v1/catalog/services/distribution/12',
-        headers=headers_sdc_operator(svc.headers))
+        headers=headers_sdc_creator(svc.headers))
 
 @mock.patch.object(Service, 'send_message_json')
 def test_distributed_distributed(mock_send):
@@ -312,7 +297,7 @@ def test_distributed_distributed(mock_send):
     mock_send.assert_called_once_with(
         'GET', 'Check distribution for ONAP-test-Service',
         'https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/rest/v1/catalog/services/distribution/12',
-        headers=headers_sdc_operator(svc.headers))
+        headers=headers_sdc_creator(svc.headers))
 
 @mock.patch.object(Service, 'send_message_json')
 def test_load_metadata_no_result(mock_send):
@@ -324,7 +309,7 @@ def test_load_metadata_no_result(mock_send):
     mock_send.assert_called_once_with(
         'GET', 'Get Metadata for ONAP-test-Service',
         'https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/rest/v1/catalog/services/1/distribution',
-        headers=headers_sdc_operator(svc.headers))
+        headers=headers_sdc_creator(svc.headers))
 
 @mock.patch.object(Service, 'send_message_json')
 def test_load_metadata_bad_json(mock_send):
@@ -336,7 +321,7 @@ def test_load_metadata_bad_json(mock_send):
     mock_send.assert_called_once_with(
         'GET', 'Get Metadata for ONAP-test-Service',
         'https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/rest/v1/catalog/services/1/distribution',
-        headers=headers_sdc_operator(svc.headers))
+        headers=headers_sdc_creator(svc.headers))
 
 @mock.patch.object(Service, 'send_message_json')
 def test_load_metadata_OK(mock_send):
@@ -345,11 +330,11 @@ def test_load_metadata_OK(mock_send):
     svc = Service()
     svc.identifier = "1"
     svc.load_metadata()
-    assert svc._distribution_id == "12"
+    assert svc._distribution_id == "11"
     mock_send.assert_called_once_with(
         'GET', 'Get Metadata for ONAP-test-Service',
         'https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/rest/v1/catalog/services/1/distribution',
-        headers=headers_sdc_operator(svc.headers))
+        headers=headers_sdc_creator(svc.headers))
 
 def test_get_all_url():
     assert Service._get_all_url() == "https://sdc.api.be.simpledemo.onap.org:30204/sdc/v1/catalog/services"
@@ -559,70 +544,6 @@ def test_onboard_service_several_resources(mock_create,
 @mock.patch.object(Service, 'checkin')
 @mock.patch.object(Service, 'add_resource')
 @mock.patch.object(Service, 'create')
-def test_onboard_service_submit(mock_create, mock_add_resource,
-                                mock_checkin, mock_submit,
-                                mock_start_certification, mock_certify,
-                                mock_approve, mock_distribute):
-    getter_mock = mock.Mock(wraps=Service.status.fget)
-    mock_status = Service.status.getter(getter_mock)
-    with mock.patch.object(Service, 'status', mock_status):
-        getter_mock.side_effect = [const.CHECKED_IN, const.CHECKED_IN,
-                               const.CHECKED_IN, const.DISTRIBUTED,
-                               const.DISTRIBUTED, const.DISTRIBUTED,
-                               const.DISTRIBUTED, const.DISTRIBUTED,
-                               const.DISTRIBUTED, const.DISTRIBUTED, None]
-        service = Service()
-        service.onboard()
-        mock_create.assert_not_called()
-        mock_add_resource.assert_not_called()
-        mock_checkin.assert_not_called()
-        mock_submit.assert_called_once()
-        mock_start_certification.assert_not_called()
-        mock_certify.assert_not_called()
-        mock_approve.assert_not_called()
-        mock_distribute.assert_not_called()
-
-@mock.patch.object(Service, 'distribute')
-@mock.patch.object(Service, 'approve')
-@mock.patch.object(Service, 'certify')
-@mock.patch.object(Service, 'start_certification')
-@mock.patch.object(Service, 'submit')
-@mock.patch.object(Service, 'checkin')
-@mock.patch.object(Service, 'add_resource')
-@mock.patch.object(Service, 'create')
-def test_onboard_service_certification(mock_create,
-                                       mock_add_resource, mock_checkin,
-                                       mock_submit, mock_start_certification,
-                                       mock_certify, mock_approve,
-                                       mock_distribute):
-    getter_mock = mock.Mock(wraps=Service.status.fget)
-    mock_status = Service.status.getter(getter_mock)
-    with mock.patch.object(Service, 'status', mock_status):
-        getter_mock.side_effect = [const.SUBMITTED, const.SUBMITTED,
-                               const.SUBMITTED, const.SUBMITTED,
-                               const.DISTRIBUTED, const.DISTRIBUTED,
-                               const.DISTRIBUTED, const.DISTRIBUTED,
-                               const.DISTRIBUTED, const.DISTRIBUTED,
-                               const.DISTRIBUTED, None]
-        service = Service()
-        service.onboard()
-        mock_create.assert_not_called()
-        mock_add_resource.assert_not_called()
-        mock_checkin.assert_not_called()
-        mock_submit.assert_not_called()
-        mock_start_certification.assert_called_once()
-        mock_certify.assert_not_called()
-        mock_approve.assert_not_called()
-        mock_distribute.assert_not_called()
-
-@mock.patch.object(Service, 'distribute')
-@mock.patch.object(Service, 'approve')
-@mock.patch.object(Service, 'certify')
-@mock.patch.object(Service, 'start_certification')
-@mock.patch.object(Service, 'submit')
-@mock.patch.object(Service, 'checkin')
-@mock.patch.object(Service, 'add_resource')
-@mock.patch.object(Service, 'create')
 def test_onboard_service_certifi(mock_create,
                                        mock_add_resource, mock_checkin,
                                        mock_submit, mock_start_certification,
@@ -631,11 +552,11 @@ def test_onboard_service_certifi(mock_create,
     getter_mock = mock.Mock(wraps=Service.status.fget)
     mock_status = Service.status.getter(getter_mock)
     with mock.patch.object(Service, 'status', mock_status):
-        getter_mock.side_effect = [const.UNDER_CERTIFICATION,
-                               const.UNDER_CERTIFICATION,
-                               const.UNDER_CERTIFICATION,
-                               const.UNDER_CERTIFICATION,
-                               const.UNDER_CERTIFICATION,
+        getter_mock.side_effect = [const.CHECKED_IN,
+                               const.CHECKED_IN,
+                               const.CHECKED_IN,
+                               const.CHECKED_IN,
+                               const.CHECKED_IN,
                                const.DISTRIBUTED, const.DISTRIBUTED,
                                const.DISTRIBUTED, const.DISTRIBUTED,
                                const.DISTRIBUTED, const.DISTRIBUTED,
@@ -652,58 +573,21 @@ def test_onboard_service_certifi(mock_create,
         mock_distribute.assert_not_called()
 
 @mock.patch.object(Service, 'distribute')
-@mock.patch.object(Service, 'approve')
 @mock.patch.object(Service, 'certify')
-@mock.patch.object(Service, 'start_certification')
-@mock.patch.object(Service, 'submit')
-@mock.patch.object(Service, 'checkin')
-@mock.patch.object(Service, 'add_resource')
-@mock.patch.object(Service, 'create')
-def test_onboard_service_approve(mock_create,
-                                 mock_add_resource, mock_checkin,
-                                 mock_submit, mock_start_certification,
-                                 mock_certify, mock_approve,
-                                 mock_distribute):
-    getter_mock = mock.Mock(wraps=Service.status.fget)
-    mock_status = Service.status.getter(getter_mock)
-    with mock.patch.object(Service, 'status', mock_status):
-        getter_mock.side_effect = [const.CERTIFIED, const.CERTIFIED,
-                               const.CERTIFIED, const.CERTIFIED,
-                               const.CERTIFIED, const.CERTIFIED,
-                               const.DISTRIBUTED, const.DISTRIBUTED,
-                               const.DISTRIBUTED, const.DISTRIBUTED,
-                               const.DISTRIBUTED, const.DISTRIBUTED,
-                               const.DISTRIBUTED, None]
-        service = Service()
-        service.onboard()
-        mock_create.assert_not_called()
-        mock_add_resource.assert_not_called()
-        mock_checkin.assert_not_called()
-        mock_submit.assert_not_called()
-        mock_start_certification.assert_not_called()
-        mock_certify.assert_not_called()
-        mock_approve.assert_called_once()
-        mock_distribute.assert_not_called()
-
-@mock.patch.object(Service, 'distribute')
-@mock.patch.object(Service, 'approve')
-@mock.patch.object(Service, 'certify')
-@mock.patch.object(Service, 'start_certification')
-@mock.patch.object(Service, 'submit')
 @mock.patch.object(Service, 'checkin')
 @mock.patch.object(Service, 'add_resource')
 @mock.patch.object(Service, 'create')
 def test_onboard_service_distribute(mock_create,
-                                    mock_add_resource, mock_checkin,
-                                    mock_submit, mock_start_certification,
-                                    mock_certify, mock_approve,
+                                    mock_add_resource,
+                                    mock_checkin,
+                                    mock_certify,
                                     mock_distribute):
     getter_mock = mock.Mock(wraps=Service.status.fget)
     mock_status = Service.status.getter(getter_mock)
     with mock.patch.object(Service, 'status', mock_status):
-        getter_mock.side_effect = [const.APPROVED, const.APPROVED, const.APPROVED,
-                               const.APPROVED, const.APPROVED, const.APPROVED,
-                               const.APPROVED, const.DISTRIBUTED,
+        getter_mock.side_effect = [const.CERTIFIED, const.CERTIFIED, const.CERTIFIED,
+                               const.CERTIFIED, const.CERTIFIED, const.CERTIFIED,
+                               const.CERTIFIED, const.DISTRIBUTED,
                                const.DISTRIBUTED, const.DISTRIBUTED,
                                const.DISTRIBUTED, const.DISTRIBUTED,
                                const.DISTRIBUTED, const.DISTRIBUTED, None]
@@ -712,54 +596,68 @@ def test_onboard_service_distribute(mock_create,
         mock_create.assert_not_called()
         mock_add_resource.assert_not_called()
         mock_checkin.assert_not_called()
-        mock_submit.assert_not_called()
-        mock_start_certification.assert_not_called()
         mock_certify.assert_not_called()
-        mock_approve.assert_not_called()
         mock_distribute.assert_called_once()
 
 @mock.patch.object(Service, 'distribute')
-@mock.patch.object(Service, 'approve')
 @mock.patch.object(Service, 'certify')
-@mock.patch.object(Service, 'start_certification')
-@mock.patch.object(Service, 'submit')
 @mock.patch.object(Service, 'checkin')
 @mock.patch.object(Service, 'add_resource')
 @mock.patch.object(Service, 'create')
 def test_onboard_whole_service(mock_create,
-                               mock_add_resource, mock_checkin,
-                               mock_submit, mock_start_certification,
-                               mock_certify, mock_approve,
+                               mock_add_resource,
+                               mock_checkin,
+                               mock_certify,
                                mock_distribute):
     getter_mock = mock.Mock(wraps=Service.status.fget)
     mock_status = Service.status.getter(getter_mock)
     with mock.patch.object(Service, 'status', mock_status):
         getter_mock.side_effect = [None, const.DRAFT, const.DRAFT,const.CHECKED_IN,
                                const.CHECKED_IN, const.CHECKED_IN,
-                               const.SUBMITTED, const.SUBMITTED,
-                               const.SUBMITTED, const.SUBMITTED,
-                               const.UNDER_CERTIFICATION,
-                               const.UNDER_CERTIFICATION,
-                               const.UNDER_CERTIFICATION,
-                               const.UNDER_CERTIFICATION,
-                               const.UNDER_CERTIFICATION,
                                const.CERTIFIED, const.CERTIFIED,
                                const.CERTIFIED, const.CERTIFIED,
                                const.CERTIFIED, const.CERTIFIED,
-                               const.APPROVED, const.APPROVED, const.APPROVED,
-                               const.APPROVED, const.APPROVED, const.APPROVED,
-                               const.APPROVED, const.DISTRIBUTED,
                                const.DISTRIBUTED, const.DISTRIBUTED,
                                const.DISTRIBUTED, const.DISTRIBUTED,
-                               const.DISTRIBUTED, const.DISTRIBUTED, None]
+                               const.DISTRIBUTED, const.DISTRIBUTED,
+                               const.DISTRIBUTED, None]
         resource = SdcResource()
         service = Service(resources=[resource])
         service.onboard()
         mock_create.assert_called_once()
         mock_add_resource.assert_called_once_with(resource)
         mock_checkin.assert_called_once()
-        mock_submit.assert_called_once()
-        mock_start_certification.assert_called_once()
         mock_certify.assert_called_once()
-        mock_approve.assert_called_once()
         mock_distribute.assert_called_once()
+
+
+def test_vnf_vf_modules_one():
+    """Test parsing TOSCA file with one VNF which has associated one VFmodule"""
+    service = Service(name="test")
+    with open(Path(Path(__file__).resolve().parent, "data/service-Ubuntu16-template.yml"), "r") as ubuntu:
+        service._tosca_template = yaml.safe_load(ubuntu.read())
+        assert len(service.vnfs) == 1
+        vnf = service.vnfs[0]
+        assert vnf.name == "ubuntu16_VF 0"
+        assert vnf.node_template_type == "org.openecomp.resource.vf.Ubuntu16Vf"
+        assert vnf.vf_module
+        assert vnf.vf_module.name == "ubuntu16_vf0..Ubuntu16Vf..base_ubuntu16..module-0"
+
+
+def test_vnf_vf_modules_two():
+    """Test parsing TOSCA file with two VNF which has associated one VFmodule"""
+    service = Service(name="test")
+    with open(Path(Path(__file__).resolve().parent, "data/service-Foo-template.yml"), "r") as ubuntu:
+        service._tosca_template = yaml.safe_load(ubuntu.read())
+        assert len(service.vnfs) == 2
+        vnf = service.vnfs[0]
+        assert vnf.name == "vFWCL_vPKG-vf 0"
+        assert vnf.node_template_type == "org.openecomp.resource.vf.VfwclVpkgVf"
+        assert vnf.vf_module
+        assert vnf.vf_module.name == "vfwcl_vpkgvf0..VfwclVpkgVf..base_vpkg..module-0"
+
+        vnf = service.vnfs[1]
+        assert vnf.name == "vFWCL_vFWSNK-vf 0"
+        assert vnf.node_template_type == "org.openecomp.resource.vf.VfwclVfwsnkVf"
+        assert vnf.vf_module
+        assert vnf.vf_module.name == "vfwcl_vfwsnkvf0..VfwclVfwsnkVf..base_vfw..module-0"
