@@ -1,0 +1,7 @@
+{
+    "availability-zone-name": "{{ availability_zone_name }}",
+    "hypervisor-type": "{{ availability_zone_hypervisor_type }}"
+    {% if availability_zone_operational_status %}
+        , "operational-status": "{{ availability_zone_operational_status }}"
+    {% endif %}
+}

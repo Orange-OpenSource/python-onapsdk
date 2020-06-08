@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Header creator package."""
 from typing import Dict
+from uuid import uuid4
 
 
 def headers_sdc_creator(base_header: Dict[str, str],
@@ -103,4 +104,76 @@ def headers_sdc_generic(base_header: Dict[str, str],
                                                  "dYbGhhazNlSGxjc2UyZ0F3ODR2YW"
                                                  "9HR21KdlV5MlU=")
     headers["X-ECOMP-InstanceID"] = "onapsdk"
+    return headers
+
+
+def headers_aai_creator(base_header: Dict[str, str]):
+    """
+    Create the right headers for AAI creator type.
+
+    Args:
+        base_header (Dict[str, str]): the base header to use
+
+    Returns:
+        Dict[str, str]: the needed headers
+
+    """
+    headers = base_header.copy()
+    headers["x-fromappid"] = "AAI"
+    headers["x-transactionid"] = "0a3f6713-ba96-4971-a6f8-c2da85a3176e"
+    headers["authorization"] = "Basic QUFJOkFBSQ=="
+    return headers
+
+
+def headers_so_creator(base_header: Dict[str, str]):
+    """
+    Create the right headers for SO creator type.
+
+    Args:
+        base_header (Dict[str, str]): the base header to use
+
+    Returns:
+        Dict[str, str]: the needed headers
+
+    """
+    headers = base_header.copy()
+    headers["x-fromappid"] = "AAI"
+    headers["x-transactionid"] = str(uuid4())
+    headers["authorization"] = "Basic SW5mcmFQb3J0YWxDbGllbnQ6cGFzc3dvcmQxJA=="
+    headers["cache-control"] = "no-cache"
+    return headers
+
+
+def headers_msb_creator(base_header: Dict[str, str]):
+    """
+    Create the right headers for MSB.
+
+    Args:
+        base_header (Dict[str, str]): the base header to use
+
+    Returns:
+        Dict[str, str]: the needed headers
+
+    """
+    headers = base_header.copy()
+    headers["cache-control"] = "no-cache"
+    return headers
+
+
+def headers_sdnc_creator(base_header: Dict[str, str]):
+    """
+    Create the right headers for SDNC.
+
+    Args:
+        base_header (Dict[str, str]): the base header to use
+
+    Returns:
+        Dict[str, str]: the needed headers
+
+    """
+    headers = base_header.copy()
+    headers["authorization"] = \
+        "Basic YWRtaW46S3A4Yko0U1hzek0wV1hsaGFrM2VIbGNzZTJnQXc4NHZhb0dHbUp2VXkyVQ=="
+    headers["x-transactionid"] = str(uuid4())
+    headers["x-fromappid"] = "API client"
     return headers

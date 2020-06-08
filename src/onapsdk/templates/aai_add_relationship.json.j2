@@ -1,0 +1,11 @@
+{
+    "related-to": "{{ relationship.related_to }}",
+    "related-link": "{{ relationship.related_link }}",
+    {% if relationship.relationship_label %}
+        "relationship-label": "{{ relationship.relationship_label }}",
+    {% endif %}
+    {% if relationship.related_to_property %}
+        "related-to-property": {{ relationship.related_to_property | tojson }},
+    {% endif %}
+    "relationship-data": {{ relationship.relationship_data | tojson }}
+}

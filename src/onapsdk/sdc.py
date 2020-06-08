@@ -5,7 +5,6 @@
 from typing import Any, Dict, List
 from abc import ABC, abstractmethod
 
-import logging
 from requests import Response
 
 from onapsdk.onap_service import OnapService
@@ -21,7 +20,6 @@ class SDC(OnapService, ABC):
     ACTION_METHOD: str
     base_front_url = "https://sdc.api.fe.simpledemo.onap.org:30207"
     base_back_url = "https://sdc.api.be.simpledemo.onap.org:30204"
-    _logger: logging.Logger = logging.getLogger(__name__)
 
     def __init__(self):
         """Initialize the object."""

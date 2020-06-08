@@ -9,11 +9,13 @@ from onapsdk.sdc import SDC
 from onapsdk.vendor import Vendor
 import onapsdk.constants as const
 
+from .urls import SDC_MOCK_URL
+
 
 @pytest.mark.integration
 def test_vendor_unknown():
     """Integration tests for Vendor."""
-    SDC.base_front_url = "http://sdc.api.fe.simpledemo.onap.org:30206"
+    SDC.base_front_url = SDC_MOCK_URL
     SDC.base_back_url = Vendor.base_front_url
     response = requests.post("{}/reset".format(SDC.base_front_url))
     response.raise_for_status()
@@ -26,7 +28,7 @@ def test_vendor_unknown():
 @pytest.mark.integration
 def test_vendor_onboard_unknown():
     """Integration tests for Vendor."""
-    SDC.base_front_url = "http://sdc.api.fe.simpledemo.onap.org:30206"
+    SDC.base_front_url = SDC_MOCK_URL
     SDC.base_back_url = Vendor.base_front_url
     response = requests.post("{}/reset".format(SDC.base_front_url))
     response.raise_for_status()
