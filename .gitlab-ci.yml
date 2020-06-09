@@ -17,6 +17,9 @@
     # Variable for pylint/pydocstyle/SAST/Code-Quality.gitlab-ci.yml
     SRC_PATH: '/src'
     DOC_PATH: '/docs'
+    # Variable for SAST
+    SAST_EXCLUDED_PATHS: "docs,integration_tests,scripts,tests"
+    SAST_BANDIT_EXCLUDED_PATHS: "docs,integration_tests,scripts,tests"
   
   .before_script_docker: &before_script_docker
     before_script:
@@ -106,11 +109,11 @@
     - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/pytest.gitlab-ci.yml'
     - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/pydocstyle.gitlab-ci.yml'
     - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/doc8.gitlab-ci.yml'
-    - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/Container-Scanning.gitlab-ci.yml'
-    - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/Code-Quality.gitlab-ci.yml'
-    - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/SAST.gitlab-ci.yml'
     - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/pyup.gitlab-ci.yml'
     - template: License-Scanning.gitlab-ci.yml
     - template: Dependency-Scanning.gitlab-ci.yml
-  
-  
+    - template: Jobs/Code-Quality.gitlab-ci.yml
+    - template: SAST.gitlab-ci.yml
+    - template: License-Management.gitlab-ci.yml
+    - template: Container-Scanning.gitlab-ci.yml
+
