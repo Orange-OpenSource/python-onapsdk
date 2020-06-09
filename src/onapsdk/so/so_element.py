@@ -9,6 +9,7 @@ from typing import Dict
 
 import json
 
+from onapsdk.configuration import settings
 from onapsdk.service import Service
 from onapsdk.vf import Vf
 from onapsdk.onap_service import OnapService
@@ -23,7 +24,7 @@ class SoElement(OnapService):
 
     name: str = None
     _server: str = "SO"
-    base_url = "http://so.api.simpledemo.onap.org:30277"
+    base_url = settings.SO_URL
     api_version = "v7"
     _status: str = None
 

@@ -79,7 +79,7 @@
       - pip install .
       - pip install pytest mock # mock is needed as pytest parse all files before selection
       - mv setup.cfg setup.old # pytest tries to use setup.cfg but we don't want
-      - pytest --verbose --junitxml=pytest-integration.xml integration_tests
+      - PYTHONPATH=$PYTHONPATH:integration_tests/ ONAP_PYTHON_SDK_SETTINGS="urls" pytest --verbose --junitxml=pytest-integration.xml integration_tests
     artifacts:
       reports:
         junit: pytest-*.xml

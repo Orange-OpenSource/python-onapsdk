@@ -3,13 +3,9 @@ import requests
 
 from onapsdk.aai.cloud_infrastructure import CloudRegion, Complex
 
-from .urls import AAI_MOCK_URL
-
 
 @pytest.mark.integration
 def test_cloud_region_get_all():
-    CloudRegion.base_url = AAI_MOCK_URL
-
     requests.get(f"{CloudRegion.base_url}/reset")
     cloud_regions = list(CloudRegion.get_all())
     assert len(cloud_regions) == 0
@@ -29,9 +25,6 @@ def test_cloud_region_get_all():
 
 @pytest.mark.integration
 def test_complex_get_all():
-
-    Complex.base_url = AAI_MOCK_URL
-
     requests.get(f"{Complex.base_url}/reset")
     complexes = list(Complex.get_all())
     assert len(complexes) == 0
@@ -54,9 +47,6 @@ def test_complex_get_all():
 @pytest.mark.integration
 def test_link_cloud_region_to_complex():
 
-    CloudRegion.base_url = AAI_MOCK_URL
-    Complex.base_url = AAI_MOCK_URL
-
     requests.get(f"{Complex.base_url}/reset")
 
     cmplx: Complex = Complex.create(
@@ -75,7 +65,6 @@ def test_link_cloud_region_to_complex():
 @pytest.mark.integration
 def test_cloud_region_tenants():
     
-    CloudRegion.base_url = AAI_MOCK_URL
     cloud_region: CloudRegion = CloudRegion.create(
         "test_owner", "test_cloud_region", orchestration_disabled=True, in_maint=False
     )

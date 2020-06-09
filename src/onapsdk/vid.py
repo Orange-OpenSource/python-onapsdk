@@ -4,6 +4,7 @@
 """VID module."""
 from abc import ABC
 
+from onapsdk.configuration import settings
 from onapsdk.onap_service import OnapService
 from onapsdk.utils.jinja import jinja_env
 
@@ -11,7 +12,7 @@ from onapsdk.utils.jinja import jinja_env
 class Vid(OnapService, ABC):
     """VID base class."""
 
-    base_url = "https://vid.api.simpledemo.onap.org:30200"
+    base_url = settings.VID_URL
     api_version = "/vid"
 
     def __init__(self, name: str) -> None:

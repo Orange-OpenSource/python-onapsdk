@@ -2,6 +2,7 @@
 """Base CDS module."""
 from abc import ABC
 
+from onapsdk.configuration import settings
 from onapsdk.onap_service import OnapService
 
 
@@ -12,4 +13,4 @@ class CdsElement(OnapService, ABC):
     """
 
     # These should be stored in configuration. There is even a task in Orange repo.
-    _url: str = "https://portal.api.simpledemo.onap.org:30497"
+    _url: str = settings.CDS_URL
