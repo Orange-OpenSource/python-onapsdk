@@ -12,14 +12,10 @@ from onapsdk.vendor import Vendor
 from onapsdk.vsp import Vsp
 import onapsdk.constants as const
 
-from .urls import SDC_MOCK_URL
-
 
 @pytest.mark.integration
 def test_vsp_unknown():
     """Integration tests for Vsp."""
-    SDC.base_front_url = SDC_MOCK_URL
-    SDC.base_back_url = SDC_MOCK_URL
     response = requests.post("{}/reset".format(Vendor.base_front_url))
     response.raise_for_status()
     vendor = Vendor(name="test")
@@ -44,8 +40,6 @@ def test_vsp_unknown():
 @pytest.mark.integration
 def test_vsp_onboard_unknown():
     """Integration tests for Vsp."""
-    SDC.base_front_url = SDC_MOCK_URL
-    SDC.base_back_url = SDC_MOCK_URL
     response = requests.post("{}/reset".format(Vendor.base_front_url))
     response.raise_for_status()
     vendor = Vendor(name="test")

@@ -6,6 +6,7 @@ import pytest
 import requests
 from onapsdk.aai.business import Customer, ServiceInstance, ServiceSubscription, VnfInstance
 from onapsdk.aai.cloud_infrastructure import CloudRegion, Tenant
+from onapsdk.configuration import settings
 from onapsdk.sdnc.preload import VfModulePreload
 from onapsdk.service import Service
 from onapsdk.so.deletion import ServiceDeletionRequest, VfModuleDeletionRequest, VnfDeletionRequest
@@ -13,27 +14,12 @@ from onapsdk.so.instantiation import (ServiceInstantiation,
                                       VfModuleInstantiation, VnfInstantiation)
 from onapsdk.vid import LineOfBusiness, OwningEntity, Platform, Project
 
-from .urls import AAI_MOCK_URL, SO_MOCK_URL, SDNC_MOCK_URL
-
 
 @pytest.mark.integration
 def test_a_la_carte_instantiation():
-    Customer.base_url = AAI_MOCK_URL
-    CloudRegion.base_url = AAI_MOCK_URL
-    ServiceSubscription.base_url = AAI_MOCK_URL
-    ServiceInstance.base_url = AAI_MOCK_URL
-    VnfInstance.base_url = AAI_MOCK_URL
-    ServiceInstantiation.base_url = SO_MOCK_URL
-    VnfInstantiation.base_url = SO_MOCK_URL
-    VfModuleInstantiation.base_url = SO_MOCK_URL
-    VfModulePreload.base_url = SDNC_MOCK_URL
-    ServiceDeletionRequest.base_url = SO_MOCK_URL
-    VfModuleDeletionRequest.base_url = SO_MOCK_URL
-    VnfDeletionRequest.base_url = SO_MOCK_URL
-
     requests.get(f"{ServiceInstantiation.base_url}/reset")
     requests.get(f"{Customer.base_url}/reset")
-    requests.post(f"{ServiceInstantiation.base_url}/set_aai_mock", json={"AAI_MOCK": AAI_MOCK_URL})
+    requests.post(f"{ServiceInstantiation.base_url}/set_aai_mock", json={"AAI_MOCK": settings.AAI_URL})
 
     customer = Customer.create(global_customer_id="test_global_customer_id",
                                subscriber_name="test_subscriber_name",

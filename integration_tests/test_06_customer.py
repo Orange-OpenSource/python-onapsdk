@@ -7,13 +7,10 @@ from onapsdk.aai.cloud_infrastructure import CloudRegion, Tenant
 from onapsdk.aai.business import Customer, ServiceSubscription
 from onapsdk.service import Service
 
-from .urls import AAI_MOCK_URL
-
 
 @pytest.mark.integration
 def test_create_customer():
 
-    Customer.base_url = AAI_MOCK_URL
     requests.get(f"{Customer.base_url}/reset")
 
     customers = list(Customer.get_all())
@@ -33,7 +30,6 @@ def test_create_customer():
 @pytest.mark.integration
 def test_subscribe_service():
 
-    Customer.base_url = AAI_MOCK_URL
     requests.get(f"{Customer.base_url}/reset")
 
     customer = Customer.create(global_customer_id="test_global_customer_id",
@@ -51,9 +47,6 @@ def test_subscribe_service():
 @pytest.mark.integration
 def test_link_service_subscription_to_cloud_region_and_tenant():
 
-    Customer.base_url = AAI_MOCK_URL
-    CloudRegion.base_url = AAI_MOCK_URL
-    ServiceSubscription.base_url = AAI_MOCK_URL
     requests.get(f"{Customer.base_url}/reset")
 
     customer = Customer.create(global_customer_id="test_global_customer_id",

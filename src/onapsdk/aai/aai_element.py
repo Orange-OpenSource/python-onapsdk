@@ -5,6 +5,7 @@
 from dataclasses import dataclass, field
 from typing import Dict, Iterator, List, Optional
 
+from onapsdk.configuration import settings
 from onapsdk.onap_service import OnapService
 from onapsdk.utils.headers_creator import headers_aai_creator
 from onapsdk.utils.jinja import jinja_env
@@ -30,7 +31,7 @@ class AaiElement(OnapService):
 
     name: str = "AAI"
     server: str = "AAI"
-    base_url = "https://aai.api.sparky.simpledemo.onap.org:30233"
+    base_url = settings.AAI_URL
     api_version = "/aai/v16"
     headers = headers_aai_creator(OnapService.headers)
 
