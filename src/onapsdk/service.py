@@ -82,10 +82,10 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes
     ONAP Service Object used for SDC operations.
 
     Attributes:
-        name (str): the name of the vendor. Defaults to "Generic-Vendor".
-        identifier (str): the unique ID of the vendor from SDC.
-        status (str): the status of the vendor from SDC.
-        version (str): the version ID of the vendor from SDC.
+        name (str): the name of the service. Defaults to "ONAP-test-Service".
+        identifier (str): the unique ID of the service from SDC.
+        status (str): the status of the service from SDC.
+        version (str): the version ID of the service from SDC.
         uuid (str): the UUID of the Service (which is different from
                     identifier, don't ask why...)
         distribution_status (str):  the status of distribution in the different
@@ -103,10 +103,13 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes
     def __init__(self, name: str = None, sdc_values: Dict[str, str] = None,
                  resources: List[SdcResource] = None):
         """
-        Initialize vendor object.
+        Initialize service object.
 
         Args:
-            name (optional): the name of the vendor
+            name (str, optional): the name of the service
+            sdc_values (Dict[str, str], optional): dictionary of values
+                returned by SDC
+            resources (List[SdcResource], optional): list of SDC resources
 
         """
         super().__init__(sdc_values=sdc_values)
@@ -146,8 +149,10 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes
             time.sleep(10)
         elif self.status == const.CERTIFIED:
             self.distribute()
-        else:
-            self._logger.error("Service has invalid status")
+        elif self.status == const.DISTRIBUTED:
+            self._logger.info("Service %s onboarded", self.name)
+            return
+        self._logger.error("Service has invalid status")
 
     @property
     def distribution_id(self) -> str:
