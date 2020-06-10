@@ -400,5 +400,6 @@ def test_customer_subscribe_service(mock_send_message, mock_send_message_json):
                         subscriber_name="test_subscriber_name",
                         subscriber_type="test_subscriber_type")
     service = SdcService("test_service")
+    service._unique_uuid = "1234"
     mock_send_message_json.side_effect = (ValueError, SERVICE_SUBSCRIPTION)
     customer.subscribe_service(service)

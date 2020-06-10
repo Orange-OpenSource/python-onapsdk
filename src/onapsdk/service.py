@@ -126,13 +126,14 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes
         self._vnfs: list = None
         self._networks: list = None
         self._vf_modules: list = None
+        self._time_wait: int = 10
 
     def onboard(self) -> None:
         """Onboard the Service in SDC."""
         # first Lines are equivalent for all onboard functions but it's more readable
         if not self.status:
             self.create()
-            time.sleep(10)
+            time.sleep(self._time_wait)
             self.onboard()
         elif self.status == const.DRAFT:
             if not self.resources:
@@ -140,13 +141,13 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes
             for resource in self.resources:
                 self.add_resource(resource)
             self.checkin()
-            time.sleep(10)
+            time.sleep(self._time_wait)
             self.onboard()
         elif self.status == const.CHECKED_IN:
             self.certify()
-            time.sleep(10)
+            time.sleep(self._time_wait)
             self.onboard()
-            time.sleep(10)
+            time.sleep(self._time_wait)
         elif self.status == const.CERTIFIED:
             self.distribute()
         elif self.status == const.DISTRIBUTED:

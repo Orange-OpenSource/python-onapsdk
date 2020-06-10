@@ -10,6 +10,7 @@ from onapsdk.so.instantiation import (
     VfModuleInstantiation,
     VnfInstantiation
 )
+from onapsdk.vid import Vid
 
 
 @mock.patch.object(ServiceInstantiation, "send_message_json")
@@ -100,10 +101,10 @@ def test_vnf_instantiation(mock_vnf_instantiation_send_message):
                               vnf_instance_name="test")
     assert vnf_instantiation.name == "test"
 
-
+@mock.patch.object(Vid, "send_message")
 @mock.patch.object(VnfInstantiation, "send_message_json")
 @mock.patch("onapsdk.so.instantiation.SdcService")
-def test_vnf_instantiation_get_by_vnf_instance_name(mock_sdc_service, mock_send_message_json):
+def test_vnf_instantiation_get_by_vnf_instance_name(mock_sdc_service, mock_send_message_json, mock_send):
     mock_sdc_service.return_value.vnfs = []
     mock_send_message_json.return_value = {}
     with pytest.raises(ValueError):

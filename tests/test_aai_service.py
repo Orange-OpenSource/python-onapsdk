@@ -637,7 +637,7 @@ def test_filter_none_value():
     assert ret == {"a": "b", "c": "d"}
 
 
-@mock.patch.object(AaiElement, "send_message_json")
+@mock.patch.object(AaiElement, "send_message")
 def test_add_relationship(mock_send):
     """Test add_relationship method."""
     cloud_region = CloudRegion(cloud_owner="tester", cloud_region_id="test",

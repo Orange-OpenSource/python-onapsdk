@@ -291,6 +291,7 @@ def test_onboard_new_vf(mock_create, mock_submit, mock_load):
                                const.APPROVED]
         vsp = Vsp()
         vf = Vf(vsp=vsp)
+        vf._time_wait = 0
         vf.onboard()
         mock_create.assert_called_once()
         mock_submit.assert_not_called()
@@ -306,6 +307,7 @@ def test_onboard_vf_submit(mock_create, mock_submit, mock_load):
         getter_mock.side_effect = [const.DRAFT, const.DRAFT, const.APPROVED,
                                const.APPROVED, const.APPROVED]
         vf = Vf()
+        vf._time_wait = 0
         vf.onboard()
         mock_create.assert_not_called()
         mock_submit.assert_called_once()
@@ -322,6 +324,7 @@ def test_onboard_vf_load(mock_create, mock_submit, mock_load):
                                const.CERTIFIED, const.APPROVED, const.APPROVED,
                                const.APPROVED]
         vf = Vf()
+        vf._time_wait = 0
         vf.onboard()
         mock_create.assert_not_called()
         mock_submit.assert_not_called()
@@ -339,6 +342,7 @@ def test_onboard_whole_vf(mock_create, mock_submit, mock_load):
                                const.APPROVED, const.APPROVED]
         vsp = Vsp()
         vf = Vf(vsp=vsp)
+        vf._time_wait = 0
         vf.onboard()
         mock_create.assert_called_once()
         mock_submit.assert_called_once()

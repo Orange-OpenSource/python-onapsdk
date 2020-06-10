@@ -427,6 +427,7 @@ def test_onboard_new_service(mock_create, mock_add_resource,
                                 const.DISTRIBUTED, const.DISTRIBUTED,
                                 const.DISTRIBUTED, None]
         service = Service()
+        service._time_wait = 0
         service.onboard()
         mock_create.assert_called_once()
         mock_add_resource.assert_not_called()
@@ -458,6 +459,7 @@ def test_onboard_service_no_resources(mock_create,
                                 const.DISTRIBUTED, const.DISTRIBUTED,
                                 const.DISTRIBUTED, const.DISTRIBUTED, None]
         service = Service()
+        service._time_wait = 0
         with pytest.raises(ValueError):
             service.onboard()
             mock_create.assert_not_called()
@@ -490,6 +492,7 @@ def test_onboard_service_resources(mock_create, mock_add_resource,
                                const.DISTRIBUTED, const.DISTRIBUTED, None]
         resource = SdcResource()
         service = Service(resources=[resource])
+        service._time_wait = 0
         service.onboard()
         mock_create.assert_not_called()
         mock_add_resource.assert_called_once_with(resource)
@@ -524,6 +527,7 @@ def test_onboard_service_several_resources(mock_create,
         resource1 = SdcResource()
         resource2 = SdcResource()
         service = Service(resources=[resource1, resource2])
+        service._time_wait = 0
         service.onboard()
         mock_create.assert_not_called()
         calls = [mock.call(resource1), mock.call(resource2)]
@@ -562,6 +566,7 @@ def test_onboard_service_certifi(mock_create,
                                const.DISTRIBUTED, const.DISTRIBUTED,
                                const.DISTRIBUTED, None]
         service = Service()
+        service._time_wait = 0
         service.onboard()
         mock_create.assert_not_called()
         mock_add_resource.assert_not_called()
@@ -592,6 +597,7 @@ def test_onboard_service_distribute(mock_create,
                                const.DISTRIBUTED, const.DISTRIBUTED,
                                const.DISTRIBUTED, const.DISTRIBUTED, None]
         service = Service()
+        service._time_wait = 0
         service.onboard()
         mock_create.assert_not_called()
         mock_add_resource.assert_not_called()
@@ -623,6 +629,7 @@ def test_onboard_whole_service(mock_create,
                                const.DISTRIBUTED, None]
         resource = SdcResource()
         service = Service(resources=[resource])
+        service._time_wait = 0
         service.onboard()
         mock_create.assert_called_once()
         mock_add_resource.assert_called_once_with(resource)
