@@ -41,6 +41,7 @@ class Vf(SdcResource):
         super().__init__(sdc_values=sdc_values)
         self.name: str = name or "ONAP-test-VF"
         self.vsp: Vsp = vsp or None
+        self._time_wait: int = 10
 
     def onboard(self) -> None:
         """Onboard the VF in SDC."""
@@ -48,11 +49,11 @@ class Vf(SdcResource):
             if not self.vsp:
                 raise ValueError("No Vsp was given")
             self.create()
-            time.sleep(10)
+            time.sleep(self._time_wait)
             self.onboard()
         elif self.status == const.DRAFT:
             self.submit()
-            time.sleep(10)
+            time.sleep(self._time_wait)
             self.onboard()
         elif self.status == const.CERTIFIED:
             self.load()
