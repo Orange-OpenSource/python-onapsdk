@@ -103,10 +103,10 @@
     except:
       variables:
         - $JOBS_DISABLED
-  
+
   include:
     - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/pylint.gitlab-ci.yml'
-    - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/pytest.gitlab-ci.yml'
+    - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/-/raw/master/pytest.gitlab-ci.yml'
     - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/pydocstyle.gitlab-ci.yml'
     - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/doc8.gitlab-ci.yml'
     - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/pyup.gitlab-ci.yml'
