@@ -1,6 +1,19 @@
 onapsdk package
 ===============
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   onapsdk.aai
+   onapsdk.cds
+   onapsdk.configuration
+   onapsdk.sdnc
+   onapsdk.so
+   onapsdk.utils
+
 Submodules
 ----------
 
@@ -8,6 +21,38 @@ onapsdk.constants module
 ------------------------
 
 .. automodule:: onapsdk.constants
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+onapsdk.esr module
+------------------
+
+.. automodule:: onapsdk.esr
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+onapsdk.msb module
+------------------
+
+.. automodule:: onapsdk.msb
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+onapsdk.multicloud module
+-------------------------
+
+.. automodule:: onapsdk.multicloud
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+onapsdk.nbi module
+------------------
+
+.. automodule:: onapsdk.nbi
    :members:
    :undoc-members:
    :show-inheritance:
@@ -44,6 +89,14 @@ onapsdk.sdc\_resource module
    :undoc-members:
    :show-inheritance:
 
+onapsdk.service module
+----------------------
+
+.. automodule:: onapsdk.service
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 onapsdk.vendor module
 ---------------------
 
@@ -64,6 +117,14 @@ onapsdk.vf module
 -----------------
 
 .. automodule:: onapsdk.vf
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+onapsdk.vid module
+------------------
+
+.. automodule:: onapsdk.vid
    :members:
    :undoc-members:
    :show-inheritance:
