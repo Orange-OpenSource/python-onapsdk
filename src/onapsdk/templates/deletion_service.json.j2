@@ -12,7 +12,7 @@
             "modelVersionId": "{{ service_instance.service_subscription.sdc_service.identifier }}"
 		},
 		"requestParameters": {
-			"testApi": {% if use_vnf_api %}"VNF_API"{% else %}"GR_API"{% endif %}
+			"testApi": "GR_API"
 		},
         "cloudConfiguration": {
             "cloudOwner": "{{ service_instance.service_subscription.cloud_region.cloud_owner }}",

@@ -144,8 +144,7 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
                 vnf: "Vnf",
                 line_of_business: "LineOfBusiness",
                 platform: "Platform",
-                vnf_instance_name: str = None,
-                use_vnf_api: bool = False) -> "VnfInstantiation":
+                vnf_instance_name: str = None) -> "VnfInstantiation":
         """Add vnf into service instance.
 
         Instantiate VNF.
@@ -158,8 +157,6 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
                 If no value is provided it's going to be
                 "Python_ONAP_SDK_vnf_instance_{str(uuid4())}".
                 Defaults to None.
-            use_vnf_api (bool, optional): Flague to determine if VNF_API or GR_API
-                should be used to instantiate. Defaults to False.
 
         Raises:
             AttributeError: Service orchestration status is not "Active"
@@ -176,8 +173,7 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
             vnf,
             line_of_business,
             platform,
-            vnf_instance_name,
-            use_vnf_api
+            vnf_instance_name
         )
 
     def delete(self) -> "ServiceDeletionRequest":

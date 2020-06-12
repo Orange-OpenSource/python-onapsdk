@@ -324,15 +324,12 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
     def add_vf_module(self,
                       vf_module: "VfModule",
                       vf_module_instance_name: str = None,
-                      use_vnf_api=False,
                       vnf_parameters: Iterable["VnfParameter"] = None) -> "VfModuleInstantiation":
         """Instantiate vf module for that VNF instance.
 
         Args:
             vf_module (VfModule): VfModule to instantiate
             vf_module_instance_name (str, optional): VfModule instance name. Defaults to None.
-            use_vnf_api (bool, optional): Flague which determines if VNF_API should be used.
-                Set to False to use GR_API. Defaults to False.
             vnf_parameters (Iterable[VnfParameter], optional): VnfParameters to use for preloading.
                 Defaults to None.
 
@@ -344,7 +341,6 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
             vf_module,
             self,
             vf_module_instance_name,
-            use_vnf_api,
             vnf_parameters
         )
 

@@ -14,7 +14,7 @@
             "modelCustomizationName": "{{ vf_module_instance.vf_module.metadata["vfModuleModelName"] }}"
 		},
 		"requestParameters": {
-			"testApi": {% if use_vnf_api %}"VNF_API"{% else %}"GR_API"{% endif %}
+			"testApi": "GR_API"
 		},
         "cloudConfiguration": {
             "cloudOwner": "{{ vf_module_instance.vnf_instance.service_instance.service_subscription.cloud_region.cloud_owner }}",
