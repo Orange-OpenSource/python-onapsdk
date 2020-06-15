@@ -177,6 +177,80 @@ SERVICE_ORDERS = [
     }
 ]
 
+SERVICE_ORDERS_NO_RELATED_PARTY = [
+    {
+        "id":"5e9d6d98ae76af6b04e4df9a",
+        "href":"serviceOrder/5e9d6d98ae76af6b04e4df9a",
+        "externalId":"",
+        "priority":"1",
+        "description":"testService order for generic customer via Python ONAP SDK",
+        "category":"Consumer",
+        "state":"rejected",
+        "orderDate":"2020-04-20T09:38:32.286Z",
+        "completionDateTime":"2020-04-20T09:38:47.866Z",
+        "expectedCompletionDate":None,
+        "requestedStartDate":"2020-04-20T09:47:49.919Z",
+        "requestedCompletionDate":"2020-04-20T09:47:49.919Z",
+        "startDate":None,
+        "@baseType":None,
+        "@type":None,
+        "@schemaLocation":None,
+        "relatedParty": None,
+        "orderRelationship":None,
+        "orderItem":[
+            {
+                "orderMessage":[],
+                "id":"1",
+                "action":"add",
+                "state":"rejected",
+                "percentProgress":"0",
+                "@type":None,
+                "@schemaLocation":None,
+                "@baseType":None,
+                "orderItemRelationship":[],
+                "service":{
+                    "id":None,
+                    "serviceType":None,
+                    "href":None,
+                    "name":"08d960ae-c2e1-4d5c-baf0-6420659ea68a",
+                    "serviceState":"active",
+                    "@type":None,
+                    "@schemaLocation":None,
+                    "serviceCharacteristic":None,
+                    "serviceRelationship":None,
+                    "relatedParty":None,
+                    "serviceSpecification":{
+                        "id":"a80c901c-6593-491f-9465-877e5acffb46",
+                        "href":None,
+                        "name":None,
+                        "version":None,
+                        "targetServiceSchema":None,
+                        "@type":None,
+                        "@schemaLocation":None,
+                        "@baseType":None
+                    }
+                },
+                "orderItemMessage":[]
+            }
+        ],
+        "orderMessage":[
+            {
+                "code":"501",
+                "field":None,
+                "messageInformation":"Problem with AAI API",
+                "severity":"error",
+                "correctionRequired":True
+            },
+            {
+                "code":"503",
+                "field":None,
+                "messageInformation":"tenantId not found in AAI",
+                "severity":"error",
+                "correctionRequired":True
+            }
+        ]
+    }
+]
 
 @mock.patch.object(Nbi, "send_message")
 def test_nbi(mock_send_message):
@@ -282,6 +356,29 @@ def test_service_order(mock_service_order_send_message):
     assert service_order.external_id == ""
     assert service_order._customer == None
     assert service_order._customer_id == "generic"
+    assert service_order._service_specification == None
+    assert service_order._service_specification_id == "a80c901c-6593-491f-9465-877e5acffb46"
+    assert service_order.service_instance_name == "08d960ae-c2e1-4d5c-baf0-6420659ea68a"
+    assert service_order.state == "rejected"
+
+
+@mock.patch.object(ServiceOrder, "send_message_json")
+def test_service_order_no_related_party(mock_service_order_send_message):
+    mock_service_order_send_message.return_value = []
+    assert len(list(ServiceOrder.get_all())) == 0
+
+    mock_service_order_send_message.return_value = SERVICE_ORDERS_NO_RELATED_PARTY
+    service_orders = list(ServiceOrder.get_all())
+    assert len(service_orders) == 1
+    service_order = service_orders[0]
+    assert service_order.unique_id == "5e9d6d98ae76af6b04e4df9a"
+    assert service_order.href =="serviceOrder/5e9d6d98ae76af6b04e4df9a"
+    assert service_order.priority == "1"
+    assert service_order.category == "Consumer"
+    assert service_order.description == "testService order for generic customer via Python ONAP SDK"
+    assert service_order.external_id == ""
+    assert service_order._customer == None
+    assert service_order._customer_id == None
     assert service_order._service_specification == None
     assert service_order._service_specification_id == "a80c901c-6593-491f-9465-877e5acffb46"
     assert service_order.service_instance_name == "08d960ae-c2e1-4d5c-baf0-6420659ea68a"
