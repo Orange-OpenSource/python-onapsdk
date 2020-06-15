@@ -14,7 +14,7 @@
             "modelCustomizationName": "{{ vnf_instance.vnf.name }}"
 		},
 		"requestParameters": {
-			"testApi": {% if use_vnf_api %}"VNF_API"{% else %}"GR_API"{% endif %}
+			"testApi": "GR_API"
 		},
         "cloudConfiguration": {
             "cloudOwner": "{{ vnf_instance.service_instance.service_subscription.cloud_region.cloud_owner }}",

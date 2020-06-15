@@ -74,7 +74,6 @@ class VfModuleInstantiation(Instantiation):
                               vf_module,
                               vnf_instance,
                               vf_module_instance_name: str = None,
-                              use_vnf_api=False,
                               vnf_parameters: Iterable[VnfParameter] = None
                               ) -> "VfModuleInstantiation":
         """Instantiate VF module.
@@ -88,9 +87,6 @@ class VfModuleInstantiation(Instantiation):
                 If no value is provided it's going to be
                 "Python_ONAP_SDK_vf_module_service_instance_{str(uuid4())}".
                 Defaults to None.
-            use_vnf_api (bool, optional): Flague which determines if VNF_API or
-                GR_API should be used.
-                Defaults to False.
             vnf_parameters (Iterable[VnfParameter], optional): Parameters which are
                 going to be used in preload upload for vf modules. Defaults to None.
 
@@ -110,8 +106,7 @@ class VfModuleInstantiation(Instantiation):
             vnf_instance,
             vf_module_instance_name,
             vf_module,
-            vnf_parameters,
-            use_vnf_api=use_vnf_api
+            vnf_parameters
         )
         response: dict = cls.send_message_json(
             "POST",
@@ -127,8 +122,7 @@ class VfModuleInstantiation(Instantiation):
                 service=sdc_service,
                 cloud_region=vnf_instance.service_instance.service_subscription.cloud_region,
                 tenant=vnf_instance.service_instance.service_subscription.tenant,
-                vnf_instance=vnf_instance,
-                use_vnf_api=use_vnf_api
+                vnf_instance=vnf_instance
             ),
             headers=headers_so_creator(OnapService.headers),
             exception=ValueError
@@ -243,8 +237,7 @@ class VnfInstantiation(Instantiation):
                               vnf_object: "Vnf",
                               line_of_business_object: "LineOfBusiness",
                               platform_object: "Platform",
-                              vnf_instance_name: str = None,
-                              use_vnf_api: bool = False) -> "VnfInstantiation":
+                              vnf_instance_name: str = None) -> "VnfInstantiation":
         """Instantiate Vnf using a'la carte method.
 
         Args:
@@ -252,8 +245,6 @@ class VnfInstantiation(Instantiation):
             line_of_business_object (LineOfBusiness): LineOfBusiness to use in instantiation request
             platform_object (Platform): Platform to use in instantiation request
             vnf_instance_name (str, optional): Vnf instance name. Defaults to None.
-            use_vnf_api (bool, optional): Flague which determines if VF_API should be used.
-                Set False if you want to use GR_API. Defaults to False.
 
         Raises:
             ValueError: Instantiate request returns response with HTTP error code
@@ -281,8 +272,7 @@ class VnfInstantiation(Instantiation):
                 tenant=aai_service_instance.service_subscription.tenant,
                 line_of_business=line_of_business_object,
                 platform=platform_object,
-                service_instance=aai_service_instance,
-                use_vnf_api=use_vnf_api
+                service_instance=aai_service_instance
             ),
             headers=headers_so_creator(OnapService.headers),
             exception=ValueError
@@ -339,8 +329,7 @@ class ServiceInstantiation(Instantiation):
                                  customer: "Customer",
                                  owning_entity: "OwningEntity",
                                  project: "Project",
-                                 service_instance_name: str = None,
-                                 use_vnf_api: bool = False) -> "ServiceInstantiationc":
+                                 service_instance_name: str = None) -> "ServiceInstantiationc":
         """Instantiate service using SO a'la carte request.
 
         Args:
@@ -351,8 +340,6 @@ class ServiceInstantiation(Instantiation):
             owning_entity (OwningEntity): Owning entity to use in instantiation request
             project (Project): Project to use in instantiation request
             service_instance_name (str, optional): Service instance name. Defaults to None.
-            use_vnf_api (bool, optional): Flague to determine if VNF_API or GR_API
-                should be used to instantiate. Defaults to False.
 
         Raises:
             ValueError: Instantiation request returns HTTP error code.
@@ -370,7 +357,7 @@ class ServiceInstantiation(Instantiation):
             f"Instantiate {sdc_service.name} service a'la carte",
             (f"{cls.base_url}/onap/so/infra/"
              f"serviceInstantiation/{cls.api_version}/serviceInstances"),
-            data=jinja_env().get_template("instantiate_so_ala_carte.json.j2").
+            data=jinja_env().get_template("instantiate_ala_carte.json.j2").
             render(
                 sdc_service=sdc_service,
                 cloud_region=cloud_region,
@@ -378,8 +365,7 @@ class ServiceInstantiation(Instantiation):
                 customer=customer,
                 owning_entity=owning_entity,
                 service_instance_name=service_instance_name,
-                project=project,
-                use_vnf_api=use_vnf_api
+                project=project
             ),
             headers=headers_so_creator(OnapService.headers),
             exception=ValueError

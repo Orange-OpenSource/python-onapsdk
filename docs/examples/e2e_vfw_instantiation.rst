@@ -334,7 +334,6 @@ E2E Instantiation of vFW
 
         vf_module_instantiation = vnf_instance.add_vf_module(
                                    vf_module,
-                                   use_vnf_api=False,
                                    vnf_parameters=[
                                      VnfParameter(name="vfw_image_name", value="Ubuntu_1404"),
                                      VnfParameter(name="vpg_image_name", value="Ubuntu_1404"),

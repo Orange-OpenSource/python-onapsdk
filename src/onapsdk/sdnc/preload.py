@@ -20,8 +20,7 @@ class VfModulePreload(SdncElement):
                                  vnf_instance: "VnfInstance",
                                  vf_module_instance_name: str,
                                  vf_module: "VfModule",
-                                 vnf_parameters: Iterable["VnfParameter"] = None,
-                                 use_vnf_api=False) -> None:
+                                 vnf_parameters: Iterable["VnfParameter"] = None) -> None:
         """Upload vf module preload.
 
         Args:
@@ -30,8 +29,6 @@ class VfModulePreload(SdncElement):
             vf_module (VfModule): VF module
             vnf_parameters (Iterable[VnfParameter], optional): Iterable object of VnfParameters.
                 Defaults to None.
-            use_vnf_api (bool, optional): Flague which determines if VNF_API should be used.
-                Set to False to use GR_API. Defaults to False.
 
         Raises:
             ValueError: Preload request returns HTTP response with error code
@@ -44,22 +41,13 @@ class VfModulePreload(SdncElement):
                     "name": vnf_parameter.name,
                     "value": vnf_parameter.value
                     })
-        if use_vnf_api:
-            url: str = (f"{cls.base_url}/restconf/operations/"
-                        "VNF-API:preload-vnf-topology-operation")
-            description: str = "Upload VF module preload using VNF-API"
-            template: str = "instantiate_vf_module_ala_carte_upload_preload_vnf_api.json.j2"
-        else:
-            url: str = (f"{cls.base_url}/restconf/operations/"
-                        "GENERIC-RESOURCE-API:preload-vf-module-topology-operation")
-            description: str = "Upload VF module preload using GENERIC-RESOURCE-API"
-            template: str = "instantiate_vf_module_ala_carte_upload_preload_gr_api.json.j2"
         cls.send_message_json(
             "POST",
-            description,
-            url,
+            "Upload VF module preload using GENERIC-RESOURCE-API",
+            (f"{cls.base_url}/restconf/operations/"
+             "GENERIC-RESOURCE-API:preload-vf-module-topology-operation"),
             data=jinja_env().get_template(
-                template).
+                "instantiate_vf_module_ala_carte_upload_preload_gr_api.json.j2").
             render(
                 vnf_instance=vnf_instance,
                 vf_module_instance_name=vf_module_instance_name,
