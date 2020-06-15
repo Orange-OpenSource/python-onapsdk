@@ -322,6 +322,11 @@ class ServiceOrder(Nbi):  # pylint: disable=too-many-instance-attributes
         for service_order in cls.send_message_json("GET",
                                                    "Get all service orders",
                                                    f"{cls.base_url}{cls.api_version}/serviceOrder"):
+            service_order_related_party = None
+            if service_order.get("relatedParty") is not None:
+                service_order_related_party = service_order.get(
+                    "relatedParty", [{}])[0].get("id")
+
             yield ServiceOrder(
                 unique_id=service_order.get("id"),
                 href=service_order.get("href"),
@@ -329,7 +334,7 @@ class ServiceOrder(Nbi):  # pylint: disable=too-many-instance-attributes
                 category=service_order.get("category"),
                 description=service_order.get("description"),
                 external_id=service_order.get("externalId"),
-                customer_id=service_order.get("relatedParty", [{}])[0].get("id"),
+                customer_id=service_order_related_party,
                 service_specification_id=service_order.get("orderItem", [{}])[0].get("service")\
                     .get("serviceSpecification").get("id"),
                 service_instance_name=service_order.get("orderItem", [{}])[0].\
