@@ -1,6 +1,6 @@
-FROM alpine:3.9
+FROM alpine:3.12
 
-ARG PIP_TAG=19.1.1
+ARG PIP_TAG=20.1.1
 
 WORKDIR /opt/chained-ci-mqtt-trigger-master
 
@@ -17,5 +17,3 @@ RUN apk add --no-cache libressl\
     pip3 install --no-cache-dir --upgrade pip==$PIP_TAG && \
     pip3 install --no-cache-dir . &&\
     apk del .build-deps
-
-

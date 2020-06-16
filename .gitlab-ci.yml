@@ -31,11 +31,8 @@
     script:
       - docker build -t "$CI_REGISTRY_IMAGE:latest" .
       - docker push "$CI_REGISTRY_IMAGE:latest"
-    only:
-      - master
-    except:
-      variables:
-        - $JOBS_DISABLED
+    rules:
+      - if: '$CI_COMMIT_BRANCH == "master"'
   
   build_testing:
     stage: build
@@ -43,27 +40,19 @@
     script:
       - docker build -t "$CI_REGISTRY_IMAGE:${CI_COMMIT_REF_SLUG}" .
       - docker push "$CI_REGISTRY_IMAGE:${CI_COMMIT_REF_SLUG}"
-    only:
-      - branches
-    except:
-      refs:
-        - master
-      variables:
-        - $JOBS_DISABLED
+    rules:
+      - if: '$CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != "master"'
   
   build_stable:
     stage: build
     <<: *before_script_docker
     script:
-      - docker build -t "$CI_REGISTRY_IMAGE:${CI_COMMIT_REF_SLUG}" .
-      - docker push "$CI_REGISTRY_IMAGE:${CI_COMMIT_REF_SLUG}"
-    only:
-      - tags
-    except:
-      variables:
-        - $JOBS_DISABLED
+      - docker build -t "$CI_REGISTRY_IMAGE:${CI_COMMIT_TAG}" .
+      - docker push "$CI_REGISTRY_IMAGE:${CI_COMMIT_TAG}"
+    rules:
+      - if: '$CI_COMMIT_TAG'
   
-  integration_tests:
+  .integration_tests: &integration_tests
     stage: test
     variables:
       FF_NETWORK_PER_BUILD: 1  # Enable https://docs.gitlab.com/runner/executors/docker.html#network-per-build feature
@@ -76,8 +65,6 @@
         alias: so.api.simpledemo.onap.org
       - name: registry.gitlab.com/orange-opensource/lfn/onap/mock_servers/mock-aai:latest
         alias: aai.api.sparky.simpledemo.onap.org
-    image: python:3.7
-    allow_failure: true
     script:
       - pip install .
       - pip install pytest mock # mock is needed as pytest parse all files before selection
@@ -86,9 +73,14 @@
     artifacts:
       reports:
         junit: pytest-*.xml
-    except:
-      variables:
-        - $JOBS_DISABLED
+
+  integration_tests:3.7:
+    image: python:3.7
+    <<: *integration_tests
+    
+  integration_tests:3.8:
+    image: python:3.8
+    <<: *integration_tests
   
   pages:
     stage: deploy
