@@ -1,0 +1,23 @@
+{
+	"requestDetails": {
+		"requestInfo": {
+			"source": "VID",
+			"requestorId": "demo"
+		},
+		"modelInfo": {
+            "modelType": "service",
+            "modelName": "{{ service_instance.service_subscription.sdc_service.name }}",
+            "modelInvariantId": "{{ service_instance.service_subscription.sdc_service.unique_uuid }}",
+            "modelVersion": "1.0",
+            "modelVersionId": "{{ service_instance.service_subscription.sdc_service.identifier }}"
+		},
+		"requestParameters": {
+			"testApi": "GR_API"
+		},
+        "cloudConfiguration": {
+            "cloudOwner": "{{ service_instance.service_subscription.cloud_region.cloud_owner }}",
+            "lcpCloudRegionId": "{{ service_instance.service_subscription.cloud_region.cloud_region_id }}",
+            "tenantId": "{{ service_instance.service_subscription.tenant.tenant_id }}"
+        }
+	}
+}

@@ -1,0 +1,25 @@
+{
+	"requestDetails": {
+		"requestInfo": {
+			"source": "VID",
+			"requestorId": "demo"
+		},
+		"modelInfo": {
+			"modelType": "vnf",
+            "modelName": "{{ vnf_instance.vnf.metadata["name"] }}",
+            "modelInvariantId": "{{ vnf_instance.vnf.metadata["invariantUUID"] }}",
+            "modelVersion": "{{ vnf_instance.vnf.metadata["version"] }}",
+            "modelVersionId": "{{ vnf_instance.vnf.metadata["UUID"] }}",
+            "modelCustomizationId": "{{ vnf_instance.vnf.metadata["customizationUUID"] }}",
+            "modelCustomizationName": "{{ vnf_instance.vnf.name }}"
+		},
+		"requestParameters": {
+			"testApi": "GR_API"
+		},
+        "cloudConfiguration": {
+            "cloudOwner": "{{ vnf_instance.service_instance.service_subscription.cloud_region.cloud_owner }}",
+            "lcpCloudRegionId": "{{ vnf_instance.service_instance.service_subscription.cloud_region.cloud_region_id }}",
+            "tenantId": "{{ vnf_instance.service_instance.service_subscription.tenant.tenant_id }}"
+        }
+	}
+}

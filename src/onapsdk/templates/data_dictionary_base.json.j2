@@ -1,0 +1,52 @@
+{
+    "name": "{{ mapping.dictionary_name }}",
+    "tags": "{{ mapping.dictionary_name }}",
+    "data_type": "{{ mapping.mapping_type }}",
+    "description": "{{ mapping.dictionary_name }}",
+    "entry_schema": "{{ mapping.mapping_type }}",
+    "updatedBy": "Python ONAP SDK",
+    "definition": {
+        "tags": "{{ mapping.dictionary_name }}",
+        "name": "{{ mapping.dictionary_name }}",
+        "property": {
+            "description": "{{ mapping.dictionary_name }}",
+            "type": "{{ mapping.mapping_type }}"
+        },
+        "updated-by": "Python ONAP SDK",
+        "sources": {
+            {% for source in mapping.dictionary_sources %}
+                {% if source == "input" %}
+                    "input": {
+                        "type": "source-input"
+                    },
+                {% elif source == "sdnc" %}
+                    "sdnc": {% include "data_dictionary_source_rest.json.j2" %},
+                {% elif source == "processor-db" %}
+                    "processor-db": {
+                        "type": "source-db",
+                        "properties": {
+                            "type": "<< FILL >>",
+                            "query": "<< FILL >>",
+                            "input-key-mapping": {},
+                            "output-key-mapping": {},
+                            "key-dependencies": []
+                        }
+                    },
+                {% elif source == "aai-data" %}
+                    "aai-data": {% include "data_dictionary_source_rest.json.j2" %},
+                {% elif source == "default" %}
+                    {# Do not do anything, default will be always added #}
+                {% else %}
+                    "{{ source }}": {
+                        "type": "unknown",
+                        "properties": {}
+                    },
+                {% endif %}
+            {% endfor %}
+            "default": {
+                "type": "source-default",
+                "properties": {}
+            }
+        }
+    }
+}

@@ -1,0 +1,25 @@
+{
+	"requestDetails": {
+		"requestInfo": {
+			"source": "VID",
+			"requestorId": "demo"
+		},
+		"modelInfo": {
+            "modelType": "vfModule",
+            "modelInvariantId": "{{ vf_module_instance.vf_module.metadata["vfModuleModelInvariantUUID"] }}",
+            "modelVersionId": "{{ vf_module_instance.vf_module.metadata["vfModuleModelUUID"] }}",
+            "modelName": "{{ vf_module_instance.vf_module.metadata["vfModuleModelName"] }}",
+            "modelVersion": "{{ vf_module_instance.vf_module.metadata["vfModuleModelVersion"] }}",
+            "modelCustomizationId": "{{vf_module_instance.vf_module.metadata["vfModuleModelCustomizationUUID"] }}",
+            "modelCustomizationName": "{{ vf_module_instance.vf_module.metadata["vfModuleModelName"] }}"
+		},
+		"requestParameters": {
+			"testApi": "GR_API"
+		},
+        "cloudConfiguration": {
+            "cloudOwner": "{{ vf_module_instance.vnf_instance.service_instance.service_subscription.cloud_region.cloud_owner }}",
+            "lcpCloudRegionId": "{{ vf_module_instance.vnf_instance.service_instance.service_subscription.cloud_region.cloud_region_id }}",
+            "tenantId": "{{ vf_module_instance.vnf_instance.service_instance.service_subscription.tenant.tenant_id }}"
+        }
+	}
+}

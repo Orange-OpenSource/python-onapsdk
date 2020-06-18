@@ -1,0 +1,58 @@
+{
+    "requestDetails": {
+        "requestInfo": 
+        {
+            "instanceName": "{{ vf_module_instance_name }}",
+            "source": "VID",
+            "suppressRollback": false,
+            "requestorId": "test"
+        },
+        "modelInfo": {
+            "modelType": "vfModule",
+            "modelInvariantId": "{{ vf_module.metadata["vfModuleModelInvariantUUID"] }}",
+            "modelVersionId": "{{ vf_module.metadata["vfModuleModelUUID"] }}",
+            "modelName": "{{ vf_module.metadata["vfModuleModelName"] }}",
+            "modelVersion": "{{ vf_module.metadata["vfModuleModelVersion"] }}",
+            "modelCustomizationId": "{{ vf_module.metadata["vfModuleModelCustomizationUUID"] }}",
+            "modelCustomizationName": "{{ vf_module.metadata["vfModuleModelName"] }}"
+        },
+        "requestParameters": {
+            "userParams": [],
+            "testApi": "GR_API",
+            "usePreload": true
+        },
+        "cloudConfiguration": {
+            "tenantId": "{{ tenant.tenant_id }}",
+            "cloudOwner": "{{ cloud_region.cloud_owner }}",
+            "lcpCloudRegionId": "{{ cloud_region.cloud_region_id }}"
+        },
+        "relatedInstanceList": [
+            {
+                "relatedInstance": {
+                    "instanceId": "{{ vnf_instance.service_instance.instance_id }}",
+                    "modelInfo": {
+                        "modelType": "service",
+                        "modelName": "{{ service.name }}",
+                        "modelInvariantId": "{{ service.unique_uuid }}",
+                        "modelVersion": "1.0",
+                        "modelVersionId": "{{ service.identifier }}"
+                    }
+                }
+            },
+            {
+                "relatedInstance": {
+                    "instanceId": "{{ vnf_instance.vnf_id }}",
+                    "modelInfo": {
+                        "modelType": "vnf",
+                        "modelName": "{{ vnf_instance.vnf.metadata["name"] }}",
+                        "modelInvariantId": "{{ vnf_instance.vnf.metadata["invariantUUID"] }}",
+                        "modelVersion": "{{ vnf_instance.vnf.metadata["version"] }}",
+                        "modelVersionId": "{{ vnf_instance.vnf.metadata["UUID"] }}",
+                        "modelCustomizationId": "{{ vnf_instance.vnf.metadata["customizationUUID"] }}",
+                        "modelCustomizationName": "{{ vnf_instance.vnf.name }}"
+                    }
+                }
+            }
+        ]
+    }
+}
