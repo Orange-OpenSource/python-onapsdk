@@ -5,12 +5,13 @@
 from collections import namedtuple
 from dataclasses import dataclass
 from difflib import SequenceMatcher
-from io import BytesIO
+from io import BytesIO, TextIOWrapper
 from os import makedirs
 import time
 import re
-from typing import Dict, Iterable, List
+from typing import Dict, Iterable, List, Callable, Union, Any
 from zipfile import ZipFile, BadZipFile
+from requests import Response
 
 import oyaml as yaml
 
@@ -130,7 +131,8 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes
 
     def onboard(self) -> None:
         """Onboard the Service in SDC."""
-        # first Lines are equivalent for all onboard functions but it's more readable
+        # first Lines are equivalent for all onboard functions but it's more
+        # readable
         if not self.status:
             self.create()
             time.sleep(self._time_wait)
@@ -188,13 +190,8 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes
 
         """
         if not self._tosca_template and self.tosca_model:
-            with ZipFile(BytesIO(self.tosca_model)) as myzip:
-                for name in myzip.namelist():
-                    if (name[-13:] == "-template.yml"
-                            and name[:20] == "Definitions/service-"):
-                        service_template = name
-                with myzip.open(service_template) as template_file:
-                    self._tosca_template = yaml.safe_load(template_file.read())
+            self._unzip_csar_file(BytesIO(self.tosca_model),
+                                  self._load_tosca_template)
         return self._tosca_template
 
     @property
@@ -241,7 +238,8 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes
         if self._vnfs is None:
             self._vnfs = []
             for node_template_name, values in \
-                self.tosca_template.get("topology_template", {}).get("node_templates", {}).items():
+                self.tosca_template.get("topology_template", {}).get(
+                        "node_templates", {}).items():
                 if re.match("org.openecomp.resource.vf.*", values["type"]):
                     vnf: Vnf = Vnf(
                         name=node_template_name,
@@ -272,7 +270,8 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes
         if self._networks is None:
             self._networks = []
             for node_template_name, values in \
-                self.tosca_template.get("topology_template", {}).get("node_templates", {}).items():
+                self.tosca_template.get("topology_template", {}).get(
+                        "node_templates", {}).items():
                 if re.match("org.openecomp.resource.vl.*", values["type"]):
                     self._networks.append(Network(
                         name=node_template_name,
@@ -295,7 +294,8 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes
         """
         if self._vf_modules is None:
             self._vf_modules = []
-            groups: dict = self.tosca_template.get("topology_template", {}).get("groups", {})
+            groups: dict = self.tosca_template.get(
+                "topology_template", {}).get("groups", {})
             for group_name, values in groups.items():
                 self._vf_modules.append(VfModule(
                     name=group_name,
@@ -392,23 +392,20 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes
                                    url,
                                    headers=headers)
         if result:
-            csar_filename = "service-{}-csar.csar".format(self.name)
-            makedirs(tosca_path(), exist_ok=True)
-            with open((tosca_path() + csar_filename), 'wb') as csar_file:
-                for chunk in result.iter_content(chunk_size=128):
-                    csar_file.write(chunk)
-            try:
-                with ZipFile(tosca_path() + csar_filename) as myzip:
-                    for name in myzip.namelist():
-                        if (name[-13:] == "-template.yml"
-                                and name[:20] == "Definitions/service-"):
-                            service_template = name
-                    with myzip.open(service_template) as file1:
-                        with open(tosca_path() + service_template[12:],
-                                  'wb') as file2:
-                            file2.write(file1.read())
-            except BadZipFile as exc:
-                self._logger.exception(exc)
+            self._create_tosca_file(result)
+
+    def _create_tosca_file(self, result: Response) -> None:
+        """Create Service Tosca files from HTTP response."""
+        csar_filename = "service-{}-csar.csar".format(self.name)
+        makedirs(tosca_path(), exist_ok=True)
+        with open((tosca_path() + csar_filename), 'wb') as csar_file:
+            for chunk in result.iter_content(chunk_size=128):
+                csar_file.write(chunk)
+        try:
+            self._unzip_csar_file(tosca_path() + csar_filename,
+                                  self._write_csar_file)
+        except BadZipFile as exc:
+            self._logger.exception(exc)
 
     def _check_distributed(self) -> bool:
         """Check if service is distributed and update status accordingly."""
@@ -423,22 +420,36 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes
         status = {}
         for component in components_needing_distribution():
             status[component] = False
+
         if result:
-            distrib_list = result['distributionStatusList']
-            self._logger.debug("[SDC][Get Distribution] distrib_list = %s",
-                               distrib_list)
-            for elt in distrib_list:
-                for key in status:
-                    if ((key in elt['omfComponentID'])
-                            and (const.DOWNLOAD_OK in elt['status'])):
-                        status[key] = True
-                        self._logger.info(("[SDC][Get Distribution] Service "
-                                           "distributed in %s"), key)
+            status = self._update_components_status(status, result)
+
         for state in status.values():
             if not state:
                 self._distributed = False
                 return
         self._distributed = True
+
+    def _update_components_status(self, status: Dict[str, bool],
+                                  result: Response) -> Dict[str, bool]:
+        """Update components distribution status."""
+        distrib_list = result['distributionStatusList']
+        self._logger.debug("[SDC][Get Distribution] distrib_list = %s",
+                           distrib_list)
+        for elt in distrib_list:
+            status = self._parse_components_status(status, elt)
+        return status
+
+    def _parse_components_status(self, status: Dict[str, bool],
+                                 element: Dict[str, Any]) -> Dict[str, bool]:
+        """Parse components distribution status."""
+        for key in status:
+            if ((key in element['omfComponentID'])
+                    and (const.DOWNLOAD_OK in element['status'])):
+                status[key] = True
+                self._logger.info(("[SDC][Get Distribution] Service "
+                                   "distributed in %s"), key)
+        return status
 
     def load_metadata(self) -> None:
         """Load Metada of Service and retrieve informations."""
@@ -452,8 +463,8 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes
                                         headers=headers)
         if (result and 'distributionStatusOfServiceList' in result
                 and len(result['distributionStatusOfServiceList']) > 0):
-            # API changed and the latest distribution is not added to the end of
-            # distributions list but inserted as the first one.
+            # API changed and the latest distribution is not added to the end
+            # of distributions list but inserted as the first one.
             dist_status = result['distributionStatusOfServiceList'][0]
             self._distribution_id = dist_status['distributionID']
 
@@ -528,6 +539,44 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes
             self._logger.warning(("Service %s in SDC is in status %s and it "
                                   "should be in  status %s"), self.name,
                                  self.status, desired_status)
+
+    @staticmethod
+    def _unzip_csar_file(zip_file: Union[str, BytesIO],
+                         function: Callable[[str,
+                                             TextIOWrapper], None]) -> None:
+        """
+        Unzip Csar File and perform an action on the file.
+
+        Raises:
+            AttributeError: CSAR file has no service template
+
+        """
+        with ZipFile(zip_file) as myzip:
+            service_template = None
+            for name in myzip.namelist():
+                if (name[-13:] == "-template.yml"
+                        and name[:20] == "Definitions/service-"):
+                    service_template = name
+
+            if not service_template:
+                raise AttributeError("CSAR file has no service template")
+
+            with myzip.open(service_template) as template_file:
+                function(service_template, template_file)
+
+    @staticmethod
+    def _write_csar_file(service_template: str,
+                         template_file: TextIOWrapper) -> None:
+        """Write service temple into a file."""
+        with open(tosca_path() + service_template[12:], 'wb') as file:
+            file.write(template_file.read())
+
+    # _service_template is not used but function generation is generic
+    # pylint: disable-unused-argument
+    def _load_tosca_template(self, _service_template: str,
+                             template_file: TextIOWrapper) -> None:
+        """Load Tosca template."""
+        self._tosca_template = yaml.safe_load(template_file.read())
 
     @classmethod
     def _sdc_path(cls) -> None:

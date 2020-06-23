@@ -3,6 +3,7 @@
 """Test Service module."""
 
 from os import path
+from io import BytesIO
 from pathlib import Path
 from unittest import mock
 from unittest.mock import MagicMock
@@ -247,6 +248,19 @@ def test_get_tosca_result(requests_mock):
     svc = Service()
     svc.identifier = "12"
     svc.get_tosca()
+
+def test_get_tosca_result_no_service_in_csar(requests_mock):
+    if path.exists('/tmp/tosca_files'):
+        shutil.rmtree('/tmp/tosca_files')
+    with open('tests/data/bad_no_service.csar', mode='rb') as file:
+        file_content = file.read()
+        requests_mock.get(
+            'https://sdc.api.be.simpledemo.onap.org:30204/sdc/v1/catalog/services/12/toscaModel',
+            content=file_content)
+    svc = Service()
+    svc.identifier = "12"
+    with pytest.raises(AttributeError):
+        svc.get_tosca()
 
 @mock.patch.object(Service, 'send_message_json')
 def test_distributed_no_result(mock_send):
@@ -638,6 +652,15 @@ def test_onboard_whole_service(mock_create,
         mock_distribute.assert_called_once()
 
 
+def test_vnf_no_template():
+    getter_mock = mock.Mock(wraps=Service.tosca_template.fget)
+    getter_mock.return_value = False
+    mock_status = Service.tosca_template.getter(getter_mock)
+    with mock.patch.object(Service, 'tosca_template', mock_status):
+        with pytest.raises(AttributeError):
+            service = Service(name="test")
+            service.vnfs
+
 def test_vnf_vf_modules_one():
     """Test parsing TOSCA file with one VNF which has associated one VFmodule"""
     service = Service(name="test")
@@ -668,3 +691,37 @@ def test_vnf_vf_modules_two():
         assert vnf.node_template_type == "org.openecomp.resource.vf.VfwclVfwsnkVf"
         assert vnf.vf_module
         assert vnf.vf_module.name == "vfwcl_vfwsnkvf0..VfwclVfwsnkVf..base_vfw..module-0"
+
+@mock.patch.object(Service, '_unzip_csar_file')
+def test_tosca_template_no_tosca_model(mock_unzip):
+    service = Service(name="test")
+    getter_mock = mock.Mock(wraps=Service.tosca_model.fget)
+    getter_mock.return_value = False
+    mock_tosca_model = Service.tosca_model.getter(getter_mock)
+    with mock.patch.object(Service, 'tosca_model', mock_tosca_model):
+        service.tosca_template
+        mock_unzip.assert_not_called()
+
+@mock.patch.object(Service, '_unzip_csar_file')
+def test_tosca_template_tosca_model(mock_unzip):
+    service = Service(name="test")
+    service._tosca_model = str.encode("test")
+    service.tosca_template
+    mock_unzip.assert_called_once_with(mock.ANY, mock.ANY)
+
+@mock.patch.object(Service, '_unzip_csar_file')
+def test_tosca_template_present(mock_unzip):
+    service = Service(name="test")
+    service._tosca_template = "test"
+    assert service.tosca_template == "test"
+    mock_unzip.assert_not_called()
+
+@mock.patch.object(Service, 'send_message')
+def test_tosca_model(mock_send):
+    service = Service(name="test")
+    service.identifier = "toto"
+    service.tosca_model
+    mock_send.assert_called_once_with("GET", "Download Tosca Model for test",
+                                      "https://sdc.api.be.simpledemo.onap.org:30204/sdc/v1/catalog/services/toto/toscaModel",
+                                      exception=mock.ANY,
+                                      headers={'Content-Type': 'application/json', 'Accept': 'application/octet-stream', 'USER_ID': 'cs0008', 'Authorization': 'Basic YWFpOktwOGJKNFNYc3pNMFdYbGhhazNlSGxjc2UyZ0F3ODR2YW9HR21KdlV5MlU=', 'X-ECOMP-InstanceID': 'onapsdk'})

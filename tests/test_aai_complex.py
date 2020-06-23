@@ -3,6 +3,7 @@ from unittest import mock
 import pytest
 
 from onapsdk.aai.cloud_infrastructure import Complex
+from onapsdk.aai.cloud_infrastructure import CloudRegion
 
 
 COMPLEXES = {
@@ -61,3 +62,25 @@ def test_complex_get_all(mock_send_message_json):
     cmplx = complexes[0]
     assert cmplx.name == "integration_test_complex"
     assert cmplx.physical_location_id == "integration_test_complex"
+
+
+@mock.patch.object(CloudRegion, "add_relationship")
+def test_cloud_region_link_to_complex(mock_add_rel):
+    """Test Cloud Region linking with Complex.
+
+    Test Relationship object creation
+    """
+    cloud_region = CloudRegion(cloud_owner="test_cloud_owner",
+                               cloud_region_id="test_cloud_region",
+                               orchestration_disabled=True,
+                               in_maint=False)
+    cmplx = Complex(name="test_complex_name",
+                    physical_location_id="test_location_id",
+                    resource_version="1234")
+    cloud_region.link_to_complex(cmplx)
+    mock_add_rel.assert_called_once()
+    relationship = mock_add_rel.call_args[0][0]
+    assert relationship.related_to == "complex"
+    assert relationship.related_link == (f"aai/v13/cloud-infrastructure/complexes/"
+                                         f"complex/test_location_id")
+    assert len(relationship.relationship_data) == 2
