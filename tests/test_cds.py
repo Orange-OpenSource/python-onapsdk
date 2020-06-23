@@ -200,3 +200,15 @@ def test_blueprint_get_workflows_from_entry_definitions_file():
     assert workflow.steps[0].target == "resource-assignment"
     assert len(workflow.inputs) == 2
     assert len(workflow.outputs) == 1
+
+
+@patch.object(DataDictionary, "send_message")
+def test_no_data_upload(send_message_mock):
+    dd = DataDictionary(DD_1)
+    send_message_mock.return_value = None 
+    with raises(RuntimeError):
+        dd.upload()
+        send_message_mock.assert_called_once()
+
+
+
