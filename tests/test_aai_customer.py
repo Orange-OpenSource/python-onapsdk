@@ -5,9 +5,10 @@ from unittest import mock
 
 import pytest
 
-from onapsdk.aai.business import Customer, ServiceSubscription
+from onapsdk.aai.business import Customer, ServiceSubscription, ServiceInstance
 from onapsdk.aai.cloud_infrastructure import CloudRegion, Tenant
 from onapsdk.service import Service as SdcService
+from onapsdk.multicloud import Multicloud
 
 
 SIMPLE_CUSTOMER = {
@@ -403,3 +404,115 @@ def test_customer_subscribe_service(mock_send_message, mock_send_message_json):
     service._unique_uuid = "1234"
     mock_send_message_json.side_effect = (ValueError, SERVICE_SUBSCRIPTION)
     customer.subscribe_service(service)
+
+
+#test the Cloud Region Class  
+AVAILABILITY_ZONES = {
+    "availability-zone":[
+        {
+            "availability-zone-name":"OPNFV LaaS",
+            "hypervisor-type":"1234",
+            "operational-status":"working",
+            "resource-version":"version1.0"
+        }
+    ]
+}
+
+
+@mock.patch.object(CloudRegion, "send_message_json")
+def test_availability_zones(mock_send_message_json):
+    """Test Cloud Region property"""
+    cloud_region = CloudRegion(cloud_owner="test_cloud_owner",
+                               cloud_region_id="test_cloud_region",
+                               orchestration_disabled=True,
+                               in_maint=False)
+    mock_send_message_json.return_value = AVAILABILITY_ZONES
+    cloud_zones = cloud_region.availability_zones
+    zone1 = next(cloud_zones)
+    assert zone1.name == "OPNFV LaaS"
+    assert zone1.hypervisor_type == "1234"
+
+
+@mock.patch.object(CloudRegion, "send_message")
+def test_add_availability_zone(mock_send_message):
+    """Test Cloud Region class method"""
+    cloud_region = CloudRegion(cloud_owner="test_cloud_owner",
+                               cloud_region_id="test_cloud_region",
+                               orchestration_disabled=True,
+                               in_maint=False)
+    cloud_region.add_availability_zone(availability_zone_name="test_zone",
+                                       availability_zone_hypervisor_type="1234")
+    mock_send_message.assert_called_once()
+    method, description, url = mock_send_message.call_args[0]
+    assert method == "PUT"
+    assert description == "Add availability zone to cloud region"
+    assert url == f"{cloud_region.url}/availability-zones/availability-zone/test_zone"
+
+
+@mock.patch.object(CloudRegion, "send_message")
+def test_add_tenant_to_cloud(mock_send_message):
+    """Test Cloud Region class method"""
+    cloud_region = CloudRegion(cloud_owner="test_cloud_owner",
+                               cloud_region_id="test_cloud_region",
+                               orchestration_disabled=True,
+                               in_maint=False)
+    cloud_region.add_tenant(tenant_id="123456", tenant_name="test_tenant")
+    mock_send_message.assert_called_once()
+    method, description, url = mock_send_message.call_args[0]
+    assert method == "PUT"
+    assert description == "add tenant to cloud region"
+    assert url == f"{cloud_region.url}/tenants/tenant/123456"
+
+
+@mock.patch.object(CloudRegion, "send_message")
+def test_add_esr_system_info(mock_send_message):
+    """Test Cloud Region class method"""
+    cloud_region = CloudRegion(cloud_owner="test_cloud_owner",
+                               cloud_region_id="test_cloud_region",
+                               orchestration_disabled=True,
+                               in_maint=False)
+    cloud_region.add_esr_system_info(esr_system_info_id="123456",
+                                     user_name="test_user",
+                                     password="password",
+                                     system_type="test_type")
+    mock_send_message.assert_called_once()
+    method, description, url = mock_send_message.call_args[0]
+    assert method == "PUT"
+    assert description == "Add external system info to cloud region"
+    assert url == f"{cloud_region.url}/esr-system-info-list/esr-system-info/123456"
+
+
+@mock.patch.object(Multicloud, "register_vim")
+def test_register_to_multicloud(mock_register):
+    """Test register to multicloud"""
+    cloud_region = CloudRegion(cloud_owner="test_cloud_owner",
+                               cloud_region_id="test_cloud_region",
+                               orchestration_disabled=True,
+                               in_maint=False)
+    cloud_region.register_to_multicloud()
+    mock_register.assert_called_once()
+
+
+@mock.patch.object(Multicloud, "unregister_vim")
+def test_unregister_from_multicloud(mock_unregister):
+    """Test register to multicloud"""
+    cloud_region = CloudRegion(cloud_owner="test_cloud_owner",
+                               cloud_region_id="test_cloud_region",
+                               orchestration_disabled=True,
+                               in_maint=False)
+    cloud_region.unregister_from_multicloud()
+    mock_unregister.assert_called_once()
+
+
+@mock.patch.object(CloudRegion, "send_message")
+def test_delete_cloud_region(mock_send_message):
+    cloud_region = CloudRegion(cloud_owner="test_cloud_owner",
+                               cloud_region_id="test_cloud_region",
+                               orchestration_disabled=True,
+                               in_maint=False)
+    cloud_region.delete()
+    mock_send_message.assert_called_once()
+    method, descritption, url = mock_send_message.call_args[0]
+    assert method == "DELETE"
+    assert descritption == f"Delete cloud region test_cloud_region"
+    assert url == cloud_region.url

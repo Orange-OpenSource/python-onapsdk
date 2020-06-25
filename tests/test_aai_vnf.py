@@ -236,6 +236,7 @@ def test_vnf_instance_vnf():
     service_instance.service_subscription.sdc_service.vnfs = [vnf]
     assert vnf == vnf_instance.vnf
     assert vnf_instance._vnf is not None
+    assert vnf_instance.vnf == vnf_instance._vnf
 
 
 @mock.patch.object(VfModuleInstantiation, "instantiate_ala_carte")
