@@ -2,10 +2,11 @@ from unittest import mock
 
 import pytest
 
-from onapsdk.sdnc import VfModulePreload
-from onapsdk.service import Service as SdcService
+from onapsdk.sdnc import NetworkPreload, VfModulePreload
+from onapsdk.sdc.service import Service as SdcService
 from onapsdk.so.so_element import OrchestrationRequest
 from onapsdk.so.instantiation import (
+    NetworkInstantiation,
     ServiceInstantiation,
     VfModuleInstantiation,
     VnfInstantiation
@@ -100,6 +101,35 @@ def test_vnf_instantiation(mock_vnf_instantiation_send_message):
                               platform_object=mock.MagicMock(),
                               vnf_instance_name="test")
     assert vnf_instantiation.name == "test"
+
+
+@mock.patch.object(NetworkInstantiation, "send_message_json")
+@mock.patch.object(NetworkPreload, "send_message_json")
+def test_network_instantiation(mock_network_preload, mock_network_instantiation_send_message):
+    aai_service_instance_mock = mock.MagicMock()
+    aai_service_instance_mock.instance_id = "test_instance_id"
+    vnf_instantiation = NetworkInstantiation.\
+        instantiate_ala_carte(aai_service_instance=aai_service_instance_mock,
+                              network_object=mock.MagicMock(),
+                              line_of_business_object=mock.MagicMock(),
+                              platform_object=mock.MagicMock())
+    mock_network_preload.assert_called_once()
+    assert vnf_instantiation.name.startswith("Python_ONAP_SDK_network_instance_")
+    mock_network_instantiation_send_message.assert_called_once()
+    method, _, url = mock_network_instantiation_send_message.call_args[0]
+    assert method == "POST"
+    assert url == (f"{NetworkInstantiation.base_url}/onap/so/infra/serviceInstantiation/"
+                   f"{NetworkInstantiation.api_version}/serviceInstances/"
+                   f"{aai_service_instance_mock.instance_id}/networks")
+
+    network_instantiation = NetworkInstantiation.\
+        instantiate_ala_carte(aai_service_instance=aai_service_instance_mock,
+                              network_object=mock.MagicMock(),
+                              line_of_business_object=mock.MagicMock(),
+                              platform_object=mock.MagicMock(),
+                              network_instance_name="test")
+    assert mock_network_preload.call_count == 2
+    assert network_instantiation.name == "test"
 
 @mock.patch.object(Vid, "send_message")
 @mock.patch.object(VnfInstantiation, "send_message_json")

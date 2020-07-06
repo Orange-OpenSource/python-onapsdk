@@ -1,5 +1,5 @@
-E2E Instantiation of vFW
-########################
+E2E Instantiation of a simple Network
+#####################################
 
 
 .. code:: Python
@@ -18,22 +18,16 @@ E2E Instantiation of vFW
     )
     from onapsdk.aai.business import (
         ServiceInstance,
-        VnfInstance,
-        VfModuleInstance,
         ServiceSubscription,
         Customer,
         OwningEntity as AaiOwningEntity
     )
     from onapsdk.so.instantiation import (
         ServiceInstantiation,
-        VnfInstantiation,
-        VnfParameter
+        Subnet
     )
-    from onapsdk.sdc import SDC
-    from onapsdk.sdc.vendor import Vendor
-    from onapsdk.sdc.vsp import Vsp
-    from onapsdk.sdc.vf import Vf
     from onapsdk.sdc.service import Service
+    from onapsdk.sdc.vl import Vl
     import onapsdk.constants as const
     import os
     from onapsdk.vid import LineOfBusiness, OwningEntity, Platform, Project
@@ -48,11 +42,8 @@ E2E Instantiation of vFW
 
 
     # Create required A&AI resources
-    VENDOR = "VNFVendor"
-    VSPFILE = "vsp/vfw.zip"
-    VSPNAME = "vfw_VSP"
-    VFNAME = "vfw_VF"
-    SERVICENAME = "vfw_SERVICE"
+    VL_NAME = "Generic NeutronNet"
+    SERVICENAME = "net_SERVICE"
 
     GLOBAL_CUSTOMER_ID = ""  # FILL ME
     COMPLEX_PHYSICAL_LOCATION_ID = ""  # FILL ME
@@ -71,30 +62,18 @@ E2E Instantiation of vFW
     PLATFORM = ""  # FILL ME
     LINE_OF_BUSINESS = ""  # FILL ME
 
-    SERVICE_INSTANCE_NAME = "vFW-Instance"
+    SERVICE_INSTANCE_NAME = "net-Instance"
     SERVICE_DELETION = True
 
     logger.info("*******************************")
     logger.info("******** SERVICE DESIGN *******")
     logger.info("*******************************")
 
-    logger.info("******** Onboard Vendor *******")
-    vendor = Vendor(name=VENDOR)
-    vendor.onboard()
-
-    logger.info("******** Onboard VSP *******")
-    mypath = os.path.dirname(os.path.realpath(__file__))
-    myvspfile = os.path.join(mypath, VSPFILE)
-    vsp = Vsp(name=VSPNAME, vendor=vendor, package=open(myvspfile, 'rb'))
-    vsp.onboard()
-
-    logger.info("******** Onboard VF *******")
-    vf = Vf(name=VFNAME)
-    vf.vsp = vsp
-    vf.onboard()
+    logger.info("******** Get VL *******")
+    vl = Vl(VL_NAME)
 
     logger.info("******** Onboard Service *******")
-    svc = Service(name=SERVICENAME, resources=[vf])
+    svc = Service(name=SERVICENAME, resources=[vl])
     svc.onboard()
 
     logger.info("******** Check Service Distribution *******")
@@ -313,60 +292,21 @@ E2E Instantiation of vFW
         exit(1)
 
 
-    logger.info("******** Get VNFs in Service Model *******")
-    vnfs = service_instance.service_subscription.sdc_service.vnfs
+    logger.info("******** Get Networks in Service Model *******")
+    networks = service_instance.service_subscription.sdc_service.networks
 
-    logger.info("******** Create VNFs *******")
-    for vnf in vnfs:
-        logger.debug("Check if VNF instance of class %s exist", vnf.name)
-        vnf_found = False
-        for vnf_instance in service_instance.vnf_instances:
-            logger.debug("VNF instance %s found in Service Instance ",vnf_instance.name)
-            vnf_found = True
-        if vnf_found is False:
-            vnf_instantiation = service_instance.add_vnf(vnf, vid_line_of_business, vid_platform)
-            while not vnf_instantiation.finished:
-                print("Wait for VNF %s instantiation",vnf.name)
-                time.sleep(10)
+    logger.info("******** Create Network *******")
+    sn=Subnet(name="test", start_address="127.0.0.0", gateway_address="127.0.0.1")
+    for network in networks:
+        logger.debug("Check if Network instance of class %s exist", network.name)
+        network_found = False
+        for network_instance in service_instance.network_instances:
+            logger.debug("Network instance %s found in Service Instance ",network_intance.name)
+            network_found = True
+        if network_found is False:
+            network_instantiation = service_instance.add_network(network, vid_line_of_business, vid_platform, subnets=[sn])
+            network_instantiation.wait_for_finish()
 
-
-    for vnf_instance in service_instance.vnf_instances:
-        logger.debug("VNF instance %s found in Service Instance ",vnf_instance.name)
-        logger.info("******** Get VfModules in VNF Model *******")
-        logger.info("******** Check VF Modules *******")
-        vf_module = vnf_instance.vnf.vf_module
-
-        logger.info("******** Create VF Module %s *******",vf_module.name)
-
-        vf_module_instantiation = vnf_instance.add_vf_module(
-                                   vf_module,
-                                   vnf_parameters=[
-                                     VnfParameter(name="vfw_image_name", value="Ubuntu_1404"),
-                                     VnfParameter(name="vpg_image_name", value="Ubuntu_1404"),
-                                     VnfParameter(name="vsn_image_name", value="Ubuntu_1404"),
-                                     VnfParameter(name="vfw_flavor_name", value="m1.small"),
-                                     VnfParameter(name="vpg_flavor_name", value="m1.small"),
-                                     VnfParameter(name="vsn_flavor_name", value="m1.small"),
-                                     VnfParameter(name="public_net_id", value="admin"),
-                                     VnfParameter(name="onap_private_net_id", value="admin"),
-                                     VnfParameter(name="onap_private_subnet_id", value="admin-subnet"),
-                                     VnfParameter(name="onap_private_net_cidr", value="10.41.1.0/24"),
-                                     VnfParameter(name="vfw_onap_private_ip_0", value="10.41.1.10"),
-                                     VnfParameter(name="vpg_onap_private_ip_0", value="10.41.1.11"),
-                                     VnfParameter(name="vsn_onap_private_ip_0", value="10.41.1.12"),
-                                     VnfParameter(name="sec_group", value="ci-onap-master-vnfs-onap")
-                                     ]
-                                  )
-        nb_try = 0
-        nb_try_max = 30
-        while not vf_module_instantiation.finished and nb_try < nb_try_max:
-            logger.info("Wait for vf module instantiation")
-            nb_try += 1
-            time.sleep(10)
-        if vf_module_instantiation.finished:
-            logger.info("VfModule %s instantiated",vf_module.name)
-        else:
-            logger.error("VfModule instantiation %s failed",vf_module.name)
 
     if SERVICE_DELETION is False:
         logger.info("*****************************************")
@@ -379,52 +319,15 @@ E2E Instantiation of vFW
     logger.info("*******************************")
     time.sleep(30)
 
-    for vnf_instance in service_instance.vnf_instances:
-        logger.debug("VNF instance %s found in Service Instance ",vnf_instance.name)
-        logger.info("******** Get VF Modules *******")
-        for vf_module in vnf_instance.vf_modules:
-            logger.info("******** Delete VF Module %s *******",vf_module.name)
-            vf_module_deletion = vf_module.delete()
+    for network_instance in service_instance.network_instances:
+        logger.debug("Network instance %s found in Service Instance ",network_instance.name)
 
-            nb_try = 0
-            nb_try_max = 30
-            while not vf_module_deletion.finished and nb_try < nb_try_max:
-                logger.info("Wait for vf module deletion")
-                nb_try += 1
-                time.sleep(10)
-            if vf_module_deletion.finished:
-                logger.info("VfModule %s deleted",vf_module.name)
-            else:
-                logger.error("VfModule deletion %s failed",vf_module.name)
-                exit(1)
-
-        logger.info("******** Delete VNF %s *******",vnf_instance.name)
-        vnf_deletion = vnf_instance.delete()
-
-        nb_try = 0
-        nb_try_max = 30
-        while not vnf_deletion.finished and nb_try < nb_try_max:
-            logger.info("Wait for vnf deletion")
-            nb_try += 1
-            time.sleep(10)
-        if vnf_deletion.finished:
-            logger.info("VNF %s deleted",vnf_instance.name)
-        else:
-            logger.error("VNF deletion %s failed",vnf_instance.name)
-            exit(1)
+        logger.info("******** Delete Network %s *******",network_instance.name)
+        network_deletion = network_instance.delete()
+        network_deletion.wait_for_finish()
 
     logger.info("******** Delete Service %s *******",service_instance.name)
     service_deletion = service_instance.delete()
+    service_deletion.wait_for_finish()
 
-    nb_try = 0
-    nb_try_max = 30
-    while not service_deletion.finished and nb_try < nb_try_max:
-        logger.info("Wait for Service deletion")
-        nb_try += 1
-        time.sleep(10)
-    if service_deletion.finished:
-        logger.info("Service %s deleted",service_instance.name)
-    else:
-        logger.error("Service deletion %s failed",service_instance.name)
-        exit(1)
 

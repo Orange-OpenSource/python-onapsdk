@@ -5,8 +5,8 @@
 from typing import Dict
 
 import time
-from onapsdk.sdc_resource import SdcResource
-from onapsdk.vsp import Vsp
+from onapsdk.sdc.sdc_resource import SdcResource
+from onapsdk.sdc.vsp import Vsp
 import onapsdk.constants as const
 from onapsdk.utils.headers_creator import headers_sdc_creator
 

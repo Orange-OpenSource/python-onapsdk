@@ -42,6 +42,15 @@ class SdcResource(SDC, ABC):  # pylint: disable=too-many-instance-attributes
             self._logger.debug("SDC resource %s status: %s", self.name,
                                self.status)
 
+    def __repr__(self) -> str:
+        """SDC resource description.
+
+        Returns:
+            str: SDC resource object description
+
+        """
+        return f"{self.__class__.__name__.upper()}(name={self.name})"
+
     @property
     def unique_uuid(self) -> str:
         """Return and lazy load the unique_uuid."""

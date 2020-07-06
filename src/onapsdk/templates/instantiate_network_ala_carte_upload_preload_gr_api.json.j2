@@ -1,0 +1,42 @@
+{
+    "input": {
+        "preload-network-topology-information": {
+            "network-policy": [],
+            "route-table-reference": [],
+            "vpn-bindings": [],
+            "network-topology-identifier-structure": {
+                "network-role": "integration_test_net",
+                "network-technology": "neutron",
+                "network-name": "{{ network_instance_name }}",
+                "network-type": "Generic NeutronNet"
+            },
+            "is-external-network": false,
+            "is-shared-network": false,
+            "is-provider-network": false,
+            "physical-network-name": "Not Aplicable", 
+            "subnets": [
+                {% for subnet in subnets %}
+                {
+                    "subnet-name": "{{ subnet.name }}",
+                    "start-address": "{{ subnet.start_address }}",
+                    "cidr-mask": "{{ subnet.cidr_mask }}",
+                    "ip-version": "{{ subnet.ip_version }}",
+                    {% if subnet.dhcp_enabled %}
+                    "dhcp-enabled": "Y",
+                    "dhcp-start-address": "{{ subnet.dhcp_start_address }}",
+                    "dhcp-end-address": "{{ subnet.dhcp_end_address }}",
+                    {% else %}
+                    "dhcp-enabled": "N",
+                    {% endif %}
+                    "gateway-address": "{{ subnet.gateway_address }}"
+                }{% if not loop.last %},{% endif %}
+                {% endfor %}
+            ]
+        },
+        "sdnc-request-header": {
+            "svc-request-id": "test",
+            "svc-notification-url": "http:\/\/onap.org:8080\/adapters\/rest\/SDNCNotify",
+            "svc-action": "reserve"
+        }
+    }
+}

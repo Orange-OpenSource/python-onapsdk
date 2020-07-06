@@ -20,6 +20,14 @@ onapsdk.aai.business.instance module
    :undoc-members:
    :show-inheritance:
 
+onapsdk.aai.business.network module
+-----------------------------------
+
+.. automodule:: onapsdk.aai.business.network
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 onapsdk.aai.business.owning\_entity module
 ------------------------------------------
 

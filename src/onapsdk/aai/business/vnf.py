@@ -156,9 +156,11 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
                 Defaults to None.
 
         """
-        super().__init__(resource_version=resource_version, model_version_id=model_version_id,
-                         persona_model_version=persona_model_version,
+        super().__init__(resource_version=resource_version,
+                         model_invariant_id=model_invariant_id,
+                         model_version_id=model_version_id,
                          widget_model_id=widget_model_id,
+                         persona_model_version=persona_model_version,
                          widget_model_version=widget_model_version)
         self.service_instance: "ServiceInstance" = service_instance
         self.vnf_id: str = vnf_id

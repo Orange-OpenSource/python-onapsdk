@@ -10,6 +10,7 @@ Subpackages
    onapsdk.aai
    onapsdk.cds
    onapsdk.configuration
+   onapsdk.sdc
    onapsdk.sdnc
    onapsdk.so
    onapsdk.utils
@@ -65,46 +66,6 @@ onapsdk.onap\_service module
    :undoc-members:
    :show-inheritance:
 
-onapsdk.sdc module
-------------------
-
-.. automodule:: onapsdk.sdc
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-onapsdk.sdc\_element module
----------------------------
-
-.. automodule:: onapsdk.sdc_element
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-onapsdk.sdc\_resource module
-----------------------------
-
-.. automodule:: onapsdk.sdc_resource
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-onapsdk.service module
-----------------------
-
-.. automodule:: onapsdk.service
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-onapsdk.vendor module
----------------------
-
-.. automodule:: onapsdk.vendor
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 onapsdk.version module
 ----------------------
 
@@ -113,26 +74,10 @@ onapsdk.version module
    :undoc-members:
    :show-inheritance:
 
-onapsdk.vf module
------------------
-
-.. automodule:: onapsdk.vf
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 onapsdk.vid module
 ------------------
 
 .. automodule:: onapsdk.vid
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-onapsdk.vsp module
-------------------
-
-.. automodule:: onapsdk.vsp
    :members:
    :undoc-members:
    :show-inheritance:

@@ -3,7 +3,7 @@ from unittest import mock
 import pytest
 
 from onapsdk.aai.business import Customer, ServiceSubscription, ServiceInstance
-from onapsdk.service import Service as SdcService
+from onapsdk.sdc.service import Service as SdcService
 
 
 SERVICE_INSTANCES = {

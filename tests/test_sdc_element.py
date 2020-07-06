@@ -6,9 +6,9 @@ from unittest import mock
 import pytest
 
 from onapsdk.onap_service import OnapService
-from onapsdk.sdc_element import SdcElement
-from onapsdk.vendor import Vendor
-from onapsdk.vsp import Vsp
+from onapsdk.sdc.sdc_element import SdcElement
+from onapsdk.sdc.vendor import Vendor
+from onapsdk.sdc.vsp import Vsp
 
 def test_init():
     """Test the initialization."""

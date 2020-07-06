@@ -116,3 +116,34 @@ class ServiceDeletionRequest(DeletionRequest):
                                          exception=ValueError,
                                          headers=headers_so_creator(OnapService.headers))
         return cls(request_id=response["requestReferences"]["requestId"])
+
+
+class NetworkDeletionRequest(DeletionRequest):
+    """Network deletion request class."""
+
+    @classmethod
+    def send_request(cls,
+                     instance: "NetworkInstance") -> "VnfDeletionRequest":
+        """Send request to SO to delete Network instance.
+
+        Args:
+            instance (NetworkInstance): Network instance to delete
+
+        Returns:
+            NetworkDeletionRequest: Deletion request object
+
+        """
+        cls._logger.debug("Network %s deletion request", instance.network_id)
+        response = cls.send_message_json("DELETE",
+                                         f"Create {instance.network_id} Network deletion request",
+                                         (f"{cls.base_url}/onap/so/infra/"
+                                          f"serviceInstantiation/{cls.api_version}/"
+                                          "serviceInstances/"
+                                          f"{instance.service_instance.instance_id}/"
+                                          f"networks/{instance.network_id}"),
+                                         data=jinja_env().
+                                         get_template("deletion_network.json.j2").
+                                         render(network_instance=instance),
+                                         exception=ValueError,
+                                         headers=headers_so_creator(OnapService.headers))
+        return cls(request_id=response["requestReferences"]["requestId"])

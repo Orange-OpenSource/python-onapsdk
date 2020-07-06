@@ -2,8 +2,8 @@ from unittest import mock
 
 import pytest
 
+from onapsdk.sdc.vf import Vf
 from onapsdk.so.so_element import OrchestrationRequest, SoElement
-from onapsdk.vf import Vf
 from onapsdk.utils.headers_creator import headers_so_creator
 from onapsdk.onap_service import OnapService
 

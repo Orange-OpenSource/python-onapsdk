@@ -4,12 +4,12 @@
 """Instantion module."""
 from abc import ABC
 from dataclasses import dataclass
-from typing import Iterable
+from typing import Iterable, Optional
 from uuid import uuid4
 
 from onapsdk.onap_service import OnapService
-from onapsdk.sdnc import VfModulePreload
-from onapsdk.service import Service as SdcService, Vnf, VfModule
+from onapsdk.sdnc import NetworkPreload, VfModulePreload
+from onapsdk.sdc.service import Network, Service as SdcService, Vnf, VfModule
 from onapsdk.utils.jinja import jinja_env
 from onapsdk.utils.headers_creator import headers_so_creator
 from onapsdk.vid import LineOfBusiness, Platform
@@ -26,6 +26,37 @@ class VnfParameter:
 
     name: str
     value: str
+
+
+@dataclass
+class Subnet:  # pylint: disable=too-many-instance-attributes
+    """Class to store subnet parameters used for preload."""
+
+    name: str
+    start_address: str
+    gateway_address: str
+    role: str = None
+    cidr_mask: str = "24"
+    ip_version: str = "4"
+    dhcp_enabled: bool = False
+    dhcp_start_address: Optional[str] = None
+    dhcp_end_address: Optional[str] = None
+
+    def __post_init__(self) -> None:
+        """Post init subnet method.
+
+        Checks if both dhcp_start_address and dhcp_end_address
+            values are provided if dhcp is enabled
+
+        Raises:
+            ValueError: Not both dhcp_start_address
+                and dhcp_end_address values provided
+
+        """
+        if self.dhcp_enabled and \
+            not all([self.dhcp_start_address,
+                     self.dhcp_end_address]):
+            raise ValueError("DHCP is enabled but not all DHCP start and end adress were provided")
 
 
 class Instantiation(OrchestrationRequest, ABC):
@@ -135,7 +166,30 @@ class VfModuleInstantiation(Instantiation):
         )
 
 
-class VnfInstantiation(Instantiation):
+class NodeTemplateInstantiation(Instantiation, ABC):
+    """Base class for service's node_template object instantiation."""
+
+    def __init__(self,  # pylint: disable=too-many-arguments
+                 name: str,
+                 request_id: str,
+                 instance_id: str,
+                 line_of_business: LineOfBusiness,
+                 platform: Platform) -> None:
+        """Node template object initialization.
+
+        Args:
+            name (str): Node template name
+            request_id (str): Node template instantiation request ID
+            instance_id (str): Node template instance ID
+            line_of_business (LineOfBusiness): LineOfBusiness class object used for instantation
+            platform (Platform): Platform class object used for instantiation
+        """
+        super().__init__(name, request_id, instance_id)
+        self.line_of_business = line_of_business
+        self.platform = platform
+
+
+class VnfInstantiation(NodeTemplateInstantiation):
     """VNF instantiation class."""
 
     def __init__(self,  # pylint: disable=too-many-arguments
@@ -156,9 +210,7 @@ class VnfInstantiation(Instantiation):
             platform (Platform): Platform class object
             vnf (Vnf): Vnf class object
         """
-        super().__init__(name, request_id, instance_id)
-        self.line_of_business = line_of_business
-        self.platform = platform
+        super().__init__(name, request_id, instance_id, line_of_business, platform)
         self.vnf = vnf
 
     @classmethod
@@ -265,7 +317,7 @@ class VnfInstantiation(Instantiation):
              f"serviceInstances/{aai_service_instance.instance_id}/vnfs"),
             data=jinja_env().get_template("instantiate_vnf_ala_carte.json.j2").
             render(
-                vnf_service_instance_name=vnf_instance_name,
+                instance_name=vnf_instance_name,
                 vnf=vnf_object,
                 service=sdc_service,
                 cloud_region=aai_service_instance.service_subscription.cloud_region,
@@ -403,3 +455,88 @@ class ServiceInstantiation(Instantiation):
         except ValueError:
             self._logger.error("A&AI resources not created properly")
             raise AttributeError
+
+
+class NetworkInstantiation(NodeTemplateInstantiation):
+    """Network instantiation class."""
+
+    def __init__(self,  # pylint: disable=too-many-arguments
+                 name: str,
+                 request_id: str,
+                 instance_id: str,
+                 line_of_business: LineOfBusiness,
+                 platform: Platform,
+                 network: Network) -> None:
+        """Class NetworkInstantiation object initialization.
+
+        Args:
+            name (str): VNF name
+            request_id (str): request ID
+            instance_id (str): instance ID
+            service_instantiation ([type]): ServiceInstantiation class object
+            line_of_business (LineOfBusiness): LineOfBusiness class object
+            platform (Platform): Platform class object
+            vnf (Network): Network class object
+        """
+        super().__init__(name, request_id, instance_id, line_of_business, platform)
+        self.network = network
+
+    @classmethod
+    def instantiate_ala_carte(cls,  # pylint: disable=too-many-arguments
+                              aai_service_instance: "ServiceInstance",
+                              network_object: "Network",
+                              line_of_business_object: "LineOfBusiness",
+                              platform_object: "Platform",
+                              network_instance_name: str = None,
+                              subnets: Iterable[Subnet] = None) -> "NetworkInstantiation":
+        """Instantiate Network using a'la carte method.
+
+        Args:
+            network_object (Network): Network to instantiate
+            line_of_business_object (LineOfBusiness): LineOfBusiness to use in instantiation request
+            platform_object (Platform): Platform to use in instantiation request
+            network_instance_name (str, optional): Network instance name. Defaults to None.
+
+        Raises:
+            ValueError: Instantiate request returns response with HTTP error code
+
+        Returns:
+            NetworkInstantiation: NetworkInstantiation object
+
+        """
+        sdc_service: SdcService = aai_service_instance.service_subscription.sdc_service
+        if network_instance_name is None:
+            network_instance_name = \
+                f"Python_ONAP_SDK_network_instance_{str(uuid4())}"
+        NetworkPreload.upload_network_preload(network=network_object,
+                                              network_instance_name=network_instance_name,
+                                              subnets=subnets)
+        response: dict = cls.send_message_json(
+            "POST",
+            (f"Instantiate {aai_service_instance.service_subscription.sdc_service.name} "
+             f"service network {network_object.name}"),
+            (f"{cls.base_url}/onap/so/infra/serviceInstantiation/{cls.api_version}/"
+             f"serviceInstances/{aai_service_instance.instance_id}/networks"),
+            data=jinja_env().get_template("instantiate_network_ala_carte.json.j2").
+            render(
+                instance_name=network_instance_name,
+                network=network_object,
+                service=sdc_service,
+                cloud_region=aai_service_instance.service_subscription.cloud_region,
+                tenant=aai_service_instance.service_subscription.tenant,
+                line_of_business=line_of_business_object,
+                platform=platform_object,
+                service_instance=aai_service_instance,
+                subnets=subnets
+            ),
+            headers=headers_so_creator(OnapService.headers),
+            exception=ValueError
+        )
+        return cls(
+            name=network_instance_name,
+            request_id=response["requestReferences"]["requestId"],
+            instance_id=response["requestReferences"]["instanceId"],
+            line_of_business=line_of_business_object,
+            platform=platform_object,
+            network=network_object
+        )

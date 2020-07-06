@@ -8,8 +8,8 @@ import pytest
 
 import onapsdk.constants as const
 from onapsdk.onap_service import OnapService
-from onapsdk.sdc_resource import SdcResource
-from onapsdk.vf import Vf
+from onapsdk.sdc.sdc_resource import SdcResource
+from onapsdk.sdc.vf import Vf
 from onapsdk.utils.headers_creator import headers_sdc_tester
 from onapsdk.utils.headers_creator import headers_sdc_creator
 

@@ -7,8 +7,8 @@ import pytest
 
 from onapsdk.aai.business import Customer, ServiceSubscription, ServiceInstance
 from onapsdk.aai.cloud_infrastructure import CloudRegion, Tenant
-from onapsdk.service import Service as SdcService
 from onapsdk.multicloud import Multicloud
+from onapsdk.sdc.service import Service as SdcService
 
 
 SIMPLE_CUSTOMER = {

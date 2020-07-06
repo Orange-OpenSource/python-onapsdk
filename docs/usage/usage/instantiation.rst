@@ -52,8 +52,10 @@ Instantiate a service
         vid_project,
         service_instance_name=SERVICE_INSTANCE_NAME
     )
-    while not service_instantiation.finished:
-        time.sleep(10)
+    service_instantiation.wait_for_finish():
+        print("Success")
+    else:
+        print("Instantiation failed, check logs")
 
 Instantiate VNF
 ---------------
@@ -75,8 +77,10 @@ Instantiate VNF
     vid_line_of_business = LineOfBusiness.create(LINE_OF_BUSINESS)
     vid_platform = Platform.create(PLATFORM)
     vnf_instantiation = service_instance.add_vnf(vnf, vid_line_of_business, vid_platform)
-    while not vnf_instantiation.finished:
-        time.sleep(10)
+    vnf_instantiation.wait_for_finish():
+        print("Success")
+    else:
+        print("Instantiation failed, check logs")
 
 Instantiate Vf module
 ---------------------
@@ -98,5 +102,32 @@ Instantiate Vf module
             VnfParameter(name="parameter2", value="parameter2_value
         ]
     )
-    while not vf_module_instantiation.finished:
-        time.sleep(10)
+    vf_module_instantiation.wait_for_finish():
+        print("Success")
+    else:
+        print("Instantiation failed, check logs")
+
+Instantiate Vl module
+---------------------
+
+.. code:: Python
+
+    import time
+    from onapsdk.aai.business import Customer
+    from onapsdk.vid import LineOfBusiness, Platform
+
+    # We assume that
+    #   - service has been already instantiated,
+    #   - line of business and platform are created
+
+    customer = Customer.get_by_global_customer_id(GLOBAL_CUSTOMER_ID)
+    service_subscription = next(customer.service_subscriptions)
+    service_instance = service_subscription.get_service_instance_by_name(SERVICE_INSTANCE_NAME)
+    network = service_subscription.sdc_service.networks[0]
+    vid_line_of_business = LineOfBusiness.create(LINE_OF_BUSINESS)
+    vid_platform = Platform.create(PLATFORM)
+    vnf_instantiation = service_instance.add_network(network, vid_line_of_business, vid_platform)
+    if vnf_instantiation.wait_for_finish():
+        print("Success")
+    else:
+        print("Instantiation failed, check logs")
