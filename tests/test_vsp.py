@@ -7,10 +7,10 @@ import json
 import pytest
 import requests
 
-from onapsdk.vsp import Vsp
-from onapsdk.vendor import Vendor
+from onapsdk.sdc.vsp import Vsp
+from onapsdk.sdc.vendor import Vendor
 import onapsdk.constants as const
-from onapsdk.sdc_element import SdcElement
+from onapsdk.sdc.sdc_element import SdcElement
 
 @mock.patch.object(Vsp, 'send_message_json')
 def test_get_all_no_vsp(mock_send):

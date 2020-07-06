@@ -1,0 +1,19 @@
+{
+	"requestDetails": {
+		"requestInfo": {
+			"source": "VID",
+			"requestorId": "demo"
+		},
+		"modelInfo": {
+			"modelType": "network"
+		},
+		"requestParameters": {
+			"testApi": "GR_API"
+		},
+        "cloudConfiguration": {
+            "cloudOwner": "{{ network_instance.service_instance.service_subscription.cloud_region.cloud_owner }}",
+            "lcpCloudRegionId": "{{ network_instance.service_instance.service_subscription.cloud_region.cloud_region_id }}",
+            "tenantId": "{{ network_instance.service_instance.service_subscription.tenant.tenant_id }}"
+        }
+	}
+}

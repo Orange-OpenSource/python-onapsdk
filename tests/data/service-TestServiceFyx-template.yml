@@ -1,0 +1,646 @@
+tosca_definitions_version: tosca_simple_yaml_1_1
+metadata:
+  invariantUUID: 0ca2fd47-4f5b-4d0f-ad83-f458a0e6c4cd
+  UUID: 2ad116d1-5219-41de-b2ee-d00f100d7f00
+  name: freeRadiusInnova_SERVICE123
+  description: service
+  type: Service
+  category: Network Service
+  serviceType: ''
+  serviceRole: ''
+  instantiationType: A-la-carte
+  serviceEcompNaming: true
+  ecompGeneratedNaming: true
+  namingPolicy: ''
+  environmentContext: General_Revenue-Bearing
+  serviceFunction: ''
+imports:
+- nodes:
+    file: nodes.yml
+- datatypes:
+    file: data.yml
+- capabilities:
+    file: capabilities.yml
+- relationships:
+    file: relationships.yml
+- groups:
+    file: groups.yml
+- policies:
+    file: policies.yml
+- annotations:
+    file: annotations.yml
+- service-freeRadiusInnova_SERVICE123-interface:
+    file: service-FreeradiusinnovaService123-template-interface.yml
+- resource-NeutronNet:
+    file: resource-Neutronnet-template.yml
+- resource-freeRadiusInnova_VF:
+    file: resource-FreeradiusinnovaVf-template.yml
+- resource-freeRadiusInnova_VF-interface:
+    file: resource-FreeradiusinnovaVf-template-interface.yml
+topology_template:
+  inputs:
+    skip_post_instantiation_configuration:
+      default: true
+      type: boolean
+      required: false
+    controller_actor:
+      default: SO-REF-DATA
+      type: string
+      required: false
+    cds_model_version:
+      type: string
+      required: false
+    cds_model_name:
+      type: string
+      required: false
+  node_templates:
+    NeutronNet 0:
+      type: org.openecomp.resource.vl.nodes.heat.network.neutron.Net
+      metadata:
+        invariantUUID: 4084c513-5149-456d-9be0-efc503058799
+        UUID: e12cedf4-fd3f-4d76-ae2a-0368eaee40dc
+        customizationUUID: ae1df985-3313-4a8f-93e6-efbc71fd3938
+        version: '1.0'
+        name: NeutronNet
+        description: Represents a network service with optional subnets and advanced configurations.
+        type: VL
+        category: Generic
+        subcategory: Network Elements
+        resourceVendor: ONAP (Tosca)
+        resourceVendorRelease: 1.0.0.wd03
+        resourceVendorModelNumber: ''
+      properties:
+        dhcp_enabled: true
+        shared: false
+        ip_version: 4
+        admin_state_up: true
+      capabilities:
+        end_point:
+          properties:
+            protocol: tcp
+            initiator: source
+            network_name: PRIVATE
+            secure: false
+    freeRadiusInnova_VF 0:
+      type: org.openecomp.resource.vf.FreeradiusinnovaVf
+      metadata:
+        invariantUUID: e7ba6a8b-ece2-4f4e-bd1a-0f5ca461eedc
+        UUID: e65f6295-82d1-4e34-8ce9-4df5a81f98a0
+        customizationUUID: 674140ec-1aba-4c59-b775-9cb239fc5c70
+        version: '1.0'
+        name: freeRadiusInnova_VF
+        description: VF
+        type: VF
+        category: Generic
+        subcategory: Abstract
+        resourceVendor: VNFVendor
+        resourceVendorRelease: '1.0'
+        resourceVendorModelNumber: ''
+      properties:
+        vf_module_id: FreeRadiusInnova-VF-module
+        freeRadius_image_name: ubuntu-16.04-daily
+        skip_post_instantiation_configuration: true
+        nf_naming:
+          ecomp_generated_naming: true
+        user_plane_net_name: user-plane-net,
+        multi_stage_design: 'false'
+        controller_actor: SO-REF-DATA
+        availability_zone_max_count: 1
+        control_plane_net_name: control-plane-net
+        freeRadius_key_name: innova
+        freeRadius_flavor_name: onap.small
+        vnf_name: FreeRadiusInnova
+        freeRadius_pub_key: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCifYw9iPtGH/enR6rigILYu3djnyT+6g+bOnzSSNLVffDsU6QAv7i3Girc+JgXGjxCtWAzZTHx3qjniKixhIpyzt65J0RDeyZCS9WnMfOqkgIlj+85yxlQDLZdkS0xaQYzeqDEPsT6N0i+gxGWu52NxKYazVqyRXrqwiXZvOMyY4hcgtbNiWRy9Vqdkeippo/+3Jg2gawOz54fIF5zbWMqiJAALBCBl5w1LGTJIaJ+f6vQPq05kLKZOOs3zlfcUY5u1bEzulm/ZNyfhh3rrnJD20jCp8KETgg9sGHQdWdRkbsqT5AGeJQhwK47BEk7ckwZH3lmKwgRw8S/J604tpUh Generated-by-Nova
+        oam_plane_net_name: admin
+        freeRadius_name_0: FreeRadiusInnova-VM
+        vnf_id: FreeRadiusInnova-Id
+      capabilities:
+        abstract_freeradius.network.outgoing.bytes.rate_freeRadius_freeRadius_control_plane_port_0:
+          properties:
+            name: network.outgoing.bytes.rate
+        abstract_freeradius.cpu_util_freeRadius:
+          properties:
+            name: cpu_util
+        abstract_freeradius.memory.usage_freeRadius:
+          properties:
+            name: memory.usage
+        abstract_freeradius.network.incoming.bytes_freeRadius_freeRadius_control_plane_port_0:
+          properties:
+            name: network.incoming.bytes
+        abstract_freeradius.memory_freeRadius:
+          properties:
+            name: memory
+        abstract_freeradius.network.outgoing.packets.rate_freeRadius_freeRadius_oam_port_0:
+          properties:
+            name: network.outgoing.packets.rate
+        abstract_freeradius.network.incoming.packets.rate_freeRadius_freeRadius_control_plane_port_0:
+          properties:
+            name: network.incoming.packets.rate
+        abstract_freeradius.disk.device.read.bytes.rate_freeRadius:
+          properties:
+            name: disk.device.read.bytes.rate
+        abstract_freeradius.disk.read.requests_freeRadius:
+          properties:
+            name: disk.read.requests
+        abstract_freeradius.disk.device.usage_freeRadius:
+          properties:
+            name: disk.device.usage
+        abstract_freeradius.network.incoming.packets_freeRadius_freeRadius_user_plane_port_0:
+          properties:
+            name: network.incoming.packets
+        abstract_freeradius.scalable_freeRadius:
+          properties:
+            min_instances: 1
+            max_instances: 1
+        abstract_freeradius.disk.latency_freeRadius:
+          properties:
+            name: disk.latency
+        abstract_freeradius.disk.write.requests.rate_freeRadius:
+          properties:
+            name: disk.write.requests.rate
+        abstract_freeradius.disk.write.requests_freeRadius:
+          properties:
+            name: disk.write.requests
+        abstract_freeradius.network.incoming.bytes_freeRadius_freeRadius_user_plane_port_0:
+          properties:
+            name: network.incoming.bytes
+        abstract_freeradius.disk.device.write.bytes.rate_freeRadius:
+          properties:
+            name: disk.device.write.bytes.rate
+        abstract_freeradius.disk.device.iops_freeRadius:
+          properties:
+            name: disk.device.iops
+        abstract_freeradius.network.outpoing.packets_freeRadius_freeRadius_user_plane_port_0:
+          properties:
+            name: network.outpoing.packets
+        abstract_freeradius.network.incoming.packets_freeRadius_freeRadius_control_plane_port_0:
+          properties:
+            name: network.incoming.packets
+        abstract_freeradius.disk.iops_freeRadius:
+          properties:
+            name: disk.iops
+        abstract_freeradius.disk.device.write.requests_freeRadius:
+          properties:
+            name: disk.device.write.requests
+        abstract_freeradius.disk.device.read.requests.rate_freeRadius:
+          properties:
+            name: disk.device.read.requests.rate
+        abstract_freeradius.network.incoming.bytes.rate_freeRadius_freeRadius_user_plane_port_0:
+          properties:
+            name: network.incoming.bytes.rate
+        abstract_freeradius.disk.device.write.requests.rate_freeRadius:
+          properties:
+            name: disk.device.write.requests.rate
+        abstract_freeradius.network.outgoing.bytes.rate_freeRadius_freeRadius_user_plane_port_0:
+          properties:
+            name: network.outgoing.bytes.rate
+        abstract_freeradius.network.outpoing.packets_freeRadius_freeRadius_oam_port_0:
+          properties:
+            name: network.outpoing.packets
+        abstract_freeradius.disk.device.write.bytes_freeRadius:
+          properties:
+            name: disk.device.write.bytes
+        abstract_freeradius.instance_freeRadius:
+          properties:
+            name: instance
+        abstract_freeradius.disk.device.capacity_freeRadius:
+          properties:
+            name: disk.device.capacity
+        abstract_freeradius.port_mirroring_freeRadius_freeRadius_oam_port_0:
+          properties:
+            connection_point:
+              network_role:
+                get_input: port_freeRadius_oam_port_0_network_role
+              nfc_naming_code: freeRadius
+        abstract_freeradius.disk.usage_freeRadius:
+          properties:
+            name: disk.usage
+        abstract_freeradius.network.outgoing.bytes_freeRadius_freeRadius_oam_port_0:
+          properties:
+            name: network.outgoing.bytes
+        abstract_freeradius.disk.device.latency_freeRadius:
+          properties:
+            name: disk.device.latency
+        abstract_freeradius.disk.root.size_freeRadius:
+          properties:
+            name: disk.root.size
+        abstract_freeradius.disk.capacity_freeRadius:
+          properties:
+            name: disk.capacity
+        abstract_freeradius.network.incoming.bytes.rate_freeRadius_freeRadius_oam_port_0:
+          properties:
+            name: network.incoming.bytes.rate
+        abstract_freeradius.network.incoming.bytes.rate_freeRadius_freeRadius_control_plane_port_0:
+          properties:
+            name: network.incoming.bytes.rate
+        abstract_freeradius.memory.resident_freeRadius:
+          properties:
+            name: memory.resident
+        abstract_freeradius.network.incoming.packets.rate_freeRadius_freeRadius_oam_port_0:
+          properties:
+            name: network.incoming.packets.rate
+        abstract_freeradius.disk.write.bytes.rate_freeRadius:
+          properties:
+            name: disk.write.bytes.rate
+        abstract_freeradius.network.outgoing.bytes_freeRadius_freeRadius_control_plane_port_0:
+          properties:
+            name: network.outgoing.bytes
+        abstract_freeradius.disk.device.read.bytes_freeRadius:
+          properties:
+            name: disk.device.read.bytes
+        abstract_freeradius.network.outgoing.bytes.rate_freeRadius_freeRadius_oam_port_0:
+          properties:
+            name: network.outgoing.bytes.rate
+        abstract_freeradius.disk.allocation_freeRadius:
+          properties:
+            name: disk.allocation
+        abstract_freeradius.network.outgoing.packets.rate_freeRadius_freeRadius_user_plane_port_0:
+          properties:
+            name: network.outgoing.packets.rate
+        abstract_freeradius.cpu.delta_freeRadius:
+          properties:
+            name: cpu.delta
+        abstract_freeradius.network.outgoing.packets.rate_freeRadius_freeRadius_control_plane_port_0:
+          properties:
+            name: network.outgoing.packets.rate
+        abstract_freeradius.disk.read.bytes.rate_freeRadius:
+          properties:
+            name: disk.read.bytes.rate
+        abstract_freeradius.vcpus_freeRadius:
+          properties:
+            name: vcpus
+        abstract_freeradius.network.incoming.packets_freeRadius_freeRadius_oam_port_0:
+          properties:
+            name: network.incoming.packets
+        abstract_freeradius.disk.device.allocation_freeRadius:
+          properties:
+            name: disk.device.allocation
+        abstract_freeradius.disk.write.bytes_freeRadius:
+          properties:
+            name: disk.write.bytes
+        abstract_freeradius.endpoint_freeRadius:
+          properties:
+            secure: true
+        abstract_freeradius.network.incoming.packets.rate_freeRadius_freeRadius_user_plane_port_0:
+          properties:
+            name: network.incoming.packets.rate
+        abstract_freeradius.disk.read.bytes_freeRadius:
+          properties:
+            name: disk.read.bytes
+        abstract_freeradius.cpu_freeRadius:
+          properties:
+            name: cpu
+        abstract_freeradius.port_mirroring_freeRadius_freeRadius_control_plane_port_0:
+          properties:
+            connection_point:
+              network_role:
+                get_input: port_freeRadius_control_plane_port_0_network_role
+              nfc_naming_code: freeRadius
+        abstract_freeradius.network.outpoing.packets_freeRadius_freeRadius_control_plane_port_0:
+          properties:
+            name: network.outpoing.packets
+        abstract_freeradius.disk.device.read.requests_freeRadius:
+          properties:
+            name: disk.device.read.requests
+        abstract_freeradius.port_mirroring_freeRadius_freeRadius_user_plane_port_0:
+          properties:
+            connection_point:
+              network_role:
+                get_input: port_freeRadius_user_plane_port_0_network_role
+              nfc_naming_code: freeRadius
+        abstract_freeradius.disk.ephemeral.size_freeRadius:
+          properties:
+            name: disk.ephemeral.size
+        abstract_freeradius.network.incoming.bytes_freeRadius_freeRadius_oam_port_0:
+          properties:
+            name: network.incoming.bytes
+        abstract_freeradius.network.outgoing.bytes_freeRadius_freeRadius_user_plane_port_0:
+          properties:
+            name: network.outgoing.bytes
+  groups:
+    freeradiusinnova_vf0..FreeradiusinnovaVf..base_freeRadiusInnova..module-0:
+      type: org.openecomp.groups.VfModule
+      metadata:
+        vfModuleModelName: FreeradiusinnovaVf..base_freeRadiusInnova..module-0
+        vfModuleModelInvariantUUID: bd638287-e1a0-47d0-a0b1-825a4ad23fef
+        vfModuleModelUUID: 9bc52324-3e35-4795-9181-804a4eee0806
+        vfModuleModelVersion: '1'
+        vfModuleModelCustomizationUUID: 0a633c1a-c122-4e0a-8ed6-233ac56c132f
+      properties:
+        min_vf_module_instances: 1
+        vf_module_label: base_freeRadiusInnova
+        max_vf_module_instances: 1
+        vf_module_type: Base
+        isBase: true
+        initial_count: 1
+        volume_group: false
+  substitution_mappings:
+    node_type: org.openecomp.service.FreeradiusinnovaService123
+    capabilities:
+      freeradiusinnova_vf0.abstract_freeradius.disk.latency_freeRadius:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.disk.latency_freeRadius
+      freeradiusinnova_vf0.abstract_freeradius.disk.usage_freeRadius:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.disk.usage_freeRadius
+      freeradiusinnova_vf0.abstract_freeradius.disk.read.bytes_freeRadius:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.disk.read.bytes_freeRadius
+      freeradiusinnova_vf0.abstract_freeradius.os_freeRadius:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.os_freeRadius
+      freeradiusinnova_vf0.abstract_freeradius.attachment_freeRadius_freeRadius_control_plane_port_0:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.attachment_freeRadius_freeRadius_control_plane_port_0
+      freeradiusinnova_vf0.abstract_freeradius.feature_freeRadius:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.feature_freeRadius
+      freeradiusinnova_vf0.abstract_freeradius.disk.device.read.bytes_freeRadius:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.disk.device.read.bytes_freeRadius
+      freeradiusinnova_vf0.abstract_freeradius.disk.device.latency_freeRadius:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.disk.device.latency_freeRadius
+      freeradiusinnova_vf0.abstract_freeradius.binding_freeRadius:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.binding_freeRadius
+      freeradiusinnova_vf0.abstract_freeradius.binding_freeRadius_freeRadius_user_plane_port_0:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.binding_freeRadius_freeRadius_user_plane_port_0
+      freeradiusinnova_vf0.abstract_freeradius.forwarder_freeRadius_freeRadius_user_plane_port_0:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.forwarder_freeRadius_freeRadius_user_plane_port_0
+      freeradiusinnova_vf0.abstract_freeradius.disk.device.usage_freeRadius:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.disk.device.usage_freeRadius
+      freeradiusinnova_vf0.abstract_freeradius.endpoint_freeRadius:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.endpoint_freeRadius
+      freeradiusinnova_vf0.abstract_freeradius.port_mirroring_freeRadius_freeRadius_oam_port_0:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.port_mirroring_freeRadius_freeRadius_oam_port_0
+      freeradiusinnova_vf0.abstract_freeradius.cpu.delta_freeRadius:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.cpu.delta_freeRadius
+      freeradiusinnova_vf0.abstract_freeradius.feature_freeRadius_freeRadius_user_plane_port_0:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.feature_freeRadius_freeRadius_user_plane_port_0
+      freeradiusinnova_vf0.abstract_freeradius.disk.write.bytes_freeRadius:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.disk.write.bytes_freeRadius
+      freeradiusinnova_vf0.abstract_freeradius.forwarder_freeRadius_freeRadius_oam_port_0:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.forwarder_freeRadius_freeRadius_oam_port_0
+      freeradiusinnova_vf0.abstract_freeradius.network.incoming.packets_freeRadius_freeRadius_control_plane_port_0:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.network.incoming.packets_freeRadius_freeRadius_control_plane_port_0
+      freeradiusinnova_vf0.abstract_freeradius.disk.device.write.bytes_freeRadius:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.disk.device.write.bytes_freeRadius
+      freeradiusinnova_vf0.abstract_freeradius.disk.device.write.requests.rate_freeRadius:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.disk.device.write.requests.rate_freeRadius
+      freeradiusinnova_vf0.abstract_freeradius.host_freeRadius:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.host_freeRadius
+      freeradiusinnova_vf0.abstract_freeradius.attachment_freeRadius_freeRadius_user_plane_port_0:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.attachment_freeRadius_freeRadius_user_plane_port_0
+      freeradiusinnova_vf0.abstract_freeradius.network.incoming.bytes.rate_freeRadius_freeRadius_user_plane_port_0:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.network.incoming.bytes.rate_freeRadius_freeRadius_user_plane_port_0
+      freeradiusinnova_vf0.abstract_freeradius.network.outgoing.bytes_freeRadius_freeRadius_user_plane_port_0:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.network.outgoing.bytes_freeRadius_freeRadius_user_plane_port_0
+      freeradiusinnova_vf0.abstract_freeradius.network.incoming.bytes_freeRadius_freeRadius_control_plane_port_0:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.network.incoming.bytes_freeRadius_freeRadius_control_plane_port_0
+      freeradiusinnova_vf0.abstract_freeradius.disk.device.write.bytes.rate_freeRadius:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.disk.device.write.bytes.rate_freeRadius
+      neutronnet0.end_point:
+      - NeutronNet 0
+      - end_point
+      freeradiusinnova_vf0.abstract_freeradius.network.outgoing.bytes_freeRadius_freeRadius_oam_port_0:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.network.outgoing.bytes_freeRadius_freeRadius_oam_port_0
+      freeradiusinnova_vf0.abstract_freeradius.cpu_util_freeRadius:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.cpu_util_freeRadius
+      freeradiusinnova_vf0.abstract_freeradius.network.incoming.packets_freeRadius_freeRadius_oam_port_0:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.network.incoming.packets_freeRadius_freeRadius_oam_port_0
+      neutronnet0.attachment:
+      - NeutronNet 0
+      - attachment
+      freeradiusinnova_vf0.abstract_freeradius.disk.device.iops_freeRadius:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.disk.device.iops_freeRadius
+      freeradiusinnova_vf0.freeradius_control_plane_security_group.feature:
+      - freeRadiusInnova_VF 0
+      - freeradius_control_plane_security_group.feature
+      freeradiusinnova_vf0.freeradius_user_plane_security_group.feature:
+      - freeRadiusInnova_VF 0
+      - freeradius_user_plane_security_group.feature
+      freeradiusinnova_vf0.abstract_freeradius.disk.capacity_freeRadius:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.disk.capacity_freeRadius
+      freeradiusinnova_vf0.abstract_freeradius.network.incoming.bytes.rate_freeRadius_freeRadius_control_plane_port_0:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.network.incoming.bytes.rate_freeRadius_freeRadius_control_plane_port_0
+      freeradiusinnova_vf0.abstract_freeradius.network.outgoing.bytes.rate_freeRadius_freeRadius_control_plane_port_0:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.network.outgoing.bytes.rate_freeRadius_freeRadius_control_plane_port_0
+      freeradiusinnova_vf0.abstract_freeradius.network.outpoing.packets_freeRadius_freeRadius_oam_port_0:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.network.outpoing.packets_freeRadius_freeRadius_oam_port_0
+      neutronnet0.link:
+      - NeutronNet 0
+      - link
+      freeradiusinnova_vf0.abstract_freeradius.disk.write.bytes.rate_freeRadius:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.disk.write.bytes.rate_freeRadius
+      freeradiusinnova_vf0.abstract_freeradius.disk.device.read.requests_freeRadius:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.disk.device.read.requests_freeRadius
+      freeradiusinnova_vf0.abstract_freeradius.network.outgoing.bytes_freeRadius_freeRadius_control_plane_port_0:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.network.outgoing.bytes_freeRadius_freeRadius_control_plane_port_0
+      freeradiusinnova_vf0.abstract_freeradius.vcpus_freeRadius:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.vcpus_freeRadius
+      freeradiusinnova_vf0.abstract_freeradius.network.incoming.bytes.rate_freeRadius_freeRadius_oam_port_0:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.network.incoming.bytes.rate_freeRadius_freeRadius_oam_port_0
+      freeradiusinnova_vf0.abstract_freeradius.disk.device.allocation_freeRadius:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.disk.device.allocation_freeRadius
+      freeradiusinnova_vf0.abstract_freeradius.disk.device.read.requests.rate_freeRadius:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.disk.device.read.requests.rate_freeRadius
+      freeradiusinnova_vf0.abstract_freeradius.attachment_freeRadius_freeRadius_oam_port_0:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.attachment_freeRadius_freeRadius_oam_port_0
+      freeradiusinnova_vf0.abstract_freeradius.memory_freeRadius:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.memory_freeRadius
+      freeradiusinnova_vf0.abstract_freeradius.disk.device.write.requests_freeRadius:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.disk.device.write.requests_freeRadius
+      freeradiusinnova_vf0.abstract_freeradius.disk.read.bytes.rate_freeRadius:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.disk.read.bytes.rate_freeRadius
+      freeradiusinnova_vf0.abstract_freeradius.disk.root.size_freeRadius:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.disk.root.size_freeRadius
+      freeradiusinnova_vf0.abstract_freeradius.disk.allocation_freeRadius:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.disk.allocation_freeRadius
+      freeradiusinnova_vf0.abstract_freeradius.network.outgoing.packets.rate_freeRadius_freeRadius_control_plane_port_0:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.network.outgoing.packets.rate_freeRadius_freeRadius_control_plane_port_0
+      freeradiusinnova_vf0.abstract_freeradius.network.incoming.packets_freeRadius_freeRadius_user_plane_port_0:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.network.incoming.packets_freeRadius_freeRadius_user_plane_port_0
+      freeradiusinnova_vf0.abstract_freeradius.disk.device.capacity_freeRadius:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.disk.device.capacity_freeRadius
+      freeradiusinnova_vf0.abstract_freeradius.network.outgoing.bytes.rate_freeRadius_freeRadius_user_plane_port_0:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.network.outgoing.bytes.rate_freeRadius_freeRadius_user_plane_port_0
+      neutronnet0.feature:
+      - NeutronNet 0
+      - feature
+      freeradiusinnova_vf0.abstract_freeradius.network.outpoing.packets_freeRadius_freeRadius_control_plane_port_0:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.network.outpoing.packets_freeRadius_freeRadius_control_plane_port_0
+      freeradiusinnova_vf0.abstract_freeradius.port_mirroring_freeRadius_freeRadius_control_plane_port_0:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.port_mirroring_freeRadius_freeRadius_control_plane_port_0
+      freeradiusinnova_vf0.abstract_freeradius.instance_freeRadius:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.instance_freeRadius
+      freeradiusinnova_vf0.abstract_freeradius.disk.write.requests.rate_freeRadius:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.disk.write.requests.rate_freeRadius
+      freeradiusinnova_vf0.abstract_freeradius.memory.resident_freeRadius:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.memory.resident_freeRadius
+      freeradiusinnova_vf0.abstract_freeradius.disk.write.requests_freeRadius:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.disk.write.requests_freeRadius
+      freeradiusinnova_vf0.abstract_freeradius.network.incoming.packets.rate_freeRadius_freeRadius_user_plane_port_0:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.network.incoming.packets.rate_freeRadius_freeRadius_user_plane_port_0
+      freeradiusinnova_vf0.abstract_freeradius.network.incoming.packets.rate_freeRadius_freeRadius_control_plane_port_0:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.network.incoming.packets.rate_freeRadius_freeRadius_control_plane_port_0
+      freeradiusinnova_vf0.abstract_freeradius.forwarder_freeRadius_freeRadius_control_plane_port_0:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.forwarder_freeRadius_freeRadius_control_plane_port_0
+      freeradiusinnova_vf0.abstract_freeradius.network.incoming.packets.rate_freeRadius_freeRadius_oam_port_0:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.network.incoming.packets.rate_freeRadius_freeRadius_oam_port_0
+      freeradiusinnova_vf0.abstract_freeradius.network.incoming.bytes_freeRadius_freeRadius_oam_port_0:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.network.incoming.bytes_freeRadius_freeRadius_oam_port_0
+      freeradiusinnova_vf0.abstract_freeradius.network.outgoing.packets.rate_freeRadius_freeRadius_user_plane_port_0:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.network.outgoing.packets.rate_freeRadius_freeRadius_user_plane_port_0
+      freeradiusinnova_vf0.abstract_freeradius.binding_freeRadius_freeRadius_oam_port_0:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.binding_freeRadius_freeRadius_oam_port_0
+      freeradiusinnova_vf0.abstract_freeradius.binding_freeRadius_freeRadius_control_plane_port_0:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.binding_freeRadius_freeRadius_control_plane_port_0
+      freeradiusinnova_vf0.abstract_freeradius.network.outgoing.packets.rate_freeRadius_freeRadius_oam_port_0:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.network.outgoing.packets.rate_freeRadius_freeRadius_oam_port_0
+      freeradiusinnova_vf0.abstract_freeradius.network.outpoing.packets_freeRadius_freeRadius_user_plane_port_0:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.network.outpoing.packets_freeRadius_freeRadius_user_plane_port_0
+      freeradiusinnova_vf0.abstract_freeradius.network.outgoing.bytes.rate_freeRadius_freeRadius_oam_port_0:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.network.outgoing.bytes.rate_freeRadius_freeRadius_oam_port_0
+      freeradiusinnova_vf0.abstract_freeradius.scalable_freeRadius:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.scalable_freeRadius
+      freeradiusinnova_vf0.abstract_freeradius.feature_freeRadius_freeRadius_oam_port_0:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.feature_freeRadius_freeRadius_oam_port_0
+      freeradiusinnova_vf0.freeradius_oam_security_group.feature:
+      - freeRadiusInnova_VF 0
+      - freeradius_oam_security_group.feature
+      freeradiusinnova_vf0.abstract_freeradius.feature_freeRadius_freeRadius_control_plane_port_0:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.feature_freeRadius_freeRadius_control_plane_port_0
+      freeradiusinnova_vf0.abstract_freeradius.port_mirroring_freeRadius_freeRadius_user_plane_port_0:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.port_mirroring_freeRadius_freeRadius_user_plane_port_0
+      freeradiusinnova_vf0.abstract_freeradius.disk.device.read.bytes.rate_freeRadius:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.disk.device.read.bytes.rate_freeRadius
+      freeradiusinnova_vf0.abstract_freeradius.disk.read.requests_freeRadius:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.disk.read.requests_freeRadius
+      freeradiusinnova_vf0.abstract_freeradius.disk.iops_freeRadius:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.disk.iops_freeRadius
+      freeradiusinnova_vf0.abstract_freeradius.memory.usage_freeRadius:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.memory.usage_freeRadius
+      freeradiusinnova_vf0.abstract_freeradius.disk.ephemeral.size_freeRadius:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.disk.ephemeral.size_freeRadius
+      freeradiusinnova_vf0.abstract_freeradius.network.incoming.bytes_freeRadius_freeRadius_user_plane_port_0:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.network.incoming.bytes_freeRadius_freeRadius_user_plane_port_0
+      freeradiusinnova_vf0.abstract_freeradius.cpu_freeRadius:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.cpu_freeRadius
+    requirements:
+      freeradiusinnova_vf0.abstract_freeradius.dependency_freeRadius_freeRadius_user_plane_port_0:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.dependency_freeRadius_freeRadius_user_plane_port_0
+      freeradiusinnova_vf0.abstract_freeradius.dependency_freeRadius_freeRadius_oam_port_0:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.dependency_freeRadius_freeRadius_oam_port_0
+      freeradiusinnova_vf0.abstract_freeradius.link_freeRadius_freeRadius_oam_port_0:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.link_freeRadius_freeRadius_oam_port_0
+      freeradiusinnova_vf0.freeradius_control_plane_security_group.port:
+      - freeRadiusInnova_VF 0
+      - freeradius_control_plane_security_group.port
+      freeradiusinnova_vf0.freeradius_oam_security_group.dependency:
+      - freeRadiusInnova_VF 0
+      - freeradius_oam_security_group.dependency
+      freeradiusinnova_vf0.freeradius_control_plane_security_group.dependency:
+      - freeRadiusInnova_VF 0
+      - freeradius_control_plane_security_group.dependency
+      neutronnet0.dependency:
+      - NeutronNet 0
+      - dependency
+      freeradiusinnova_vf0.freeradius_user_plane_security_group.port:
+      - freeRadiusInnova_VF 0
+      - freeradius_user_plane_security_group.port
+      freeradiusinnova_vf0.freeradius_user_plane_security_group.dependency:
+      - freeRadiusInnova_VF 0
+      - freeradius_user_plane_security_group.dependency
+      freeradiusinnova_vf0.abstract_freeradius.dependency_freeRadius:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.dependency_freeRadius
+      freeradiusinnova_vf0.abstract_freeradius.dependency_freeRadius_freeRadius_control_plane_port_0:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.dependency_freeRadius_freeRadius_control_plane_port_0
+      freeradiusinnova_vf0.abstract_freeradius.link_freeRadius_freeRadius_control_plane_port_0:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.link_freeRadius_freeRadius_control_plane_port_0
+      freeradiusinnova_vf0.abstract_freeradius.local_storage_freeRadius:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.local_storage_freeRadius
+      freeradiusinnova_vf0.freeradius_oam_security_group.port:
+      - freeRadiusInnova_VF 0
+      - freeradius_oam_security_group.port
+      freeradiusinnova_vf0.abstract_freeradius.link_freeRadius_freeRadius_user_plane_port_0:
+      - freeRadiusInnova_VF 0
+      - abstract_freeradius.link_freeRadius_freeRadius_user_plane_port_0

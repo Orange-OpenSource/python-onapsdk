@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import Iterator
 from urllib.parse import urlencode
 
-from onapsdk.service import Service as SdcService
+from onapsdk.sdc.service import Service as SdcService
 from onapsdk.utils.jinja import jinja_env
 
 from ..aai_element import AaiElement, Relationship

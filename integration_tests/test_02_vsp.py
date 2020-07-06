@@ -8,8 +8,8 @@ import pytest
 import requests
 
 from onapsdk.sdc import SDC
-from onapsdk.vendor import Vendor
-from onapsdk.vsp import Vsp
+from onapsdk.sdc.vendor import Vendor
+from onapsdk.sdc.vsp import Vsp
 import onapsdk.constants as const
 
 

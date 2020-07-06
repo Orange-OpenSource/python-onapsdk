@@ -5,9 +5,9 @@ from unittest import mock
 
 import pytest
 
-from onapsdk.vendor import Vendor
+from onapsdk.sdc.vendor import Vendor
 import onapsdk.constants as const
-from onapsdk.sdc_element import SdcElement
+from onapsdk.sdc.sdc_element import SdcElement
 
 @mock.patch.object(Vendor, 'send_message_json')
 def test_get_all_no_vendors(mock_send):

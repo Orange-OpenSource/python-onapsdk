@@ -51,3 +51,18 @@ Onboard a Service
    vf = Vf(name="myVF")
    service = Service(name="myService", resources=[vf])
    service.onboard()
+
+Onboard a Service with VL
+-------------------------
+
+.. code:: Python
+
+   from onapsdk.vl import VL
+   from onapsdk.service import Service
+
+   # No VF needed, but you need to be sure that Vl with given
+   # name exists in SDC
+   vl = Vl(name="Generic NeutronNet")
+   service = Service(name="myServiceWithVl", resources=[vl])
+   service.onboard()
+

@@ -16,7 +16,7 @@ from requests import Response
 import oyaml as yaml
 
 import onapsdk.constants as const
-from onapsdk.sdc_resource import SdcResource
+from onapsdk.sdc.sdc_resource import SdcResource
 from onapsdk.utils.configuration import (components_needing_distribution,
                                          tosca_path)
 from onapsdk.utils.headers_creator import headers_sdc_creator
@@ -278,7 +278,7 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes
                         node_template_type=values["type"],
                         metadata=values["metadata"],
                         properties=values["properties"],
-                        capabilities=values["capabilities"]
+                        capabilities=values.get("capabilities", {})
                     ))
         return self._networks
 

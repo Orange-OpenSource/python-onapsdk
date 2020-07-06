@@ -1,11 +1,12 @@
 """Service instance module."""
 
-from typing import Iterator
+from typing import Iterator, Type, Union
 
 from onapsdk.so.deletion import ServiceDeletionRequest
-from onapsdk.so.instantiation import VnfInstantiation
+from onapsdk.so.instantiation import NetworkInstantiation, VnfInstantiation
 
 from .instance import Instance
+from .network import NetworkInstance
 from .vnf import VnfInstance
 
 
@@ -75,7 +76,9 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
             input_parameters (str, optional): String capturing request parameters from SO to
                 pass to Closed Loop. Defaults to None.
         """
-        super().__init__(resource_version=resource_version, model_version_id=model_version_id,
+        super().__init__(resource_version=resource_version,
+                         model_invariant_id=model_invariant_id,
+                         model_version_id=model_version_id,
                          persona_model_version=persona_model_version,
                          widget_model_id=widget_model_id,
                          widget_model_version=widget_model_version)
@@ -106,6 +109,39 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
         return (f"ServiceInstance(instance_id={self.instance_id}, "
                 f"instance_name={self.instance_name})")
 
+    def _get_related_instance(self,
+                              related_instance_class: Union[Type[NetworkInstance],
+                                                            Type[VnfInstance]],
+                              relationship_related_to_type: str) -> Iterator[\
+                                                                        Union[NetworkInstance,
+                                                                              VnfInstance]]:
+        """Iterate through related service instances.
+
+        This is method which for given `relationship_related_to_type` creates iterator
+            it iterate through objects which are related with service.
+
+        Args:
+            related_instance_class (Union[Type[NetworkInstance], Type[VnfInstance]]): Class object
+                to create required object instances
+            relationship_related_to_type (str): Has to be "generic-vnf" or "l3-network"
+
+        Yields:
+            Iterator[ Union[NetworkInstance, VnfInstance]]: [description]
+
+        """
+        if not relationship_related_to_type in ["l3-network", "generic-vnf"]:
+            raise ValueError("Invalid \"relationship_related_to_type'\" value, has to be "
+                             "\"l3-network\" or \"generic-vnf\"")
+        for relationship in self.relationships:
+            if relationship.related_to == relationship_related_to_type:
+                yield related_instance_class.create_from_api_response(\
+                    self.send_message_json("GET",
+                                           (f"Get {self.instance_id} "
+                                            f"{related_instance_class.__class__}"),
+                                           f"{self.base_url}{relationship.related_link}",
+                                           exception=ValueError),
+                    self)
+
     @property
     def url(self) -> str:
         """Service instance resource URL.
@@ -131,14 +167,22 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
             VnfInstance: VnfInstance object
 
         """
-        for relationship in self.relationships:
-            if relationship.related_to == "generic-vnf":
-                yield VnfInstance.create_from_api_response(\
-                    self.send_message_json("GET",
-                                           f"Get {self.instance_id} VNF",
-                                           f"{self.base_url}{relationship.related_link}",
-                                           exception=ValueError),
-                    self)
+        return self._get_related_instance(VnfInstance, "generic-vnf")
+
+    @property
+    def network_instances(self) -> Iterator[NetworkInstance]:
+        """Network instances associated with service instance.
+
+        Returns iterator of NetworkInstance representing network instantiated for that service
+
+        Raises:
+            ValueError: Request sent to get network instances returns HTTP error code.
+
+        Yields:
+            NetworkInstance: NetworkInstance object
+
+        """
+        return self._get_related_instance(NetworkInstance, "l3-network")
 
     def add_vnf(self,  # pylint: disable=too-many-arguments
                 vnf: "Vnf",
@@ -174,6 +218,44 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
             line_of_business,
             platform,
             vnf_instance_name
+        )
+
+    def add_network(self,  # pylint: disable=too-many-arguments
+                    network: "Network",
+                    line_of_business: "LineOfBusiness",
+                    platform: "Platform",
+                    network_instance_name: str = None,
+                    subnets: Iterator["Subnet"] = None) -> "NetworkInstantiation":
+        """Add network into service instance.
+
+        Instantiate vl.
+
+        Args:
+            network (Network): Network from service configuration to instantiate
+            line_of_business (LineOfBusiness): LineOfBusiness to use in instantiation request
+            platform (Platform): Platform to use in instantiation request
+            network_instance_name (str, optional): Network instantion name.
+                If no value is provided it's going to be
+                "Python_ONAP_SDK_network_instance_{str(uuid4())}".
+                Defaults to None.
+
+        Raises:
+            AttributeError: Service orchestration status is not "Active"
+            ValueError: Instantiation request error.
+
+        Returns:
+            NetworkInstantiation: NetworkInstantiation request object
+
+        """
+        if self.orchestration_status != "Active":
+            raise AttributeError("Service has invalid orchestration status")
+        return NetworkInstantiation.instantiate_ala_carte(
+            self,
+            network,
+            line_of_business,
+            platform,
+            network_instance_name,
+            subnets
         )
 
     def delete(self) -> "ServiceDeletionRequest":

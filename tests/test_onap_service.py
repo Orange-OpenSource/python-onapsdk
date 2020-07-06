@@ -8,7 +8,7 @@ from jinja2 import Environment
 from requests import Response, Timeout, Session
 
 from onapsdk.onap_service import OnapService
-from onapsdk.vendor import Vendor
+from onapsdk.sdc.vendor import Vendor
 
 def test_init():
     """Test initialization."""

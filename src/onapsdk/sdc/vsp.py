@@ -7,8 +7,8 @@ from typing import BinaryIO
 from typing import Callable
 from typing import Dict
 
-from onapsdk.sdc_element import SdcElement
-from onapsdk.vendor import Vendor
+from onapsdk.sdc.sdc_element import SdcElement
+from onapsdk.sdc.vendor import Vendor
 import onapsdk.constants as const
 from onapsdk.utils.headers_creator import headers_sdc_creator
 

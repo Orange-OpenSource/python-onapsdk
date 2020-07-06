@@ -8,10 +8,10 @@ from unittest.mock import MagicMock
 import pytest
 
 import onapsdk.constants as const
-from onapsdk.sdc_resource import SdcResource
-from onapsdk.vf import Vf
-from onapsdk.vsp import Vsp
-from onapsdk.vsp import Vendor
+from onapsdk.sdc.sdc_resource import SdcResource
+from onapsdk.sdc.vf import Vf
+from onapsdk.sdc.vsp import Vsp
+from onapsdk.sdc.vsp import Vendor
 
 
 @mock.patch.object(Vf, 'send_message_json')
