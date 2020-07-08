@@ -149,13 +149,13 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes
             self.certify()
             time.sleep(self._time_wait)
             self.onboard()
-            time.sleep(self._time_wait)
         elif self.status == const.CERTIFIED:
             self.distribute()
+            self.onboard()
         elif self.status == const.DISTRIBUTED:
             self._logger.info("Service %s onboarded", self.name)
-            return
-        self._logger.error("Service has invalid status")
+        else:
+            self._logger.error("Service has invalid status")
 
     @property
     def distribution_id(self) -> str:
