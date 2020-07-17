@@ -66,3 +66,24 @@ Onboard a Service with VL
    service = Service(name="myServiceWithVl", resources=[vl])
    service.onboard()
 
+Onboard an Artifact
+-----------------
+
+All SDC artifact types are supported
+
+.. code:: Python
+
+   from onapsdk.service import Service
+
+   # We assume here that the Service has been already onboarded
+   # with a Vnf
+   service = Service(name="myService")
+   # We load artifact data
+   data = open("{}/myArtifact.yaml".format(os.path.dirname(os.path.abspath(__file__))), 'rb').read()
+   # We add the artifact to the service Vnf
+   #
+   svc.add_artifact_to_vf(vnf_name="myVnf", 
+                          artifact_type="DCAE_INVENTORY_BLUEPRINT",
+                          artifact_name="myArtifact.yaml",
+                          artifact=data)
+
