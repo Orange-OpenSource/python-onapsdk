@@ -9,8 +9,9 @@ from io import BytesIO, TextIOWrapper
 from os import makedirs
 import time
 import re
-from typing import Dict, Iterable, List, Callable, Union, Any
+from typing import Dict, Iterable, List, Callable, Union, Any, BinaryIO
 from zipfile import ZipFile, BadZipFile
+import base64
 from requests import Response
 
 import oyaml as yaml
@@ -19,7 +20,7 @@ import onapsdk.constants as const
 from onapsdk.sdc.sdc_resource import SdcResource
 from onapsdk.utils.configuration import (components_needing_distribution,
                                          tosca_path)
-from onapsdk.utils.headers_creator import headers_sdc_creator
+from onapsdk.utils.headers_creator import headers_sdc_creator, headers_sdc_artifact_upload
 from onapsdk.utils.jinja import jinja_env
 
 
@@ -582,3 +583,65 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes
     def _sdc_path(cls) -> None:
         """Give back the end of SDC path."""
         return cls.SERVICE_PATH
+
+    def get_vnf_unique_id(self, vnf_name: str) -> str:
+        """
+        Get vnf uniqueID.
+
+        Get vnf uniqueID from service vnf in sdc.
+
+        Args:
+            vnf_name (str): the vnf from which we extract the unique ID
+
+        Returns:
+            the vnf unique ID
+
+        Raises:
+            AttributeError: Couldn't find VNF
+
+        """
+        url = f"{self._base_create_url()}/services/{self.unique_identifier}"
+        request_return = self.send_message_json('GET',
+                                                'Get vnf unique ID',
+                                                url)
+        if request_return:
+            for instance in filter(lambda x: x["name"] == vnf_name,
+                                   request_return["componentInstances"]):
+                return instance["uniqueId"]
+        raise AttributeError("Couldn't find VNF")
+
+    def add_artifact_to_vf(self, vnf_name: str, artifact_type: str,
+                           artifact_name: str, artifact: BinaryIO = None):
+        """
+        Add artifact to vf.
+
+        Add artifact to vf using payload data.
+
+        Args:
+            vnf_name (str): the vnf which we want to add the artifact
+            artifact_type (str): all SDC artifact types are supported (DCAE_*, HEAT_*, ...)
+            artifact_name (str): the artifact file name including its extension
+            artifact (str): binary data to upload
+
+        """
+        missing_identifier = self.get_vnf_unique_id(vnf_name)
+        url = (f"{self._base_create_url()}/services/{self.unique_identifier}/"
+               f"resourceInstance/{missing_identifier}/artifacts")
+        template = jinja_env().get_template("add_artifact_to_vf.json.j2")
+        data = template.render(artifact_name=artifact_name,
+                               artifact_label=f"sdk{artifact_name}",
+                               artifact_type=artifact_type,
+                               b64_artifact=base64.b64encode(artifact))
+        headers = headers_sdc_artifact_upload(base_header=self.headers,
+                                              data=data)
+        try:
+            self.send_message('POST',
+                              'Add artifact to vf',
+                              url,
+                              headers=headers,
+                              data=data,
+                              exception=ValueError)
+        except ValueError:
+            self._logger.error(("an error occured during file upload for an Artifact"
+                                "to VNF %s"), vnf_name)
+            raise ValueError("Couldn't upload the artifact")
