@@ -79,7 +79,7 @@ class DataDictionary(CdsElement):
 
         """
         self.logger.debug("Upload %s data dictionary", self.name)
-        response: "requests.Response" = self.send_message(
+        self.send_message(
             "POST",
             "Publish CDS data dictionary",
             f"{self.url}",
