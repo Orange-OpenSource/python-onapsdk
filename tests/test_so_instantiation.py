@@ -281,3 +281,24 @@ def test_vf_module_instantiation(mock_vf_module_preload, mock_send_message_json)
                               vnf_instance=mock_vnf_instance,
                               vf_module_instance_name="test")
     assert instantiation.name == "test"
+
+
+def test_instantiation_wait_for_finish():
+    with mock.patch.object(ServiceInstantiation, "finished", new_callable=mock.PropertyMock) as mock_finished:
+        with mock.patch.object(ServiceInstantiation, "completed", new_callable=mock.PropertyMock) as mock_completed:
+            instantiation = ServiceInstantiation(
+                name="test",
+                request_id="test",
+                instance_id="test",
+                sdc_service=mock.MagicMock(),
+                cloud_region=mock.MagicMock(),
+                tenant=mock.MagicMock(),
+                customer=mock.MagicMock(),
+                owning_entity=mock.MagicMock(),
+                project=mock.MagicMock()
+            )
+            instantiation.WAIT_FOR_SLEEP_TIME = 0
+            mock_finished.side_effect = [False, False, True]
+            mock_completed.return_value = True
+            assert instantiation.wait_for_finish()
+            assert len(mock_finished.mock_calls) == 3

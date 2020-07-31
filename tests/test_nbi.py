@@ -252,6 +252,26 @@ SERVICE_ORDERS_NO_RELATED_PARTY = [
     }
 ]
 
+SERVICE_ORDER_STATE_COMPLETED = {
+    'state': 'completed'
+}
+
+SERVICE_ORDER_STATE_FAILED = {
+    'state': 'failed'
+}
+
+SERVICE_ORDER_STATE_IN_PROGRESS = {
+    'state': 'inProgress'
+}
+
+SERVICE_ORDER_STATE_REJECTED = {
+    'state': 'rejected'
+}
+
+SERVICE_ORDER_STATE_UNKNOWN = {
+    'state': 'lalala'
+}
+
 @mock.patch.object(Nbi, "send_message")
 def test_nbi(mock_send_message):
 
@@ -363,6 +383,54 @@ def test_service_order(mock_service_order_send_message):
 
 
 @mock.patch.object(ServiceOrder, "send_message_json")
+def test_service_order_status(mock_service_order_send_message):
+    mock_service_order_send_message.return_value = SERVICE_ORDERS
+    service_order = next(ServiceOrder.get_all())
+
+    mock_service_order_send_message.return_value = SERVICE_ORDER_STATE_COMPLETED
+    assert service_order.status == service_order.StatusEnum.COMPLETED
+    assert service_order.completed
+    assert service_order.finished
+    assert not service_order.rejected
+    assert not service_order.failed
+
+    mock_service_order_send_message.return_value = SERVICE_ORDER_STATE_FAILED
+    assert service_order.status == service_order.StatusEnum.FAILED
+    assert not service_order.completed
+    assert service_order.finished
+    assert not service_order.rejected
+    assert service_order.failed
+
+    mock_service_order_send_message.return_value = SERVICE_ORDER_STATE_IN_PROGRESS
+    assert service_order.status == service_order.StatusEnum.IN_PROGRESS
+    assert not service_order.completed
+    assert not service_order.finished
+    assert not service_order.rejected
+    assert not service_order.failed
+
+    mock_service_order_send_message.return_value = SERVICE_ORDER_STATE_REJECTED
+    assert service_order.status == service_order.StatusEnum.REJECTED
+    assert not service_order.completed
+    assert service_order.finished
+    assert service_order.rejected
+    assert not service_order.failed
+
+    mock_service_order_send_message.return_value = SERVICE_ORDER_STATE_UNKNOWN
+    assert service_order.status == service_order.StatusEnum.UNKNOWN
+    assert not service_order.completed
+    assert service_order.finished
+    assert not service_order.rejected
+    assert not service_order.failed
+
+    mock_service_order_send_message.return_value = {}
+    assert service_order.status == service_order.StatusEnum.UNKNOWN
+    assert not service_order.completed
+    assert service_order.finished
+    assert not service_order.rejected
+    assert not service_order.failed
+
+
+@mock.patch.object(ServiceOrder, "send_message_json")
 def test_service_order_no_related_party(mock_service_order_send_message):
     mock_service_order_send_message.return_value = []
     assert len(list(ServiceOrder.get_all())) == 0
@@ -427,3 +495,22 @@ def test_service_order_create(mock_service_order_send_message):
     method, _, url = mock_service_order_send_message.call_args[0]
     assert method == "POST"
     assert url == f"{ServiceOrder.base_url}{ServiceOrder.api_version}/serviceOrder"
+
+
+def test_service_order_wait_for_finish():
+    with mock.patch.object(ServiceOrder, "finished", new_callable=mock.PropertyMock) as mock_finished:
+        with mock.patch.object(ServiceOrder, "completed", new_callable=mock.PropertyMock) as mock_completed:
+            service_order = ServiceOrder(
+                 unique_id="test",
+                 href="test",
+                 priority="test",
+                 description="test",
+                 category="test",
+                 external_id="test",
+                 service_instance_name="test",
+            )
+            service_order.WAIT_FOR_SLEEP_TIME = 0
+            mock_finished.side_effect = [False, False, True]
+            mock_completed.return_value = True
+            assert service_order.wait_for_finish()
+            assert len(mock_finished.mock_calls) == 3
