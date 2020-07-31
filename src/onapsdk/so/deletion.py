@@ -25,7 +25,7 @@ class DeletionRequest(OrchestrationRequest, ABC):
         raise NotImplementedError
 
 
-class VfModuleDeletionRequest(DeletionRequest):
+class VfModuleDeletionRequest(DeletionRequest):  # pytest: disable=too-many-ancestors
     """VF module deletion class."""
 
     @classmethod
@@ -58,7 +58,7 @@ class VfModuleDeletionRequest(DeletionRequest):
         return cls(request_id=response["requestReferences"]["requestId"])
 
 
-class VnfDeletionRequest(DeletionRequest):
+class VnfDeletionRequest(DeletionRequest):  # pytest: disable=too-many-ancestors
     """VNF deletion class."""
 
     @classmethod
@@ -89,7 +89,7 @@ class VnfDeletionRequest(DeletionRequest):
         return cls(request_id=response["requestReferences"]["requestId"])
 
 
-class ServiceDeletionRequest(DeletionRequest):
+class ServiceDeletionRequest(DeletionRequest):  # pytest: disable=too-many-ancestors
     """Service deletion request class."""
 
     @classmethod
@@ -118,7 +118,7 @@ class ServiceDeletionRequest(DeletionRequest):
         return cls(request_id=response["requestReferences"]["requestId"])
 
 
-class NetworkDeletionRequest(DeletionRequest):
+class NetworkDeletionRequest(DeletionRequest):  # pylint: disable=too-many-ancestors
     """Network deletion request class."""
 
     @classmethod

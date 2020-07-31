@@ -80,7 +80,7 @@ class Instantiation(OrchestrationRequest, ABC):
         self.instance_id: str = instance_id
 
 
-class VfModuleInstantiation(Instantiation):
+class VfModuleInstantiation(Instantiation):  # pytest: disable=too-many-ancestors
     """VF module instantiation class."""
 
     def __init__(self,
@@ -166,7 +166,7 @@ class VfModuleInstantiation(Instantiation):
         )
 
 
-class NodeTemplateInstantiation(Instantiation, ABC):
+class NodeTemplateInstantiation(Instantiation, ABC):  # pytest: disable=too-many-ancestors
     """Base class for service's node_template object instantiation."""
 
     def __init__(self,  # pylint: disable=too-many-arguments
@@ -189,7 +189,7 @@ class NodeTemplateInstantiation(Instantiation, ABC):
         self.platform = platform
 
 
-class VnfInstantiation(NodeTemplateInstantiation):
+class VnfInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-many-ancestors
     """VNF instantiation class."""
 
     def __init__(self,  # pylint: disable=too-many-arguments
@@ -338,7 +338,7 @@ class VnfInstantiation(NodeTemplateInstantiation):
             vnf=vnf_object
         )
 
-class ServiceInstantiation(Instantiation):
+class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
     """Service instantiation class."""
 
     def __init__(self,  # pylint: disable=too-many-arguments
@@ -457,7 +457,7 @@ class ServiceInstantiation(Instantiation):
             raise AttributeError
 
 
-class NetworkInstantiation(NodeTemplateInstantiation):
+class NetworkInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-many-ancestors
     """Network instantiation class."""
 
     def __init__(self,  # pylint: disable=too-many-arguments
