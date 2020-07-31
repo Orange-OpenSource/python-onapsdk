@@ -62,13 +62,6 @@ def test_blueprint_publish(send_message_mock):
     send_message_mock.assert_called_once()
 
 
-@patch.object(Blueprint, "send_message")
-def test_blueprint_deploy(send_message_mock):
-    blueprint = Blueprint(b"test cba - it will never work")
-    blueprint.deploy()
-    send_message_mock.assert_called_once()
-
-
 def test_blueprint_save():
     blueprint = Blueprint(b"test cba - it will never work")
     with TemporaryDirectory() as tmpdirname:
@@ -126,7 +119,7 @@ def test_blueprint_generate_data_dictionary_set():
 def test_data_dictionary(cds_element_url_property_mock):
     cds_element_url_property_mock.return_value = "http://127.0.0.1"
     dd = DataDictionary({})
-    assert dd.url == "http://127.0.0.1/resourcedictionary"
+    assert dd.url == "http://127.0.0.1/dictionary"
     assert dd.data_dictionary_json == {}
 
     dd = DataDictionary(DD_1)
@@ -211,4 +204,13 @@ def test_no_data_upload(send_message_mock):
         send_message_mock.assert_called_once()
 
 
-
+@patch.object(Workflow, "send_message")
+def test_workflow_execute(send_message_mock):
+    metadata = MagicMock(template_name="test", template_version="test")
+    blueprint = MagicMock(metadata=metadata)
+    workflow = Workflow("test_workflow", {}, blueprint)
+    assert len(workflow.steps) == 0
+    assert len(workflow.inputs) == 0
+    assert len(workflow.outputs) == 0
+    workflow.execute({})
+    send_message_mock.assert_called_once()

@@ -7,12 +7,11 @@
 >>> blueprint = Blueprint.load_from_file("<< path to CBA file >>")  # load a blueprint from ZIP file
 ```
 
-## Enrich, publish, deploy blueprint
+## Enrich, publish blueprint
 
 ```
 >>> enriched_blueprint = blueprint.enrich()  # returns enriched blueprint object
 >>> enriched_blueprint.publish()
->>> enriched_blueprint.deploy()
 ```
 
 ## Execute blueprint workflow
