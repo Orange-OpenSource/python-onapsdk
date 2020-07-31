@@ -8,6 +8,7 @@ import pytest
 import requests
 
 from onapsdk.sdc import SDC
+from onapsdk.sdc.properties import Property
 from onapsdk.sdc.vendor import Vendor
 from onapsdk.sdc.vsp import Vsp
 from onapsdk.sdc.vf import Vf
@@ -84,3 +85,27 @@ def test_service_upload_tca_artifact():
                                artifact_name="tca_clampnode.yaml",
                                artifact=data)
     payload_file.close()
+
+@pytest.mark.integration
+def test_service_properties():
+    """Integration test to check properties assignment for Service."""
+    response = requests.post("{}/reset".format(SDC.base_front_url))
+    response.raise_for_status()
+    vendor = Vendor(name="test")
+    vendor.onboard()
+    vsp = Vsp(name="test", package=open("{}/ubuntu16.zip".format(
+        os.path.dirname(os.path.abspath(__file__))), 'rb'))
+    vsp.vendor = vendor
+    vsp.onboard()
+    vf = Vf(name='test', vsp=vsp)
+    vf.onboard()
+    properties = [
+        Property(name="test1", property_type="string", value="123"),
+        Property(name="test2", property_type="integer")
+    ]
+    svc = Service(name='test', resources=[vf], properties=properties, inputs=[properties[1]])
+    svc.onboard()
+    service_properties = list(svc.properties)
+    service_inputs = list(svc.inputs)
+    assert len(service_properties) == 2
+    assert len(service_inputs) == 1

@@ -17,8 +17,8 @@ You will need the package of the VSP to onboard.
 
 .. code:: Python
 
-   from onapsdk.vendor import Vendor
-   from onapsdk.vsp import Vsp
+   from onapsdk.sdc.vendor import Vendor
+   from onapsdk.sdc.vsp import Vsp
 
    # We assume here that the Vendor has been already onboarded
    vendor = Vendor(name="myVendor")
@@ -31,12 +31,41 @@ Onboard a VF
 
 .. code:: Python
 
-   from onapsdk.vsp import Vsp
-   from onapsdk.vf import Vf
+   from onapsdk.sdc.vsp import Vsp
+   from onapsdk.sdc.vf import Vf
 
    # We assume here that the VSP has been already onboarded
    vsp = Vsp(name="myVSP")
    vf = Vf(name="myVF", vsp=vsp)
+   vf.onboard()
+
+Onboard a VF with properties assignement
+----------------------------------------
+
+.. code:: Python
+
+   from onapsdk.sdc.properties import Property
+   from onapsdk.sdc.vsp import Vsp
+   from onapsdk.sdc.vf import Vf
+
+   # We assume here that the VSP has been already onboarded
+   vsp = Vsp(name="myVSP")
+   property_1 = Property(
+      name="prop1",
+      property_type="string",
+      value="test"
+   )
+   property_2 = Property(
+      name="prop2",
+      property_type="integer"
+   )
+   vf = Vf(name="myVF",
+           vsp=vsp,
+           properties=[
+              property_1,
+              property_2
+           ],
+           inputs=[property_1])
    vf.onboard()
 
 Onboard a Service
@@ -44,12 +73,42 @@ Onboard a Service
 
 .. code:: Python
 
-   from onapsdk.vf import Vf
-   from onapsdk.service import Service
+   from onapsdk.sdc.vf import Vf
+   from onapsdk.sdc.service import Service
 
    # We assume here that the VF has been already onboarded
    vf = Vf(name="myVF")
    service = Service(name="myService", resources=[vf])
+   service.onboard()
+
+Onboard a Service with properties assignement
+---------------------------------------------
+
+.. code:: Python
+
+   from onapsdk.sdc.properties import Property
+   from onapsdk.sdc.vf import Vf
+   from onapsdk.sdc.service import Service
+
+   # We assume here that the VF has been already onboarded
+   vf = Vf(name="myVF")
+   property_1 = Property(
+      name="prop1",
+      property_type="string",
+      value="test"
+   )
+   property_2 = Property(
+      name="prop2",
+      property_type="integer",
+      declare_input=True
+   )
+   service = Service(name="myService",
+                     resources=[vf],
+                     properties=[
+                        property_1,
+                        property_2
+                     ],
+                     inputs=[property_1])
    service.onboard()
 
 Onboard a Service with VL
@@ -57,8 +116,8 @@ Onboard a Service with VL
 
 .. code:: Python
 
-   from onapsdk.vl import VL
-   from onapsdk.service import Service
+   from onapsdk.sdc.vl import VL
+   from onapsdk.sdc.service import Service
 
    # No VF needed, but you need to be sure that Vl with given
    # name exists in SDC

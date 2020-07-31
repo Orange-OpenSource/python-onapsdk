@@ -8,6 +8,7 @@ from unittest.mock import MagicMock
 import pytest
 
 import onapsdk.constants as const
+from onapsdk.sdc.properties import Property
 from onapsdk.sdc.sdc_resource import SdcResource
 from onapsdk.sdc.vf import Vf
 from onapsdk.sdc.vsp import Vsp
@@ -347,3 +348,16 @@ def test_onboard_whole_vf(mock_create, mock_submit, mock_load):
         mock_create.assert_called_once()
         mock_submit.assert_called_once()
         mock_load.assert_called_once()
+
+
+@mock.patch.object(Vf, "send_message_json")
+def test_add_properties(mock_send_message_json):
+    vf = Vf(name="test")
+    vf._identifier = "toto"
+    vf._unique_identifier = "toto"
+    vf._status = const.CERTIFIED
+    with pytest.raises(AttributeError):
+        vf.add_property(Property(name="test", property_type="string"))
+    vf._status = const.DRAFT
+    vf.add_property(Property(name="test", property_type="string"))
+    mock_send_message_json.assert_called_once()
