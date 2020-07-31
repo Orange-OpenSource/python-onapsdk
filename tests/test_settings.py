@@ -12,7 +12,7 @@ def test_global_settings():
     """Test global settings."""
     assert len(settings._settings) == 8
     assert settings.AAI_URL == "https://aai.api.sparky.simpledemo.onap.org:30233"
-    assert settings.CDS_URL == "http://portal.api.simpledemo.onap.org:32347"
+    assert settings.CDS_URL == "http://portal.api.simpledemo.onap.org:30449"
     assert settings.SDNC_URL == "https://sdnc.api.simpledemo.onap.org:30267"
     assert settings.SO_URL == "http://so.api.simpledemo.onap.org:30277"
     assert settings.MSB_URL == "https://msb.api.simpledemo.onap.org:30283"
