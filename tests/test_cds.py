@@ -119,7 +119,7 @@ def test_blueprint_generate_data_dictionary_set():
 def test_data_dictionary(cds_element_url_property_mock):
     cds_element_url_property_mock.return_value = "http://127.0.0.1"
     dd = DataDictionary({})
-    assert dd.url == "http://127.0.0.1/dictionary"
+    assert dd.url == "http://127.0.0.1/api/v1/dictionary"
     assert dd.data_dictionary_json == {}
 
     dd = DataDictionary(DD_1)
@@ -193,15 +193,6 @@ def test_blueprint_get_workflows_from_entry_definitions_file():
     assert workflow.steps[0].target == "resource-assignment"
     assert len(workflow.inputs) == 2
     assert len(workflow.outputs) == 1
-
-
-@patch.object(DataDictionary, "send_message")
-def test_no_data_upload(send_message_mock):
-    dd = DataDictionary(DD_1)
-    send_message_mock.return_value = None 
-    with raises(RuntimeError):
-        dd.upload()
-        send_message_mock.assert_called_once()
 
 
 @patch.object(Workflow, "send_message")
