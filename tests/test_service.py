@@ -14,6 +14,8 @@ import pytest
 from typing import BinaryIO
 
 import onapsdk.constants as const
+from onapsdk.sdc.component import Component
+from onapsdk.sdc.properties import ComponentProperty, Property
 from onapsdk.sdc.service import Service
 from onapsdk.sdc.sdc_resource import SdcResource
 from onapsdk.utils.headers_creator import headers_sdc_tester
@@ -30,6 +32,111 @@ ARTIFACTS = {
         }
     ]                 
 }
+
+
+COMPONENTS = {
+    "componentInstances":[
+        {
+            "actualComponentUid":"374f0a98-a280-43f1-9e6c-00b436782ce7",
+            "createdFromCsar":True,
+            "uniqueId":"bcfa7544-6e3d-4666-93b1-c5973356d069.374f0a98-a280-43f1-9e6c-00b436782ce7.abstract_vsn",
+            "normalizedName":"abstract_vsn",
+            "name":"abstract_vsn",
+            "originType":"CVFC",
+            "customizationUUID":"971043e1-495b-4b75-901e-3d09baed7521",
+            "componentUid":"374f0a98-a280-43f1-9e6c-00b436782ce7",
+            "componentVersion":"1.0",
+            "toscaComponentName":"org.openecomp.resource.vfc.11111cvfc.abstract.abstract.nodes.vsn",
+            "componentName":"11111-nodes.vsnCvfc"
+        }
+    ]
+}
+
+
+COMPONENT = {
+    "metadata":{
+        "uniqueId":"374f0a98-a280-43f1-9e6c-00b436782ce7",
+        "name":"11111-nodes.vsnCvfc",
+        "version":"1.0",
+        "isHighestVersion":True,
+        "creationDate":1594898496259,
+        "lastUpdateDate":1594898496325,
+        "description":"Complex node type that is used as nested type in VF",
+        "lifecycleState":"CERTIFIED",
+        "tags":[
+            "11111-nodes.vsnCvfc"
+        ],
+        "icon":"defaulticon",
+        "normalizedName":"11111nodesvsncvfc",
+        "systemName":"11111NodesVsncvfc",
+        "contactId":"cs0008",
+        "allVersions":{
+            "1.0":"374f0a98-a280-43f1-9e6c-00b436782ce7"
+        },
+        "isDeleted":None,
+        "projectCode":None,
+        "csarUUID":None,
+        "csarVersion":None,
+        "importedToscaChecksum":None,
+        "invariantUUID":"3c027ba1-8d3a-4b59-9394-d748fec5e42c",
+        "componentType":"RESOURCE",
+        "name":"Generic",
+        "normalizedName":"generic",
+        "uniqueId":"resourceNewCategory.generic",
+        "icons":None,
+        "creatorUserId":"cs0008",
+        "creatorFullName":"Carlos Santana",
+        "lastUpdaterUserId":"cs0008",
+        "lastUpdaterFullName":"Carlos Santana",
+        "archiveTime":0,
+        "vendorName":"mj",
+        "vendorRelease":"1.0",
+        "resourceVendorModelNumber":"",
+        "resourceType":"CVFC",
+        "isAbstract":None,
+        "cost":None,
+        "licenseType":None,
+        "toscaResourceName":"org.openecomp.resource.vfc.11111cvfc.abstract.abstract.nodes.vsn",
+        "derivedFrom":None,
+        "uuid":"59f05bfb-ccea-4857-8799-6acff59e6344",
+        "archived":False,
+        "vspArchived":False
+    }
+}
+
+
+COMPONENT_PROPERTIES = [
+    {
+        "uniqueId":"3d9a184f-4268-4a0e-9ddd-252e49670013.vf_module_id",
+        "type":"string",
+        "required":False,
+        "definition":False,
+        "description":"The vFirewall Module ID is provided by ECOMP",
+        "password":False,
+        "name":"vf_module_id",
+        "label":"vFirewall module ID",
+        "hidden":False,
+        "immutable":False,
+        "isDeclaredListInput":False,
+        "getInputProperty":False,
+        "empty":False
+    },{
+        "uniqueId":"74f79006-ae56-4d58-947e-6a5089000774.skip_post_instantiation_configuration",
+        "type":"boolean",
+        "required":False,
+        "definition":False,
+        "password":False,
+        "name":"skip_post_instantiation_configuration",
+        "value":"true",
+        "hidden":False,
+        "immutable":False,
+        "parentUniqueId":"74f79006-ae56-4d58-947e-6a5089000774",
+        "isDeclaredListInput":False,
+        "getInputProperty":False,
+        "ownerId":"74f79006-ae56-4d58-947e-6a5089000774",
+        "empty":False
+    }
+]
 
 
 def test_init_no_name():
@@ -779,3 +886,123 @@ def test_tosca_model(mock_send):
                                       "https://sdc.api.be.simpledemo.onap.org:30204/sdc/v1/catalog/services/toto/toscaModel",
                                       exception=mock.ANY,
                                       headers={'Content-Type': 'application/json', 'Accept': 'application/octet-stream', 'USER_ID': 'cs0008', 'Authorization': 'Basic YWFpOktwOGJKNFNYc3pNMFdYbGhhazNlSGxjc2UyZ0F3ODR2YW9HR21KdlV5MlU=', 'X-ECOMP-InstanceID': 'onapsdk'})
+
+@mock.patch.object(Service, "send_message_json")
+def test_add_properties(mock_send_message_json):
+    service = Service(name="test")
+    service._identifier = "toto"
+    service._unique_identifier = "toto"
+    service._status = const.CERTIFIED
+    with pytest.raises(AttributeError):
+        service.add_property(Property(name="test", property_type="string"))
+    service._status = const.DRAFT
+    service.add_property(Property(name="test", property_type="string"))
+    mock_send_message_json.assert_called_once()
+
+@mock.patch.object(Service, "send_message_json")
+def test_service_components(mock_send_message_json):
+    service = Service(name="test")
+    service.unique_identifier = "toto"
+
+    mock_send_message_json.return_value = {}
+    assert len(list(service.components)) == 0
+
+    mock_send_message_json.reset_mock()
+    mock_send_message_json.side_effect = [COMPONENTS, COMPONENT]
+    components = list(service.components)
+    assert len(components) == 1
+    assert mock_send_message_json.call_count == 2
+    component = components[0]
+    assert component.actual_component_uid == "374f0a98-a280-43f1-9e6c-00b436782ce7"
+    assert component.sdc_resource.unique_uuid == "3c027ba1-8d3a-4b59-9394-d748fec5e42c"
+
+def test_component_properties():
+    sdc_resource = mock.MagicMock()
+    service = Service(name="test")
+    service.unique_identifier = "toto"
+
+    component = Component(
+            created_from_csar=False,
+            actual_component_uid="123",
+            unique_id="123",
+            normalized_name="123",
+            name="123",
+            origin_type="123",
+            customization_uuid="123",
+            tosca_component_name="123",
+            component_name="123",
+            component_uid="123",
+            component_version="123",
+            sdc_resource=sdc_resource,
+            parent_sdc_resource=service
+    )
+    sdc_resource.send_message_json.return_value = {}
+    assert not len(list(component.properties))
+
+    sdc_resource.send_message_json.return_value = COMPONENT_PROPERTIES
+    properties = list(component.properties)
+    assert len(properties) == 2
+    prop1, prop2 = properties
+
+    assert prop1.unique_id == "3d9a184f-4268-4a0e-9ddd-252e49670013.vf_module_id"
+    assert prop1.property_type == "string"
+    assert prop1.name == "vf_module_id"
+    assert prop1.value is None
+
+    assert prop2.unique_id == "74f79006-ae56-4d58-947e-6a5089000774.skip_post_instantiation_configuration"
+    assert prop2.property_type == "boolean"
+    assert prop2.name == "skip_post_instantiation_configuration"
+    assert prop2.value == "true"
+
+@mock.patch.object(Component, "properties", new_callable=mock.PropertyMock)
+def test_component_property_set_value(mock_component_properties):
+    mock_sdc_resource = mock.MagicMock()
+    service = Service(name="test")
+    service.unique_identifier = "toto"
+    component = Component(
+            created_from_csar=False,
+            actual_component_uid="123",
+            unique_id="123",
+            normalized_name="123",
+            name="123",
+            origin_type="123",
+            customization_uuid="123",
+            tosca_component_name="123",
+            component_name="123",
+            component_uid="123",
+            component_version="123",
+            sdc_resource=mock_sdc_resource,
+            parent_sdc_resource=service
+    )
+    mock_component_properties.return_value = [
+        ComponentProperty(
+            unique_id="123",
+            property_type="string",
+            name="test_property",
+            component=component
+        )
+    ]
+    with pytest.raises(AttributeError):
+        component.get_property(property_name="non_exists")
+    prop1 = component.get_property(property_name="test_property")
+    assert prop1.name == "test_property"
+    assert prop1.unique_id == "123"
+    assert prop1.property_type == "string"
+    assert not prop1.value
+
+    prop1.value = "123"
+    mock_sdc_resource.send_message_json.assert_called_once()
+
+@mock.patch.object(Service, "add_resource")
+@mock.patch.object(Service, "add_property")
+@mock.patch.object(Service, "declare_input")
+def test_declare_resources_and_properties(mock_declare_input, mock_add_property, mock_add_resource):
+
+    service = Service(name="test",
+                      resources=[SdcResource()],
+                      properties=[Property(name="test", property_type="string")],
+                      inputs=[Property(name="test", property_type="string")])
+    service.declare_resources_and_properties()
+    mock_add_resource.assert_called_once()
+    mock_add_property.assert_called_once()
+    mock_declare_input.assert_called_once()

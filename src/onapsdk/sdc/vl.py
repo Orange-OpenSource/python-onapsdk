@@ -4,15 +4,11 @@
 """Vl module."""
 from typing import Dict
 
-from onapsdk.utils.headers_creator import headers_sdc_creator
-
 from .sdc_resource import SdcResource
 
 
 class Vl(SdcResource):
     """ONAP Vl Object used for SDC operations."""
-
-    headers = headers_sdc_creator(SdcResource.headers)
 
     def __init__(self, name: str, sdc_values: Dict[str, str] = None):
         """Initialize Vl object.

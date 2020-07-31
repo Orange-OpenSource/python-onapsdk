@@ -9,7 +9,7 @@ from io import BytesIO, TextIOWrapper
 from os import makedirs
 import time
 import re
-from typing import Dict, Iterable, List, Callable, Union, Any, BinaryIO
+from typing import Any, BinaryIO, Callable, Dict, Iterable, List, Union
 from zipfile import ZipFile, BadZipFile
 import base64
 from requests import Response
@@ -17,6 +17,7 @@ from requests import Response
 import oyaml as yaml
 
 import onapsdk.constants as const
+from onapsdk.sdc.properties import NestedInput, Property
 from onapsdk.sdc.sdc_resource import SdcResource
 from onapsdk.utils.configuration import (components_needing_distribution,
                                          tosca_path)
@@ -79,7 +80,7 @@ class Network(NodeTemplate):  # pylint: disable=too-few-public-methods
     """Network dataclass."""
 
 
-class Service(SdcResource):  # pylint: disable=too-many-instance-attributes
+class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too-many-public-methods
     """
     ONAP Service Object used for SDC operations.
 
@@ -100,10 +101,10 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes
     """
 
     SERVICE_PATH = "services"
-    headers = headers_sdc_creator(SdcResource.headers)
 
-    def __init__(self, name: str = None, sdc_values: Dict[str, str] = None,
-                 resources: List[SdcResource] = None):
+    def __init__(self, name: str = None, sdc_values: Dict[str, str] = None,  # pylint: disable=too-many-arguments
+                 resources: List[SdcResource] = None, properties: List[Property] = None,
+                 inputs: Union[Property, NestedInput] = None):
         """
         Initialize service object.
 
@@ -114,7 +115,7 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes
             resources (List[SdcResource], optional): list of SDC resources
 
         """
-        super().__init__(sdc_values=sdc_values)
+        super().__init__(sdc_values=sdc_values, properties=properties, inputs=inputs)
         self.name: str = name or "ONAP-test-Service"
         self.distribution_status = None
         if sdc_values:
@@ -139,10 +140,9 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes
             time.sleep(self._time_wait)
             self.onboard()
         elif self.status == const.DRAFT:
-            if not self.resources:
-                raise ValueError("No resources were given")
-            for resource in self.resources:
-                self.add_resource(resource)
+            if not any([self.resources, self._properties_to_add]):
+                raise ValueError("No resources nor properties were given")
+            self.declare_resources_and_properties()
             self.checkin()
             time.sleep(self._time_wait)
             self.onboard()
@@ -306,6 +306,39 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes
                 ))
         return self._vf_modules
 
+    @property
+    def properties_url(self) -> str:
+        """Properties url.
+
+        Returns:
+            str: SdcResource properties url
+
+        """
+        return (f"{self._base_create_url()}/services/"
+                f"{self.unique_identifier}/filteredDataByParams?include=properties")
+
+    @property
+    def resource_inputs_url(self) -> str:
+        """Service inputs url.
+
+        Returns:
+            str: Service inputs url
+
+        """
+        return (f"{self._base_create_url()}/services/"
+                f"{self.unique_identifier}")
+
+    @property
+    def set_input_default_value_url(self) -> str:
+        """Url to set input default value.
+
+        Returns:
+            str: SDC API url used to set input default value
+
+        """
+        return (f"{self._base_create_url()}/services/"
+                f"{self.unique_identifier}/update/inputs")
+
     def create(self) -> None:
         """Create the Service in SDC if not already existing."""
         self._create("service_create.json.j2", name=self.name)
@@ -344,6 +377,19 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes
             return None
         self._logger.error("Service is not in Draft mode")
         return None
+
+    def declare_resources_and_properties(self) -> None:
+        """Delcare resources and properties.
+
+        It declares also inputs.
+
+        """
+        for resource in self.resources:
+            self.add_resource(resource)
+        for property_to_add in self._properties_to_add:
+            self.add_property(property_to_add)
+        for input_to_add in self._inputs_to_add:
+            self.declare_input(input_to_add)
 
     def checkin(self) -> None:
         """Checkin Service."""
@@ -645,3 +691,37 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes
             self._logger.error(("an error occured during file upload for an Artifact"
                                 "to VNF %s"), vnf_name)
             raise ValueError("Couldn't upload the artifact")
+
+    def get_component_properties_url(self, component: "Component") -> str:
+        """Url to get component's properties.
+
+        This method is here because component can have different url when
+            it's a component of another SDC resource type, eg. for service and
+            for VF components have different urls.
+
+        Args:
+            component (Component): Component object to prepare url for
+
+        Returns:
+            str: Component's properties url
+
+        """
+        return (f"{self.resource_inputs_url}/"
+                f"componentInstances/{component.unique_id}/{component.actual_component_uid}/inputs")
+
+    def get_component_properties_value_set_url(self, component: "Component") -> str:
+        """Url to set component property value.
+
+        This method is here because component can have different url when
+            it's a component of another SDC resource type, eg. for service and
+            for VF components have different urls.
+
+        Args:
+            component (Component): Component object to prepare url for
+
+        Returns:
+            str: Component's properties url
+
+        """
+        return (f"{self.resource_inputs_url}/"
+                f"resourceInstance/{component.unique_id}/inputs")

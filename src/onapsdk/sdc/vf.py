@@ -2,13 +2,13 @@
 # -*- coding: utf-8 -*-
 # SPDX-License-Identifier: Apache-2.0
 """Vf module."""
-from typing import Dict
+from typing import Dict, List, Union
 
 import time
 from onapsdk.sdc.sdc_resource import SdcResource
+from onapsdk.sdc.properties import NestedInput, Property
 from onapsdk.sdc.vsp import Vsp
 import onapsdk.constants as const
-from onapsdk.utils.headers_creator import headers_sdc_creator
 
 
 class Vf(SdcResource):
@@ -27,21 +27,31 @@ class Vf(SdcResource):
 
     """
 
-    headers = headers_sdc_creator(SdcResource.headers)
-
-    def __init__(self, name: str = None, sdc_values: Dict[str, str] = None,
-                 vsp: Vsp = None):
+    def __init__(self, name: str = None, sdc_values: Dict[str, str] = None,  # pylint: disable=too-many-arguments
+                 vsp: Vsp = None, properties: List[Property] = None,
+                 inputs: Union[Property, NestedInput] = None):
         """
-        Initialize vendor object.
+        Initialize vf object.
 
         Args:
-            name (optional): the name of the vendor
+            name (optional): the name of the vf
 
         """
-        super().__init__(sdc_values=sdc_values)
+        super().__init__(sdc_values=sdc_values, properties=properties, inputs=inputs)
         self.name: str = name or "ONAP-test-VF"
         self.vsp: Vsp = vsp or None
         self._time_wait: int = 10
+
+    @property
+    def resource_inputs_url(self) -> str:
+        """Vf inputs url.
+
+        Returns:
+            str: Vf inputs url
+
+        """
+        return (f"{self._base_create_url()}/resources/"
+                f"{self.unique_identifier}")
 
     def onboard(self) -> None:
         """Onboard the VF in SDC."""
@@ -52,6 +62,10 @@ class Vf(SdcResource):
             time.sleep(self._time_wait)
             self.onboard()
         elif self.status == const.DRAFT:
+            for property_to_add in self._properties_to_add:
+                self.add_property(property_to_add)
+            for input_to_add in self._inputs_to_add:
+                self.declare_input(input_to_add)
             self.submit()
             time.sleep(self._time_wait)
             self.onboard()
