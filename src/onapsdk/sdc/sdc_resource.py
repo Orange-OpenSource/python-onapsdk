@@ -4,7 +4,7 @@
 """SDC Element module."""
 import logging
 from abc import ABC
-from typing import Any, Dict, Iterator, List, Union, BinaryIO
+from typing import Any, Dict, Iterator, List, Union
 import base64
 
 import onapsdk.constants as const
@@ -525,20 +525,19 @@ class SdcResource(SDC, ABC):  # pylint: disable=too-many-instance-attributes, to
             raise AttributeError("Can't add artifact to resource which is not in DRAFT status")
         self._logger.debug("Add deployment artifact to sdc resource")
         my_data = jinja_env().get_template(
-                  "sdc_resource_add_deployment_artifact.json.j2").\
-                  render(artifact_name=artifact_name,
-                         artifact_label=artifact_label,
-                         artifact_type=artifact_type,
-                         b64_artifact=base64.b64encode(data)
-                  )
+            "sdc_resource_add_deployment_artifact.json.j2").\
+                render(artifact_name=artifact_name,
+                       artifact_label=artifact_label,
+                       artifact_type=artifact_type,
+                       b64_artifact=base64.b64encode(data))
         my_header = headers_sdc_artifact_upload(base_header=self.headers, data=my_data)
 
         self.send_message_json("POST",
                                f"Add deployment artifact for {self.name} sdc resource",
                                self.add_deployment_artifacts_url,
-                               data = my_data,
-                               headers = my_header,
-                               exception = ValueError)
+                               data=my_data,
+                               headers=my_header,
+                               exception=ValueError)
 
     @property
     def components(self) -> Iterator[Component]:
