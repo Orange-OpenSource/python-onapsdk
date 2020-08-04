@@ -844,14 +844,13 @@ def test_add_artifact_to_vf(mock_send_message, mock_load, mock_add):
 
 @mock.patch.object(Service, 'load')
 @mock.patch.object(Service, 'send_message')
-def test_add_artifact_to_service(mock_send_message, mock_load, mock_add):
+def test_add_artifact_to_service(mock_send_message, mock_load):
     """Test Service add artifact"""
     svc = Service()
-    mock_add.return_value = "54321"
     result = svc.add_deployment_artifact(artifact_label="cba",
-                                    artifact_type="CONTROLLER_BLUEPRINT_ARCHIVE",
-                                    artifact_name="cba.zip",
-                                    artifact="data".encode('utf-8'))
+                                         artifact_type="CONTROLLER_BLUEPRINT_ARCHIVE",
+                                         artifact_name="cba.zip",
+                                         artifact="data".encode('utf-8'))
     mock_send_message.assert_called()
     method, description, url = mock_send_message.call_args[0]
     assert method == "POST"
