@@ -842,6 +842,22 @@ def test_add_artifact_to_vf(mock_send_message, mock_load, mock_add):
     assert url == ("https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/rest/v1/catalog/services/"
                     f"{svc.unique_identifier}/resourceInstance/54321/artifacts")
 
+@mock.patch.object(Service, 'load')
+@mock.patch.object(Service, 'send_message')
+def test_add_artifact_to_service(mock_send_message, mock_load, mock_add):
+    """Test Service add artifact"""
+    svc = Service()
+    mock_add.return_value = "54321"
+    result = svc.add_deployment_artifact(artifact_label="cba",
+                                    artifact_type="CONTROLLER_BLUEPRINT_ARCHIVE",
+                                    artifact_name="cba.zip",
+                                    artifact="data".encode('utf-8'))
+    mock_send_message.assert_called()
+    method, description, url = mock_send_message.call_args[0]
+    assert method == "POST"
+    assert description == "Add artifact to service"
+    assert url == ("https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/rest/v1/catalog/services/"
+                    f"{svc.unique_identifier}/artifacts")
 
 def test_service_networks():
     service = Service(name="test")
