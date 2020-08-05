@@ -857,7 +857,7 @@ def test_add_artifact_to_service(mock_send_message, mock_load):
     mock_send_message.assert_called()
     method, description, url = mock_send_message.call_args[0]
     assert method == "POST"
-    assert description == "Add artifact to service"
+    assert description == "Add deployment artifact for ONAP-test-Service sdc resource"
     assert url == ("https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/rest/v1/catalog/services/"
                     f"{svc.unique_identifier}/artifacts")
 
