@@ -361,3 +361,23 @@ def test_add_properties(mock_send_message_json):
     vf._status = const.DRAFT
     vf.add_property(Property(name="test", property_type="string"))
     mock_send_message_json.assert_called_once()
+
+@mock.patch.object(Vf, 'load')
+@mock.patch.object(Vf, 'send_message')
+def test_add_artifact_to_vf(mock_send_message, mock_load):
+    """Test VF add artifact"""
+    vf = Vf(name="test")
+    vf.status = const.DRAFT
+    mycbapath = Path(Path(__file__).resolve().parent, "data/vLB_CBA_Python.zip")
+
+    result = vf.add_deployment_artifact(artifact_label="cba",
+                                        artifact_type="CONTROLLER_BLUEPRINT_ARCHIVE",
+                                        artifact_name="vLB_CBA_Python.zip",
+                                        artifact=mycbapath)
+    mock_send_message.assert_called()
+    method, description, url = mock_send_message.call_args[0]
+    assert method == "POST"
+    assert description == "Add deployment artifact for test sdc resource"
+    assert url == ("https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/rest/v1/catalog/resources/"
+                    f"{vf.unique_identifier}/artifacts")
+
