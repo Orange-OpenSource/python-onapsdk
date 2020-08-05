@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Test Service module."""
 
-from os import path
+import os
 from io import BytesIO
 from pathlib import Path
 from unittest import mock
