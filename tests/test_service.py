@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Test Service module."""
 
-import os
+from os import path
 from io import BytesIO
 from pathlib import Path
 from unittest import mock
@@ -847,8 +847,7 @@ def test_add_artifact_to_vf(mock_send_message, mock_load, mock_add):
 def test_add_artifact_to_service(mock_send_message, mock_load):
     """Test Service add artifact"""
     svc = Service()
-    mypath = os.path.dirname(os.path.realpath(__file__))
-    mycbapath = os.path.join(mypath, "data/vLB_CBA_Python.zip")
+    mycbapath = Path(Path(__file__).resolve().parent, "data/vLB_CBA_Python.zip")
 
     result = svc.add_deployment_artifact(artifact_label="cba",
                                          artifact_type="CONTROLLER_BLUEPRINT_ARCHIVE",
