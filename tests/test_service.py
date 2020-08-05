@@ -847,6 +847,7 @@ def test_add_artifact_to_vf(mock_send_message, mock_load, mock_add):
 def test_add_artifact_to_service(mock_send_message, mock_load):
     """Test Service add artifact"""
     svc = Service()
+    svc.status = const.DRAFT
     mycbapath = Path(Path(__file__).resolve().parent, "data/vLB_CBA_Python.zip")
 
     result = svc.add_deployment_artifact(artifact_label="cba",
