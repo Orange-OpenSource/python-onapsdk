@@ -850,7 +850,7 @@ def test_add_artifact_to_service(mock_send_message, mock_load):
     result = svc.add_deployment_artifact(artifact_label="cba",
                                          artifact_type="CONTROLLER_BLUEPRINT_ARCHIVE",
                                          artifact_name="cba.zip",
-                                         artifact="data".encode('utf-8'))
+                                         artifact="data/vLB_CBA_Python.zip")
     mock_send_message.assert_called()
     method, description, url = mock_send_message.call_args[0]
     assert method == "POST"
