@@ -10,3 +10,4 @@ A minimum knowledge of ONAP is needed, especially on the onboarding part.
    usage/design_time
    usage/instantiation
    usage/deletion
+   usage/cds
