@@ -1,50 +1,50 @@
 class SdkException(Exception):
-    """Generic exception for ONAP SDK"""
+    """Generic exception for ONAP SDK."""
 
 
 class RequestError(SdkException):
-    """Request error occured"""
+    """Request error occured."""
 
 
 class ConnectionError(RequestError):
-    """Unable to connect"""
+    """Unable to connect."""
 
 
 class ApiError(RequestError):
-    """API error occured"""
+    """API error occured."""
 
 
 class InvalidResponse(RequestError):
-    """Unable to decode response"""
+    """Unable to decode response."""
 
 
 class ResourceNotFound(ApiError):
-    """Requested resource does not exist"""
+    """Requested resource does not exist."""
 
 
 class RelationshipNotFound(ResourceNotFound):
-    """Required relationship is missing"""
+    """Required relationship is missing."""
 
 
 class StatusError(SdkException):
-    """Invalid status"""
+    """Invalid status."""
 
 
 class ParameterError(SdkException):
-    """Parameter does not satisfy requirements """
+    """Parameter does not satisfy requirements."""
 
 
 class PackageError(ParameterError):
-    """Files uploading went wrong"""
+    """Files uploading went wrong."""
 
 
 class ModuleError(SdkException):
-    """Unable to import module"""
+    """Unable to import module."""
 
 
 class ValidationException(SdkException):
-    """Data validation failed"""
+    """Data validation failed."""
 
 
 class SettingsError(SdkException):
-    """Some settings are wrong"""
+    """Some settings are wrong."""
