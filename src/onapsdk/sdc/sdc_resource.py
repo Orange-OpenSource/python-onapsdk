@@ -359,17 +359,6 @@ class SdcResource(SDC, ABC):  # pylint: disable=too-many-instance-attributes, to
         elif self.status == const.CERTIFIED:
             self.load()
 
-    @property
-    def resource_inputs_url(self) -> str:
-        """Resource inputs url.
-
-        Returns:
-            str: Resource inputs url
-
-        """
-        return (f"{self._base_create_url()}/resources/"
-                f"{self.unique_identifier}")
-
     @classmethod
     def _sdc_path(cls) -> None:
         """Give back the end of SDC path."""
@@ -478,14 +467,24 @@ class SdcResource(SDC, ABC):  # pylint: disable=too-many-instance-attributes, to
     def resource_inputs_url(self) -> str:
         """Resource inputs url.
 
-        Abstract method which should be implemented by subclasses
-            and returns url which point to resource inputs.
-
-        Raises:
-            NotImplementedError: Method not implemented by subclass
+        Method which returns url which point to resource inputs.
 
         Returns:
             str: Resource inputs url
+
+        """
+        return (f"{self._base_create_url()}/resources/"
+                f"{self.unique_identifier}")
+
+
+    @property
+    def create(self) -> None:
+        """Create resource.
+
+        Abstract method which should be implemented by subclasses and creates resource in SDC.
+
+        Raises:
+            NotImplementedError: Method not implemented by subclasses. 
 
         """
         raise NotImplementedError
