@@ -25,7 +25,7 @@ class Pnf(SdcResource):
                     don't ask why...)
         unique_identifier (str): Yet Another ID, just to puzzle us...
         vendor (optional): the vendor of the PNF
-        vsp (option): the vsp related to the PNF
+        vsp (optional): the vsp related to the PNF
 
     """
 
@@ -43,43 +43,18 @@ class Pnf(SdcResource):
         self.name: str = name or "ONAP-test-PNF"
         self.vendor: Vendor = vendor or None
         self.vsp: Vsp = vsp or None
-        self._time_wait: int = 10
 
-    @property
-    def resource_inputs_url(self) -> str:
-        """PNF inputs url.
 
-        Returns:
-            str: PNF inputs url
 
-        """
-        return (f"{self._base_create_url()}/resources/"
-                f"{self.unique_identifier}")
 
-    def onboard(self) -> None:
-        """Onboard the PNF in SDC."""
-        if not self.status:
-            self.create()
-            time.sleep(self._time_wait)
-            self.onboard()
-        elif self.status == const.DRAFT:
-            for property_to_add in self._properties_to_add:
-                self.add_property(property_to_add)
-            for input_to_add in self._inputs_to_add:
-                self.declare_input(input_to_add)
-            self.submit()
-            time.sleep(self._time_wait)
-            self.onboard()
-        elif self.status == const.CERTIFIED:
-            self.load()
 
     def create(self) -> None:
         """Create the PNF in SDC if not already existing."""
+        if not self.vsp and not self.vendor:
+            raise ValueError("Neither Vsp nor vendor was given")
         if self.vsp:
-            # Create PNF based on given vsp
             self._create("pnf_create_vsp.json.j2", name=self.name, vsp=self.vsp)
-        else:
-            # Create PNF without vsp
+        elif self.vendor:
             self._create("pnf_create.json.j2", name=self.name, vendor=self.vendor)
 
     def _really_submit(self) -> None:

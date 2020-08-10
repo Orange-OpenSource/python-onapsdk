@@ -6,6 +6,7 @@ import logging
 from abc import ABC
 from typing import Any, Dict, Iterator, List, Union
 import base64
+import time
 
 import onapsdk.constants as const
 from onapsdk.sdc import SDC
@@ -38,6 +39,7 @@ class SdcResource(SDC, ABC):  # pylint: disable=too-many-instance-attributes, to
         self._resource_type: str = "resources"
         self._properties_to_add: List[Property] = properties or []
         self._inputs_to_add: Union[Property, NestedInput] = inputs or []
+        self._time_wait: int = 10
         if sdc_values:
             self._logger.debug("SDC values given, using them")
             self.identifier = sdc_values['uuid']
@@ -339,6 +341,34 @@ class SdcResource(SDC, ABC):  # pylint: disable=too-many-instance-attributes, to
     def _really_submit(self) -> None:
         """Really submit the SDC Vf in order to enable it."""
         raise NotImplementedError("SDC is an abstract class")
+
+    def onboard(self) -> None:
+        """Onboard resource in SDC."""
+        if not self.status:
+            self.create()
+            time.sleep(self._time_wait)
+            self.onboard()
+        elif self.status == const.DRAFT:
+            for property_to_add in self._properties_to_add:
+                self.add_property(property_to_add)
+            for input_to_add in self._inputs_to_add:
+                self.declare_input(input_to_add)
+            self.submit()
+            time.sleep(self._time_wait)
+            self.onboard()
+        elif self.status == const.CERTIFIED:
+            self.load()
+
+    @property
+    def resource_inputs_url(self) -> str:
+        """Resource inputs url.
+
+        Returns:
+            str: Resource inputs url
+
+        """
+        return (f"{self._base_create_url()}/resources/"
+                f"{self.unique_identifier}")
 
     @classmethod
     def _sdc_path(cls) -> None:
@@ -769,3 +799,4 @@ class SdcResource(SDC, ABC):  # pylint: disable=too-many-instance-attributes, to
                                     ),
                                exception=ValueError
                                )
+

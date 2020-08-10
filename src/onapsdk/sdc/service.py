@@ -129,7 +129,6 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
         self._vnfs: list = None
         self._networks: list = None
         self._vf_modules: list = None
-        self._time_wait: int = 10
 
     def onboard(self) -> None:
         """Onboard the Service in SDC."""
