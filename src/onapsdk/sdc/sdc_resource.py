@@ -484,7 +484,7 @@ class SdcResource(SDC, ABC):  # pylint: disable=too-many-instance-attributes, to
         Abstract method which should be implemented by subclasses and creates resource in SDC.
 
         Raises:
-            NotImplementedError: Method not implemented by subclasses. 
+            NotImplementedError: Method not implemented by subclasses.
 
         """
         raise NotImplementedError

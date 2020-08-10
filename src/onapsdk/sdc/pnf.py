@@ -4,7 +4,6 @@
 """Pnf module."""
 from typing import Dict, List, Union
 
-import time
 from onapsdk.sdc.sdc_resource import SdcResource
 from onapsdk.sdc.properties import NestedInput, Property
 import onapsdk.constants as const
