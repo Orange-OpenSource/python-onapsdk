@@ -113,7 +113,7 @@ def test_exists_not_exists(mock_get_all):
 
 
 @mock.patch.object(Pnf, 'get_all')
-def test_exists_exists(mock_get_all):
+def test_exists(mock_get_all):
     """Return True if pnf exists in SDC."""
     pnf_1 = Pnf(name="one")
     pnf_1.identifier = "1234"
@@ -141,10 +141,33 @@ def test_load_created(mock_exists):
 
 @mock.patch.object(Pnf, 'exists')
 @mock.patch.object(Pnf, 'send_message_json')
-def test_create_no_vsp(mock_send, mock_exists):
+def test_create_no_vsp_no_vendor(mock_send, mock_exists):
     """Create pnf also without vsp"""
     pnf = Pnf()
     mock_exists.return_value = False
+    pnf.create()
+    mock_send.assert_not_called()
+
+
+@mock.patch.object(Pnf, 'exists')
+@mock.patch.object(Pnf, 'send_message_json')
+def test_create_with_vsp(mock_send, mock_exists):
+    """Create pnf with vsp"""
+    pnf = Pnf()
+    vsp = Vsp()
+    pnf.vsp = vsp
+    mock_exists.return_value = True
+    pnf.create()
+    mock_send.assert_called_once()
+
+@mock.patch.object(Pnf, 'exists')
+@mock.patch.object(Pnf, 'send_message_json')
+def test_create_with_vendor(mock_send, mock_exists):
+    """Create pnf with vendor"""
+    pnf = Pnf()
+    vendor = Vendor()
+    pnf.vendor = vendor
+    mock_exists.return_value = True
     pnf.create()
     mock_send.assert_called_once()
 
