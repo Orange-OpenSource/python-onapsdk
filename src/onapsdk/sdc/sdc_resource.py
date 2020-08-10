@@ -797,4 +797,3 @@ class SdcResource(SDC, ABC):  # pylint: disable=too-many-instance-attributes, to
                                     ),
                                exception=ValueError
                                )
-

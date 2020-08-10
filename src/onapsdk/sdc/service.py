@@ -135,6 +135,7 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
         # first Lines are equivalent for all onboard functions but it's more
         # readable
         if not self.status:
+            # equivalent step as in onboard-function in sdc_resource
             self.create()
             time.sleep(self._time_wait)
             self.onboard()

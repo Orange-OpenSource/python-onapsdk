@@ -31,6 +31,13 @@
     "componentInstancesProperties": {},
     "componentType": "RESOURCE",
     "contactId": "cs0008",
+    {% if vsp is not none %}
+    "csarUUID": "{{ vsp.csar_uuid }}",
+    "csarVersion": "1.0",
+    "vendorName": "{{ vsp.vendor.name }}",
+    {% else %}
+    "vendorName": "{{ vendor.name }}",
+    {% endif %}
     "deploymentArtifacts": {},
     "description": "PNF",
     "icon": "defaulticon",
@@ -41,6 +48,5 @@
     "resourceType": "PNF",
     "tags": ["{{ name }}"],
     "toscaArtifacts": {},
-    "vendorName": "{{ vendor.name }}",
     "vendorRelease": "1.0"
 }

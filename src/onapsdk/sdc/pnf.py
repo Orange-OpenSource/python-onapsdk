@@ -40,21 +40,15 @@ class Pnf(SdcResource):
         """
         super().__init__(sdc_values=sdc_values, properties=properties, inputs=inputs)
         self.name: str = name or "ONAP-test-PNF"
-        self.vendor: Vendor = vendor or None
-        self.vsp: Vsp = vsp or None
-
-
-
-
+        self.vendor: Vendor = vendor
+        self.vsp: Vsp = vsp
 
     def create(self) -> None:
         """Create the PNF in SDC if not already existing."""
         if not self.vsp and not self.vendor:
             raise ValueError("Neither Vsp nor vendor was given")
-        if self.vsp:
-            self._create("pnf_create_vsp.json.j2", name=self.name, vsp=self.vsp)
-        elif self.vendor:
-            self._create("pnf_create.json.j2", name=self.name, vendor=self.vendor)
+        self._create("pnf_create.json.j2", name=self.name, vsp=self.vsp, vendor=self.vendor)
+
 
     def _really_submit(self) -> None:
         """Really submit the SDC PNF in order to enable it."""
