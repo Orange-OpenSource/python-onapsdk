@@ -68,6 +68,35 @@ Onboard a VF with properties assignement
            inputs=[property_1])
    vf.onboard()
 
+Onboard a VF with Deployment Artifact
+-------------------------------------
+
+.. code:: Python
+
+   from onapsdk.sdc.properties import Property
+   from onapsdk.sdc.vsp import Vsp
+   from onapsdk.sdc.vf import Vf
+
+   logger.info("******** Onboard Vendor *******")
+   vendor = Vendor(name="my_Vendor")
+   vendor.onboard()
+
+   # We assume here that the VSP has been already onboarded
+   vsp = Vsp(name="myVSP")
+
+   logger.info("******** Onboard VF *******")
+   vf = Vf(name="myVF")
+   vf.vsp = vsp
+   vf.create()
+
+   logger.info("******** Upload Artifact *******")
+   vf.add_deployment_artifact(artifact_type="CONTROLLER_BLUEPRINT_ARCHIVE",
+                              artifact_name="CBA.zip",
+                              artifact_label="vfwcds",
+                              artifact="dir/CBA_enriched.zip")
+
+   vf.onboard()
+
 Onboard a Service
 -----------------
 
@@ -125,8 +154,8 @@ Onboard a Service with VL
    service = Service(name="myServiceWithVl", resources=[vl])
    service.onboard()
 
-Onboard an Artifact
------------------
+Onboard an Artifact for an embedded VF
+--------------------------------------
 
 All SDC artifact types are supported
 
@@ -141,8 +170,25 @@ All SDC artifact types are supported
    data = open("{}/myArtifact.yaml".format(os.path.dirname(os.path.abspath(__file__))), 'rb').read()
    # We add the artifact to the service Vnf
    #
-   svc.add_artifact_to_vf(vnf_name="myVnf", 
+   svc.add_artifact_to_vf(vnf_name="myVnf",
                           artifact_type="DCAE_INVENTORY_BLUEPRINT",
                           artifact_name="myArtifact.yaml",
                           artifact=data)
+
+Onboard a Service with Deployment Artifact
+------------------------------------------
+
+.. code:: Python
+
+   from onapsdk.sdc.service import Service
+
+   svc = Service(name="myService")
+
+   logger.info("******** Upload Artifact *******")
+   svc.add_deployment_artifact(artifact_type="OTHER",
+                              artifact_name="eMBB.zip",
+                              artifact_label="embbcn",
+                              artifact="dir/eMBB.zip")
+
+   svc.onboard()
 
