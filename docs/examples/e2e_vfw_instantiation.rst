@@ -148,7 +148,6 @@ E2E Instantiation of vFW
         system_type="VIM",
         service_url=VIM_SERVICE_URL,
         cloud_domain="Default",
-        cloud_domain="Default",
         ssl_insecure=False,
         system_status="active",
         default_tenant=TENANT_NAME
