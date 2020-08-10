@@ -307,6 +307,28 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
         return self._vf_modules
 
     @property
+    def deployment_artifacts_url(self) -> str:
+        """Deployment artifacts url.
+
+        Returns:
+            str: SdcResource Deployment artifacts url
+
+        """
+        return (f"{self._base_create_url()}/services/"
+                f"{self.unique_identifier}/filteredDataByParams?include=deploymentArtifacts")
+
+    @property
+    def add_deployment_artifacts_url(self) -> str:
+        """Add deployment artifacts url.
+
+        Returns:
+            str: Url used to add deployment artifacts
+
+        """
+        return (f"{self._base_create_url()}/services/"
+                f"{self.unique_identifier}/artifacts")
+
+    @property
     def properties_url(self) -> str:
         """Properties url.
 

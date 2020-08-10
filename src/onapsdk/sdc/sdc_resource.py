@@ -5,13 +5,15 @@
 import logging
 from abc import ABC
 from typing import Any, Dict, Iterator, List, Union
+import base64
 
 import onapsdk.constants as const
 from onapsdk.sdc import SDC
 from onapsdk.sdc.component import Component
 from onapsdk.sdc.properties import Input, NestedInput, Property
 from onapsdk.utils.headers_creator import (headers_sdc_creator,
-                                           headers_sdc_tester)
+                                           headers_sdc_tester,
+                                           headers_sdc_artifact_upload)
 from onapsdk.utils.jinja import jinja_env
 
 
@@ -344,6 +346,28 @@ class SdcResource(SDC, ABC):  # pylint: disable=too-many-instance-attributes, to
         return cls.RESOURCE_PATH
 
     @property
+    def deployment_artifacts_url(self) -> str:
+        """Deployment artifacts url.
+
+        Returns:
+            str: SdcResource Deployment artifacts url
+
+        """
+        return (f"{self._base_create_url()}/resources/"
+                f"{self.unique_identifier}/filteredDataByParams?include=deploymentArtifacts")
+
+    @property
+    def add_deployment_artifacts_url(self) -> str:
+        """Add deployment artifacts url.
+
+        Returns:
+            str: Url used to add deployment artifacts
+
+        """
+        return (f"{self._base_create_url()}/resources/"
+                f"{self.unique_identifier}/artifacts")
+
+    @property
     def properties_url(self) -> str:
         """Properties url.
 
@@ -477,6 +501,43 @@ class SdcResource(SDC, ABC):  # pylint: disable=too-many-instance-attributes, to
             if input_obj.name == input_name:
                 return input_obj
         raise AttributeError("SDC resource has no %s input" % input_name)
+
+    def add_deployment_artifact(self, artifact_type: str, artifact_label: str,
+                                artifact_name: str, artifact: str):
+        """
+        Add deployment artifact to resource.
+
+        Add deployment artifact to resource using payload data.
+
+        Args:
+            artifact_type (str): all SDC artifact types are supported (DCAE_*, HEAT_*, ...)
+            artifact_name (str): the artifact file name including its extension
+            artifact (str): artifact file to upload
+            artifact_label (str): Unique Identifier of the artifact within the VF / Service.
+
+        Raises:
+            AttributeError: Resource has not DRAFT status
+
+        """
+        data = open(artifact, 'rb').read()
+
+        if self.status != const.DRAFT:
+            raise AttributeError("Can't add artifact to resource which is not in DRAFT status")
+        self._logger.debug("Add deployment artifact to sdc resource")
+        my_data = jinja_env().get_template(
+            "sdc_resource_add_deployment_artifact.json.j2").\
+                render(artifact_name=artifact_name,
+                       artifact_label=artifact_label,
+                       artifact_type=artifact_type,
+                       b64_artifact=base64.b64encode(data))
+        my_header = headers_sdc_artifact_upload(base_header=self.headers, data=my_data)
+
+        self.send_message_json("POST",
+                               f"Add deployment artifact for {self.name} sdc resource",
+                               self.add_deployment_artifacts_url,
+                               data=my_data,
+                               headers=my_header,
+                               exception=ValueError)
 
     @property
     def components(self) -> Iterator[Component]:
