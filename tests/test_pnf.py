@@ -139,37 +139,13 @@ def test_load_created(mock_exists):
     mock_exists.assert_called_once()
 
 
-#@mock.patch.object(Pnf, 'exists')
-#@mock.patch.object(Pnf, 'send_message_json')
-#def test_create_no_vsp_no_vendor(mock_send, mock_exists):
-#    """Create pnf without vsp and vendor"""
-#    pnf = Pnf()
-#    mock_exists.return_value = False
-#    pnf.create()
-#    mock_send.assert_not_called()
-
-
 @mock.patch.object(Pnf, 'exists')
-@mock.patch.object(Pnf, 'send_message_json')
-def test_create_with_vsp(mock_send, mock_exists):
-    """Create pnf with vsp"""
+def test_create_no_vsp_no_vendor(mock_exists):
+    """Do nothing if no vsp and no vendor"""
     pnf = Pnf()
-    vsp = Vsp()
-    pnf.vsp = vsp
-    mock_exists.return_value = True
-    pnf.create()
-    mock_send.assert_called_once()
-
-@mock.patch.object(Pnf, 'exists')
-@mock.patch.object(Pnf, 'send_message_json')
-def test_create_with_vendor(mock_send, mock_exists):
-    """Create pnf with vendor"""
-    pnf = Pnf()
-    vendor = Vendor()
-    pnf.vendor = vendor
-    mock_exists.return_value = True
-    pnf.create()
-    mock_send.assert_called_once()
+    mock_exists.return_value = False
+    with pytest.raises(ValueError, match=r"Neither Vsp nor vendor was given"):
+        pnf.create()
 
 
 @mock.patch.object(Pnf, 'exists')
@@ -196,7 +172,7 @@ def test_create_issue_in_creation(mock_send, mock_exists):
     vsp.create_csar = MagicMock(return_value=True)
     vsp.vendor = vendor
     pnf.vsp = vsp
-    expected_data = '{\n    "artifacts": {},\n    "attributes": [],\n    "capabilities": {},\n    "categories":[\n        {\n            "name": "Generic",\n            "normalizedName": "generic",\n            "uniqueId": "resourceNewCategory.generic",\n            "icons": null,\n            "subcategories":[\n                {\n                    "name": "Abstract",\n                    "normalizedName": "abstract",\n                    "uniqueId": "resourceNewCategory.generic.abstract",\n                    "icons":[\n                        "objectStorage",\n                        "compute"\n                    ],\n                    "groupings": null,\n                    "ownerId": null,\n                    "empty": false\n                }\n            ],\n            "ownerId": null,\n            "empty": false\n        }\n    ],\n    "componentInstances": [],\n    "componentInstancesAttributes": {},\n    "componentInstancesProperties": {},\n    "componentType": "RESOURCE",\n    "contactId": "cs0008",\n    "csarUUID": "None",\n    "csarVersion": "1.0",\n    "deploymentArtifacts": {},\n    "description": "PNF",\n    "icon": "defaulticon",\n    "name": "ONAP-test-PNF",\n    "properties": [],\n    "groups": [],\n    "requirements": {},\n    "resourceType": "PNF",\n    "tags": ["ONAP-test-PNF"],\n    "toscaArtifacts": {},\n    "vendorName": "Generic-Vendor",\n    "vendorRelease": "1.0"\n}'
+    expected_data = '{\n    "artifacts": {},\n    "attributes": [],\n    "capabilities": {},\n    "categories":[\n        {\n            "name": "Generic",\n            "normalizedName": "generic",\n            "uniqueId": "resourceNewCategory.generic",\n            "icons": null,\n            "subcategories":[\n                {\n                    "name": "Abstract",\n                    "normalizedName": "abstract",\n                    "uniqueId": "resourceNewCategory.generic.abstract",\n                    "icons":[\n                        "objectStorage",\n                        "compute"\n                    ],\n                    "groupings": null,\n                    "ownerId": null,\n                    "empty": false\n                }\n            ],\n            "ownerId": null,\n            "empty": false\n        }\n    ],\n    "componentInstances": [],\n    "componentInstancesAttributes": {},\n    "componentInstancesProperties": {},\n    "componentType": "RESOURCE",\n    "contactId": "cs0008",\n    \n    "csarUUID": "None",\n    "csarVersion": "1.0",\n    "vendorName": "Generic-Vendor",\n    \n    "deploymentArtifacts": {},\n    "description": "PNF",\n    "icon": "defaulticon",\n    "name": "ONAP-test-PNF",\n    "properties": [],\n    "groups": [],\n    "requirements": {},\n    "resourceType": "PNF",\n    "tags": ["ONAP-test-PNF"],\n    "toscaArtifacts": {},\n    "vendorRelease": "1.0"\n}'
     mock_exists.return_value = False
     mock_send.return_value = {}
     pnf.create()
@@ -215,7 +191,7 @@ def test_create_OK(mock_send, mock_exists):
     pnf.vsp = vsp
     vsp.vendor = vendor
     vsp._csar_uuid = "1234"
-    expected_data = '{\n    "artifacts": {},\n    "attributes": [],\n    "capabilities": {},\n    "categories":[\n        {\n            "name": "Generic",\n            "normalizedName": "generic",\n            "uniqueId": "resourceNewCategory.generic",\n            "icons": null,\n            "subcategories":[\n                {\n                    "name": "Abstract",\n                    "normalizedName": "abstract",\n                    "uniqueId": "resourceNewCategory.generic.abstract",\n                    "icons":[\n                        "objectStorage",\n                        "compute"\n                    ],\n                    "groupings": null,\n                    "ownerId": null,\n                    "empty": false\n                }\n            ],\n            "ownerId": null,\n            "empty": false\n        }\n    ],\n    "componentInstances": [],\n    "componentInstancesAttributes": {},\n    "componentInstancesProperties": {},\n    "componentType": "RESOURCE",\n    "contactId": "cs0008",\n    "csarUUID": "1234",\n    "csarVersion": "1.0",\n    "deploymentArtifacts": {},\n    "description": "PNF",\n    "icon": "defaulticon",\n    "name": "ONAP-test-PNF",\n    "properties": [],\n    "groups": [],\n    "requirements": {},\n    "resourceType": "PNF",\n    "tags": ["ONAP-test-PNF"],\n    "toscaArtifacts": {},\n    "vendorName": "Generic-Vendor",\n    "vendorRelease": "1.0"\n}'
+    expected_data = '{\n    "artifacts": {},\n    "attributes": [],\n    "capabilities": {},\n    "categories":[\n        {\n            "name": "Generic",\n            "normalizedName": "generic",\n            "uniqueId": "resourceNewCategory.generic",\n            "icons": null,\n            "subcategories":[\n                {\n                    "name": "Abstract",\n                    "normalizedName": "abstract",\n                    "uniqueId": "resourceNewCategory.generic.abstract",\n                    "icons":[\n                        "objectStorage",\n                        "compute"\n                    ],\n                    "groupings": null,\n                    "ownerId": null,\n                    "empty": false\n                }\n            ],\n            "ownerId": null,\n            "empty": false\n        }\n    ],\n    "componentInstances": [],\n    "componentInstancesAttributes": {},\n    "componentInstancesProperties": {},\n    "componentType": "RESOURCE",\n    "contactId": "cs0008",\n    \n    "csarUUID": "1234",\n    "csarVersion": "1.0",\n    "vendorName": "Generic-Vendor",\n    \n    "deploymentArtifacts": {},\n    "description": "PNF",\n    "icon": "defaulticon",\n    "name": "ONAP-test-PNF",\n    "properties": [],\n    "groups": [],\n    "requirements": {},\n    "resourceType": "PNF",\n    "tags": ["ONAP-test-PNF"],\n    "toscaArtifacts": {},\n    "vendorRelease": "1.0"\n}'
     mock_exists.return_value = False
     mock_send.return_value = {'resourceType': 'PNF', 'name': 'one', 'uuid': '1234', 'invariantUUID': '5678', 'version': '1.0', 'uniqueId': '91011', 'lifecycleState': 'NOT_CERTIFIED_CHECKOUT'}
     pnf.create()
@@ -291,20 +267,6 @@ def test_submit_OK(mock_send, mock_load, mock_exists):
         'https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/rest/v1/catalog/resources/12345/lifecycleState/Certify',
         data=expected_data)
 
-@mock.patch.object(Pnf, 'load')
-@mock.patch.object(Pnf, 'submit')
-@mock.patch.object(Pnf, 'create')
-def test_onboard_new_pnf_no_vsp(mock_create, mock_submit, mock_load):
-    getter_mock = mock.Mock(wraps=Pnf.status.fget)
-    mock_status = Pnf.status.getter(getter_mock)
-    with mock.patch.object(Pnf, 'status', mock_status):
-        getter_mock.side_effect = [None, const.APPROVED, const.APPROVED]
-        pnf = Pnf()
-        pnf.onboard()
-        mock_create.assert_called_once()
-        mock_submit.assert_called_once()
-        mock_load.assert_called_once()
-
 
 @mock.patch.object(Pnf, 'load')
 @mock.patch.object(Pnf, 'submit')
@@ -359,7 +321,8 @@ def test_onboard_pnf_load(mock_create, mock_submit, mock_load):
 @mock.patch.object(Pnf, 'load')
 @mock.patch.object(Pnf, 'submit')
 @mock.patch.object(Pnf, 'create')
-def test_onboard_whole_pnf(mock_create, mock_submit, mock_load):
+def test_onboard_whole_pnf_vsp(mock_create, mock_submit, mock_load):
+    """Test onboarding with vsp"""
     getter_mock = mock.Mock(wraps=Pnf.status.fget)
     mock_status = Pnf.status.getter(getter_mock)
     with mock.patch.object(Pnf, 'status', mock_status):
@@ -374,6 +337,24 @@ def test_onboard_whole_pnf(mock_create, mock_submit, mock_load):
         mock_submit.assert_called_once()
         mock_load.assert_called_once()
 
+@mock.patch.object(Pnf, 'load')
+@mock.patch.object(Pnf, 'submit')
+@mock.patch.object(Pnf, 'create')
+def test_onboard_whole_pnf_vendor(mock_create, mock_submit, mock_load):
+    """Test onboarding with vendor"""
+    getter_mock = mock.Mock(wraps=Pnf.status.fget)
+    mock_status = Pnf.status.getter(getter_mock)
+    with mock.patch.object(Pnf, 'status', mock_status):
+        getter_mock.side_effect = [None, const.DRAFT, const.DRAFT, const.CERTIFIED,
+                               const.CERTIFIED, const.CERTIFIED, const.APPROVED,
+                               const.APPROVED, const.APPROVED]
+        vendor = Vendor()
+        pnf = Pnf(vendor=vendor)
+        pnf._time_wait = 0
+        pnf.onboard()
+        mock_create.assert_called_once()
+        mock_submit.assert_called_once()
+        mock_load.assert_called_once()
 
 @mock.patch.object(Pnf, "send_message_json")
 def test_add_properties(mock_send_message_json):
