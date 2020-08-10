@@ -139,14 +139,14 @@ def test_load_created(mock_exists):
     mock_exists.assert_called_once()
 
 
-@mock.patch.object(Pnf, 'exists')
-@mock.patch.object(Pnf, 'send_message_json')
-def test_create_no_vsp_no_vendor(mock_send, mock_exists):
-    """Create pnf also without vsp"""
-    pnf = Pnf()
-    mock_exists.return_value = False
-    pnf.create()
-    mock_send.assert_not_called()
+#@mock.patch.object(Pnf, 'exists')
+#@mock.patch.object(Pnf, 'send_message_json')
+#def test_create_no_vsp_no_vendor(mock_send, mock_exists):
+#    """Create pnf without vsp and vendor"""
+#    pnf = Pnf()
+#    mock_exists.return_value = False
+#    pnf.create()
+#    mock_send.assert_not_called()
 
 
 @mock.patch.object(Pnf, 'exists')
