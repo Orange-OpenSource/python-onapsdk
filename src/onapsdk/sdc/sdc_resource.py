@@ -477,7 +477,6 @@ class SdcResource(SDC, ABC):  # pylint: disable=too-many-instance-attributes, to
                 f"{self.unique_identifier}")
 
 
-    @property
     def create(self) -> None:
         """Create resource.
 
