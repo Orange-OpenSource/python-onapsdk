@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Service module."""
 from collections import namedtuple
+from enum import Enum
 from dataclasses import dataclass
 from difflib import SequenceMatcher
 from io import BytesIO, TextIOWrapper
@@ -80,6 +81,19 @@ class Network(NodeTemplate):  # pylint: disable=too-few-public-methods
     """Network dataclass."""
 
 
+class ServiceInstantiationType(Enum):
+    """Service instantiation type enum class.
+
+    Service can be instantiated using `A-la-carte` or `Macro` flow.
+    It has to be determined during design time. That class stores these
+    two values to set during initialization.
+
+    """
+
+    A_LA_CARTE = "A-la-carte"
+    MACRO = "Macro"
+
+
 class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too-many-public-methods
     """
     ONAP Service Object used for SDC operations.
@@ -104,7 +118,9 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
 
     def __init__(self, name: str = None, sdc_values: Dict[str, str] = None,  # pylint: disable=too-many-arguments
                  resources: List[SdcResource] = None, properties: List[Property] = None,
-                 inputs: Union[Property, NestedInput] = None):
+                 inputs: List[Union[Property, NestedInput]] = None,
+                 instantiation_type: ServiceInstantiationType = \
+                     ServiceInstantiationType.A_LA_CARTE):
         """
         Initialize service object.
 
@@ -113,6 +129,13 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
             sdc_values (Dict[str, str], optional): dictionary of values
                 returned by SDC
             resources (List[SdcResource], optional): list of SDC resources
+            properties (List[Property], optional): list of properties to add to service.
+                None by default.
+            inputs (List[Union[Property, NestedInput]], optional): list of inputs
+                to declare for service. It can be both Property or NestedInput object.
+                None by default.
+            instantiation_type (ServiceInstantiationType, optional): service instantiation
+                type. ServiceInstantiationType.A_LA_CARTE by default
 
         """
         super().__init__(sdc_values=sdc_values, properties=properties, inputs=inputs)
@@ -121,6 +144,7 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
         if sdc_values:
             self.distribution_status = sdc_values['distributionStatus']
         self.resources = resources or []
+        self.instantiation_type: ServiceInstantiationType = instantiation_type
         self._distribution_id: str = None
         self._distributed: bool = False
         self._resource_type: str = "services"
@@ -363,7 +387,9 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
 
     def create(self) -> None:
         """Create the Service in SDC if not already existing."""
-        self._create("service_create.json.j2", name=self.name)
+        self._create("service_create.json.j2",
+                     name=self.name,
+                     instantiation_type=self.instantiation_type.value)
 
     def add_resource(self, resource: SdcResource) -> None:
         """
