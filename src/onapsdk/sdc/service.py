@@ -28,7 +28,7 @@ from onapsdk.utils.jinja import jinja_env
 
 @dataclass
 class NfModule:
-    """NfModule dataclass for PNF and VNF."""
+    """NfModule (network function module) dataclass for e.g. PNF and VNF."""
 
     name: str
     group_type: str
@@ -49,6 +49,26 @@ class NodeTemplate:
     properties: dict
     capabilities: dict
 
+    def associate_nf_module(self, nf_modules: Iterable[NfModule]) -> NfModule:
+        """Iterate through Service nf modules and found the valid one.
+
+        This is experimental! To be honest we are not sure if it works
+            correctly, it should be clarified with ONAP community.
+
+        Args:
+            nf_modules (Iterable[NfModule]): Service nf modules
+
+        """
+        AssociateMatch = namedtuple("AssociateMatch", ["ratio", "object"])
+        best_match: AssociateMatch = AssociateMatch(0.0, None)
+        for nf_module in nf_modules:  # type: NfModule
+            current_ratio: float = SequenceMatcher(None,
+                                                   self.name.lower(),
+                                                   nf_module.name.lower()).ratio()
+            if current_ratio > best_match.ratio:
+                best_match = AssociateMatch(current_ratio, nf_module)
+        return best_match.object
+
 
 @dataclass
 class Vnf(NodeTemplate):
@@ -57,24 +77,13 @@ class Vnf(NodeTemplate):
     vf_module: NfModule = None
 
     def associate_vf_module(self, vf_modules: Iterable[NfModule]) -> None:
-        """Iterate through Service vf modules and found the valid one.
-
-        This is experimental! To be honest we are not sure if it works
-            correctly, it should be clarified with ONAP community.
+        """Extract valid vf modules from service.
 
         Args:
             vf_modules (Iterable[NfModule]): Service nf modules
 
         """
-        AssociateMatch = namedtuple("AssociateMatch", ["ratio", "object"])
-        best_match: AssociateMatch = AssociateMatch(0.0, None)
-        for vf_module in vf_modules:  # type: NfModule
-            current_ratio: float = SequenceMatcher(None,
-                                                   self.name.lower(),
-                                                   vf_module.name.lower()).ratio()
-            if current_ratio > best_match.ratio:
-                best_match = AssociateMatch(current_ratio, vf_module)
-        self.vf_module = best_match.object
+        self.vf_module = self.associate_nf_module(vf_modules)
 
 @dataclass
 class Pnf(NodeTemplate):
@@ -83,24 +92,14 @@ class Pnf(NodeTemplate):
     pnf_module: NfModule = None
 
     def associate_pnf_module(self, pnf_modules: Iterable[NfModule]) -> None:
-        """Iterate through Service pnf modules and found the valid one.
-
-        This is experimental! To be honest we are not sure if it works
-            correctly, it should be clarified with ONAP community.
+        """Extract valid vf modules from service.
 
         Args:
             pnf_modules (Iterable[NfModule]): Service pnf modules
 
         """
-        AssociateMatch = namedtuple("AssociateMatch", ["ratio", "object"])
-        best_match: AssociateMatch = AssociateMatch(0.0, None)
-        for pnf_module in pnf_modules:  # type: NfModule
-            current_ratio: float = SequenceMatcher(None,
-                                                   self.name.lower(),
-                                                   pnf_module.name.lower()).ratio()
-            if current_ratio > best_match.ratio:
-                best_match = AssociateMatch(current_ratio, pnf_module)
-        self.pnf_module = best_match.object
+
+        self.pnf_module = self.associate_nf_module(pnf_modules)
 
 
 class Network(NodeTemplate):  # pylint: disable=too-few-public-methods
@@ -180,7 +179,6 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
         self._pnfs: list = None
         self._networks: list = None
         self._vf_modules: list = None
-        self._pnf_modules: list = None
 
     def onboard(self) -> None:
         """Onboard the Service in SDC."""
@@ -306,7 +304,7 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
         return self._vnfs
 
     @property
-    def pnfs(self) -> List[Vnf]:
+    def pnfs(self) -> List[Pnf]:
         """Service Pnfs.
 
         Load PNFs from service's tosca file
@@ -333,7 +331,7 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
                         properties=values["properties"],
                         capabilities=values.get("capabilities", {})
                     )
-                    pnf.associate_pnf_module(self._pnf_modules)
+                    #pnf.associate_pnf_module(self.pnf_modules)
                     self._pnfs.append(pnf)
         return self._pnfs
 
@@ -390,28 +388,6 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
                 ))
         return self._vf_modules
 
-    @property
-    def pnf_modules(self) -> List[NfModule]:
-        """Service VF modules.
-
-        Load Pnf modules from service's tosca file
-
-        Returns:
-            List[NfModule]: NfModule objects list
-
-        """
-        if self._pnf_modules is None:
-            self._pnf_modules = []
-            groups: dict = self.tosca_template.get(
-                "topology_template", {}).get("groups", {})
-            for group_name, values in groups.items():
-                self._pnf_modules.append(NfModule(
-                    name=group_name,
-                    group_type=values["type"],
-                    metadata=values["metadata"],
-                    properties=values["properties"]
-                ))
-        return self._pnf_modules
 
     @property
     def deployment_artifacts_url(self) -> str:
@@ -761,57 +737,32 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
         """Give back the end of SDC path."""
         return cls.SERVICE_PATH
 
-    def get_vnf_unique_id(self, vnf_name: str) -> str:
+    def get_nf_unique_id(self, nf_name: str) -> str:
         """
-        Get vnf uniqueID.
+        Get nf (network function) uniqueID.
 
-        Get vnf uniqueID from service vnf in sdc.
+        Get nf uniqueID from service nf in sdc.
 
         Args:
-            vnf_name (str): the vnf from which we extract the unique ID
+            nf_name (str): the nf from which we extract the unique ID
 
         Returns:
-            the vnf unique ID
+            the nf unique ID
 
         Raises:
-            AttributeError: Couldn't find VNF
+            AttributeError: Couldn't find NF
 
         """
         url = f"{self._base_create_url()}/services/{self.unique_identifier}"
         request_return = self.send_message_json('GET',
-                                                'Get vnf unique ID',
+                                                'Get nf unique ID',
                                                 url)
         if request_return:
-            for instance in filter(lambda x: x["name"] == vnf_name,
+            for instance in filter(lambda x: x["name"] == nf_name,
                                    request_return["componentInstances"]):
                 return instance["uniqueId"]
-        raise AttributeError("Couldn't find VNF")
+        raise AttributeError("Couldn't find NF")
 
-    def get_pnf_unique_id(self, pnf_name: str) -> str:
-        """
-        Get pnf uniqueID.
-
-        Get pnf uniqueID from service pnf in sdc.
-
-        Args:
-            pnf_name (str): the pnf from which we extract the unique ID
-
-        Returns:
-            the pnf unique ID
-
-        Raises:
-            AttributeError: Couldn't find VNF
-
-        """
-        url = f"{self._base_create_url()}/services/{self.unique_identifier}"
-        request_return = self.send_message_json('GET',
-                                                'Get pnf unique ID',
-                                                url)
-        if request_return:
-            for instance in filter(lambda x: x["name"] == pnf_name,
-                                   request_return["componentInstances"]):
-                return instance["uniqueId"]
-        raise AttributeError("Couldn't find Pnf")
 
     def add_artifact_to_vf(self, vnf_name: str, artifact_type: str,
                            artifact_name: str, artifact: BinaryIO = None):
@@ -827,7 +778,7 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
             artifact (str): binary data to upload
 
         """
-        missing_identifier = self.get_vnf_unique_id(vnf_name)
+        missing_identifier = self.get_nf_unique_id(vnf_name)
         url = (f"{self._base_create_url()}/services/{self.unique_identifier}/"
                f"resourceInstance/{missing_identifier}/artifacts")
         template = jinja_env().get_template("add_artifact_to_vf.json.j2")

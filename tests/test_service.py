@@ -787,6 +787,15 @@ def test_vnf_no_template():
             service = Service(name="test")
             service.vnfs
 
+def test_pnf_no_template():
+    getter_mock = mock.Mock(wraps=Service.tosca_template.fget)
+    getter_mock.return_value = False
+    mock_status = Service.tosca_template.getter(getter_mock)
+    with mock.patch.object(Service, 'tosca_template', mock_status):
+        with pytest.raises(AttributeError):
+            service = Service(name="test")
+            service.pnfs
+
 def test_vnf_vf_modules_one():
     """Test parsing TOSCA file with one VNF which has associated one VFmodule"""
     service = Service(name="test")
@@ -798,6 +807,16 @@ def test_vnf_vf_modules_one():
         assert vnf.node_template_type == "org.openecomp.resource.vf.Ubuntu16Vf"
         assert vnf.vf_module
         assert vnf.vf_module.name == "ubuntu16_vf0..Ubuntu16Vf..base_ubuntu16..module-0"
+
+def test_pnf_modules_one():
+    """Test parsing TOSCA file with one PNF which has associated one PNFmodule"""
+    service = Service(name="test")
+    with open(Path(Path(__file__).resolve().parent, "data/service-TestPnfVsp-template.yml"), "r") as pnf:
+        service._tosca_template = yaml.safe_load(pnf.read())
+        assert len(service.pnfs) == 1
+        pnf = service.pnfs[0]
+        assert pnf.name == "test_pnf_vsp 0"
+        assert pnf.node_template_type == "org.openecomp.resource.pnf.TestPnfVsp"
 
 
 def test_vnf_vf_modules_two():
@@ -821,18 +840,18 @@ def test_vnf_vf_modules_two():
 
 @mock.patch.object(Service, 'send_message_json')
 def test_get_vnf_unique_id(mock_send):
-    """Test Service get Vnf uid with One Vf"""
+    """Test Service get nf uid with One Vf"""
     svc = Service()
     svc.unique_identifier = "service_unique_identifier"
     mock_send.return_value = ARTIFACTS
-    unique_id = svc.get_vnf_unique_id(vnf_name="ubuntu16test_VF 0")
+    unique_id = svc.get_nf_unique_id(nf_name="ubuntu16test_VF 0")
     mock_send.assert_called_once_with(
-        'GET', 'Get vnf unique ID',
+        'GET', 'Get nf unique ID',
         f"https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/rest/v1/catalog/services/{svc.unique_identifier}")
     assert unique_id == 'test_unique_id'
 
 
-@mock.patch.object(Service, 'get_vnf_unique_id')
+@mock.patch.object(Service, 'get_nf_unique_id')
 @mock.patch.object(Service, 'load')
 @mock.patch.object(Service, 'send_message')
 def test_add_artifact_to_vf(mock_send_message, mock_load, mock_add):
