@@ -720,6 +720,8 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
         This method is here because component can have different url when
             it's a component of another SDC resource type, eg. for service and
             for VF components have different urls.
+            Also for VL origin type components properties url is different than
+            for the other types.
 
         Args:
             component (Component): Component object to prepare url for
@@ -728,6 +730,8 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
             str: Component's properties url
 
         """
+        if component.origin_type == "VL":
+            return super().get_component_properties_url(component)
         return (f"{self.resource_inputs_url}/"
                 f"componentInstances/{component.unique_id}/{component.actual_component_uid}/inputs")
 
@@ -737,6 +741,8 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
         This method is here because component can have different url when
             it's a component of another SDC resource type, eg. for service and
             for VF components have different urls.
+            Also for VL origin type components properties url is different than
+            for the other types.
 
         Args:
             component (Component): Component object to prepare url for
@@ -745,5 +751,7 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
             str: Component's properties url
 
         """
+        if component.origin_type == "VL":
+            return super().get_component_properties_value_set_url(component)
         return (f"{self.resource_inputs_url}/"
                 f"resourceInstance/{component.unique_id}/inputs")
