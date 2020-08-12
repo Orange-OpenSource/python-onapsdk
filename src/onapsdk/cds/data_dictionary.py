@@ -12,10 +12,23 @@ class DataDictionary(CdsElement):
 
     logger: Logger = getLogger(__name__)
 
-    def __init__(self, data_dictionary_json: dict) -> None:
-        """Initialize data dictionary."""
+    def __init__(self, data_dictionary_json: dict, fix_schema: bool = True) -> None:
+        """Initialize data dictionary.
+
+        Args:
+            data_dictionary_json (dict): data dictionary json
+            fix_schema (bool, optional): determines if data dictionary should be fixed if
+                the invalid schema is detected. Fixing can raise ValueError if
+                dictionary is invalid. Defaults to True.
+
+        Rasies:
+            ValueError: raises on error during schema fixing
+
+        """
         super().__init__()
         self.data_dictionary_json: dict = data_dictionary_json
+        if not self.has_valid_schema() and fix_schema:
+            self.fix_schema()
 
     def __hash__(self) -> int:  # noqa: D401
         """Data dictionary object hash.
@@ -88,6 +101,62 @@ class DataDictionary(CdsElement):
             exception=ValueError
         )
 
+    def has_valid_schema(self) -> bool:
+        """Check data dictionary json schema.
+
+        Check data dictionary JSON and return bool if schema is valid or not.
+            Valid schema means that data dictionary has given keys:
+             - "name"
+             - "tags"
+             - "data_type"
+             - "description"
+             - "entry_schema"
+             - "updatedBy"
+             - "definition"
+            "definition" key value should contains the "raw" data dictionary.
+
+        Returns:
+            bool: True if data dictionary has valid schema, False otherwise
+
+        """
+        return all(key_to_check in self.data_dictionary_json for
+                   key_to_check in ["name", "tags", "data_type", "description", "entry_schema",
+                                    "updatedBy", "definition"])
+
+    def fix_schema(self) -> None:
+        """Fix data dictionary schema.
+
+        "Raw" data dictionary can be passed during initialization, but
+            this kind of data dictionary can't be uploaded to blueprintprocessor.
+            That method tries to fix it. It can be done only if "raw" data dictionary
+            has a given schema:
+                {
+                    "name": "string",
+                    "tags": "string",
+                    "updated-by": "string",
+                    "property": {
+                        "description": "string",
+                        "type": "string"
+                    }
+                }
+
+        Raises:
+            ValueError: Data dictionary doesn't have all required keys
+
+        """
+        try:
+            self.data_dictionary_json = {
+                "name": self.data_dictionary_json["name"],
+                "tags": self.data_dictionary_json["tags"],
+                "data_type": self.data_dictionary_json["property"]["type"],
+                "description": self.data_dictionary_json["property"]["description"],
+                "entry_schema": self.data_dictionary_json["property"]["type"],
+                "updatedBy": self.data_dictionary_json["updated-by"],
+                "definition": self.data_dictionary_json
+            }
+        except KeyError:
+            raise ValueError("Raw data dictionary JSON has invalid schema")
+
 
 class DataDictionarySet:
     """Data dictionary set.
@@ -145,24 +214,25 @@ class DataDictionarySet:
             dd_file.write(json.dumps([dd.data_dictionary_json for dd in self.dd_set], indent=4))
 
     @classmethod
-    def load_from_file(cls, dd_file_path: str) -> None:
+    def load_from_file(cls, dd_file_path: str, fix_schema: bool = True) -> "DataDictionarySet":
         """Create data dictionary set from file.
 
         File has to have valid JSON with data dictionaries list.
 
         Args:
             dd_file_path (str): Data dictionaries file path.
+            fix_schema (bool): Determines if schema should be fixed or not
 
         Raises:
             FileNotFoundError: File to load data dictionaries from doesn't exist
 
         Returns:
-            [type]: Data dictionary set with data dictionaries from given file
+            DataDictionarySet: Data dictionary set with data dictionaries from given file
 
         """
         dd_set: DataDictionarySet = DataDictionarySet()
         with open(dd_file_path, "r") as dd_file:  # type file
             dd_json: dict = json.loads(dd_file.read())
             for data_dictionary in dd_json:  # type DataDictionary
-                dd_set.add(DataDictionary(data_dictionary))
+                dd_set.add(DataDictionary(data_dictionary, fix_schema=fix_schema))
         return dd_set

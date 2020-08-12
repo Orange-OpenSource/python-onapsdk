@@ -16,7 +16,7 @@ from typing import BinaryIO
 import onapsdk.constants as const
 from onapsdk.sdc.component import Component
 from onapsdk.sdc.properties import ComponentProperty, Property
-from onapsdk.sdc.service import Service
+from onapsdk.sdc.service import Service, ServiceInstantiationType
 from onapsdk.sdc.sdc_resource import SdcResource
 from onapsdk.utils.headers_creator import headers_sdc_tester
 from onapsdk.utils.headers_creator import headers_sdc_governor
@@ -247,7 +247,15 @@ def test_distribution_id_setter():
 def test_create(mock_create):
     svc = Service()
     svc.create()
-    mock_create.assert_called_once_with("service_create.json.j2", name="ONAP-test-Service")
+    mock_create.assert_called_once_with("service_create.json.j2",
+                                        name="ONAP-test-Service",
+                                        instantiation_type="A-la-carte")
+    mock_create.reset_mock()
+    svc = Service(instantiation_type=ServiceInstantiationType.MACRO)
+    svc.create()
+    mock_create.assert_called_once_with("service_create.json.j2",
+                                        name="ONAP-test-Service",
+                                        instantiation_type="Macro")
 
 @mock.patch.object(Service, 'exists')
 @mock.patch.object(Service, 'send_message')
