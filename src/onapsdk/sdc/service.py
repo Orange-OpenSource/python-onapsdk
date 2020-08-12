@@ -761,6 +761,32 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
                 return instance["uniqueId"]
         raise AttributeError("Couldn't find VNF")
 
+    def get_pnf_unique_id(self, pnf_name: str) -> str:
+        """
+        Get pnf uniqueID.
+
+        Get pnf uniqueID from service pnf in sdc.
+
+        Args:
+            pnf_name (str): the pnf from which we extract the unique ID
+
+        Returns:
+            the pnf unique ID
+
+        Raises:
+            AttributeError: Couldn't find VNF
+
+        """
+        url = f"{self._base_create_url()}/services/{self.unique_identifier}"
+        request_return = self.send_message_json('GET',
+                                                'Get pnf unique ID',
+                                                url)
+        if request_return:
+            for instance in filter(lambda x: x["name"] == pnf_name,
+                                   request_return["componentInstances"]):
+                return instance["uniqueId"]
+        raise AttributeError("Couldn't find Pnf")
+
     def add_artifact_to_vf(self, vnf_name: str, artifact_type: str,
                            artifact_name: str, artifact: BinaryIO = None):
         """
