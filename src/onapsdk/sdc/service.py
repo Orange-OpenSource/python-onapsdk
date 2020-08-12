@@ -26,8 +26,8 @@ from onapsdk.utils.jinja import jinja_env
 
 
 @dataclass
-class VfModule:
-    """VfModule dataclass."""
+class NfModule:
+    """NfModule dataclass for PNF and VNF."""
 
     name: str
     group_type: str
@@ -39,7 +39,7 @@ class VfModule:
 class NodeTemplate:
     """Node template dataclass.
 
-    Base class for Vnf and Network classes.
+    Base class for Vnf, Pnf and Network classes.
     """
 
     name: str
@@ -53,27 +53,53 @@ class NodeTemplate:
 class Vnf(NodeTemplate):
     """Vnf dataclass."""
 
-    vf_module: VfModule = None
+    vf_module: NfModule = None
 
-    def associate_vf_module(self, vf_modules: Iterable[VfModule]) -> None:
+    def associate_vf_module(self, vf_modules: Iterable[NfModule]) -> None:
         """Iterate through Service vf modules and found the valid one.
 
         This is experimental! To be honest we are not sure if it works
             correctly, it should be clarified with ONAP community.
 
         Args:
-            vf_modules (Iterable[VfModule]): Service vf modules
+            vf_modules (Iterable[NfModule]): Service nf modules
 
         """
         AssociateMatch = namedtuple("AssociateMatch", ["ratio", "object"])
         best_match: AssociateMatch = AssociateMatch(0.0, None)
-        for vf_module in vf_modules:  # type: VfModule
+        for vf_module in vf_modules:  # type: NfModule
             current_ratio: float = SequenceMatcher(None,
                                                    self.name.lower(),
                                                    vf_module.name.lower()).ratio()
             if current_ratio > best_match.ratio:
                 best_match = AssociateMatch(current_ratio, vf_module)
         self.vf_module = best_match.object
+
+@dataclass
+class Pnf(NodeTemplate):
+    """Pnf dataclass."""
+
+    pnf_module: NfModule = None
+
+    def associate_pnf_module(self, pnf_modules: Iterable[NfModule]) -> None:
+        """Iterate through Service pnf modules and found the valid one.
+
+        This is experimental! To be honest we are not sure if it works
+            correctly, it should be clarified with ONAP community.
+
+        Args:
+            pnf_modules (Iterable[NfModule]): Service pnf modules
+
+        """
+        AssociateMatch = namedtuple("AssociateMatch", ["ratio", "object"])
+        best_match: AssociateMatch = AssociateMatch(0.0, None)
+        for pnf_module in pnf_modules:  # type: NfModule
+            current_ratio: float = SequenceMatcher(None,
+                                                   self.name.lower(),
+                                                   pnf_module.name.lower()).ratio()
+            if current_ratio > best_match.ratio:
+                best_match = AssociateMatch(current_ratio, pnf_module)
+        self.pnf_module = best_match.object
 
 
 class Network(NodeTemplate):  # pylint: disable=too-few-public-methods
@@ -127,8 +153,10 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
         self._tosca_model: bytes = None
         self._tosca_template: str = None
         self._vnfs: list = None
+        self._pnfs: list = None
         self._networks: list = None
         self._vf_modules: list = None
+        self._pnf_modules: list = None
 
     def onboard(self) -> None:
         """Onboard the Service in SDC."""
@@ -254,6 +282,38 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
         return self._vnfs
 
     @property
+    def pnfs(self) -> List[Vnf]:
+        """Service Pnfs.
+
+        Load PNFs from service's tosca file
+
+        Raises:
+            AttributeError: Service has no TOSCA template
+
+        Returns:
+            List[Pnf]: Pnf objects list
+
+        """
+        if not self.tosca_template:
+            raise AttributeError("Service has no TOSCA template")
+        if self._pnfs is None:
+            self._pnfs = []
+            for node_template_name, values in \
+                self.tosca_template.get("topology_template", {}).get(
+                        "node_templates", {}).items():
+                if re.match("org.openecomp.resource.pnf.*", values["type"]):
+                    pnf: Pnf = Pnf(
+                        name=node_template_name,
+                        node_template_type=values["type"],
+                        metadata=values["metadata"],
+                        properties=values["properties"],
+                        capabilities=values.get("capabilities", {})
+                    )
+                    pnf.associate_pnf_module(self._pnf_modules)
+                    self._pnfs.append(pnf)
+        return self._pnfs
+
+    @property
     def networks(self) -> List[Network]:
         """Service networks.
 
@@ -284,13 +344,13 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
         return self._networks
 
     @property
-    def vf_modules(self) -> List[VfModule]:
+    def vf_modules(self) -> List[NfModule]:
         """Service VF modules.
 
         Load VF modules from service's tosca file
 
         Returns:
-            List[VfModule]: VfModule objects list
+            List[NfModule]: NfModule objects list
 
         """
         if self._vf_modules is None:
@@ -298,13 +358,36 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
             groups: dict = self.tosca_template.get(
                 "topology_template", {}).get("groups", {})
             for group_name, values in groups.items():
-                self._vf_modules.append(VfModule(
+                self._vf_modules.append(NfModule(
                     name=group_name,
                     group_type=values["type"],
                     metadata=values["metadata"],
                     properties=values["properties"]
                 ))
         return self._vf_modules
+
+    @property
+    def pnf_modules(self) -> List[NfModule]:
+        """Service VF modules.
+
+        Load Pnf modules from service's tosca file
+
+        Returns:
+            List[NfModule]: NfModule objects list
+
+        """
+        if self._pnf_modules is None:
+            self._pnf_modules = []
+            groups: dict = self.tosca_template.get(
+                "topology_template", {}).get("groups", {})
+            for group_name, values in groups.items():
+                self._pnf_modules.append(NfModule(
+                    name=group_name,
+                    group_type=values["type"],
+                    metadata=values["metadata"],
+                    properties=values["properties"]
+                ))
+        return self._pnf_modules
 
     @property
     def deployment_artifacts_url(self) -> str:
