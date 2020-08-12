@@ -98,7 +98,6 @@ class Pnf(NodeTemplate):
             pnf_modules (Iterable[NfModule]): Service pnf modules
 
         """
-
         self.pnf_module = self.associate_nf_module(pnf_modules)
 
 
