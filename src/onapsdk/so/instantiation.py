@@ -9,7 +9,7 @@ from uuid import uuid4
 
 from onapsdk.onap_service import OnapService
 from onapsdk.sdnc import NetworkPreload, VfModulePreload
-from onapsdk.sdc.service import Network, Service as SdcService, Vnf, NfModule
+from onapsdk.sdc.service import Network, Service as SdcService, Vnf, VfModule
 from onapsdk.utils.jinja import jinja_env
 from onapsdk.utils.headers_creator import headers_so_creator
 from onapsdk.vid import LineOfBusiness, Platform
@@ -87,7 +87,7 @@ class VfModuleInstantiation(Instantiation):  # pytest: disable=too-many-ancestor
                  name: str,
                  request_id: str,
                  instance_id: str,
-                 vf_module: NfModule) -> None:
+                 vf_module: VfModule) -> None:
         """Initialize class object.
 
         Args:
@@ -98,7 +98,7 @@ class VfModuleInstantiation(Instantiation):  # pytest: disable=too-many-ancestor
             vf_module (VfModule): VF module used for instantiation
         """
         super().__init__(name, request_id, instance_id)
-        self.vf_module: NfModule = vf_module
+        self.vf_module: VfModule = vf_module
 
     @classmethod
     def instantiate_ala_carte(cls,  # pylint: disable=too-many-arguments

@@ -27,8 +27,8 @@ from onapsdk.utils.jinja import jinja_env
 
 
 @dataclass
-class NfModule:
-    """NfModule (network function module) dataclass for e.g. PNF and VNF."""
+class VfModule:
+    """VfModule dataclass."""
 
     name: str
     group_type: str
@@ -49,41 +49,34 @@ class NodeTemplate:
     properties: dict
     capabilities: dict
 
-    def associate_nf_module(self, nf_modules: Iterable[NfModule]) -> NfModule:
-        """Iterate through Service nf modules and found the valid one.
-
-        This is experimental! To be honest we are not sure if it works
-            correctly, it should be clarified with ONAP community.
-
-        Args:
-            nf_modules (Iterable[NfModule]): Service nf modules
-
-        """
-        AssociateMatch = namedtuple("AssociateMatch", ["ratio", "object"])
-        best_match: AssociateMatch = AssociateMatch(0.0, None)
-        for nf_module in nf_modules:  # type: NfModule
-            current_ratio: float = SequenceMatcher(None,
-                                                   self.name.lower(),
-                                                   nf_module.name.lower()).ratio()
-            if current_ratio > best_match.ratio:
-                best_match = AssociateMatch(current_ratio, nf_module)
-        return best_match.object
 
 
 @dataclass
 class Vnf(NodeTemplate):
     """Vnf dataclass."""
 
-    vf_module: NfModule = None
+    vf_module: VfModule = None
 
-    def associate_vf_module(self, vf_modules: Iterable[NfModule]) -> None:
-        """Extract valid vf modules from service.
+    def associate_vf_module(self, vf_modules: Iterable[VfModule]) -> None:
+        """Iterate through Service nf modules and found the valid one.
+
+        This is experimental! To be honest we are not sure if it works
+            correctly, it should be clarified with ONAP community.
 
         Args:
-            vf_modules (Iterable[NfModule]): Service nf modules
+            vf_modules (Iterable[VfModule]): Service vf modules
 
         """
-        self.vf_module = self.associate_nf_module(vf_modules)
+        AssociateMatch = namedtuple("AssociateMatch", ["ratio", "object"])
+        best_match: AssociateMatch = AssociateMatch(0.0, None)
+        for vf_module in vf_modules:  # type: VfModule
+            current_ratio: float = SequenceMatcher(None,
+                                                   self.name.lower(),
+                                                   vf_module.name.lower()).ratio()
+            if current_ratio > best_match.ratio:
+                best_match = AssociateMatch(current_ratio, vf_module)
+        self.vf_module = self.associate_nf_module(vf_module)
+
 
 @dataclass
 class Pnf(NodeTemplate):
@@ -354,13 +347,13 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
         return self._networks
 
     @property
-    def vf_modules(self) -> List[NfModule]:
+    def vf_modules(self) -> List[VfModule]:
         """Service VF modules.
 
         Load VF modules from service's tosca file
 
         Returns:
-            List[NfModule]: NfModule objects list
+            List[VfModule]: VfModule objects list
 
         """
         if self._vf_modules is None:
@@ -368,7 +361,7 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
             groups: dict = self.tosca_template.get(
                 "topology_template", {}).get("groups", {})
             for group_name, values in groups.items():
-                self._vf_modules.append(NfModule(
+                self._vf_modules.append(VfModule(
                     name=group_name,
                     group_type=values["type"],
                     metadata=values["metadata"],

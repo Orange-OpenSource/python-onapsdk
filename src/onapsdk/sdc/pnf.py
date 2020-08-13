@@ -49,7 +49,6 @@ class Pnf(SdcResource):
             raise ValueError("Neither Vsp nor vendor was given")
         self._create("pnf_create.json.j2", name=self.name, vsp=self.vsp, vendor=self.vendor)
 
-
     def _really_submit(self) -> None:
         """Really submit the SDC PNF in order to enable it."""
         result = self._action_to_sdc(const.CERTIFY, "lifecycleState")
