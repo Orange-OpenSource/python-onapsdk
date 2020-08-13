@@ -89,16 +89,6 @@ class Vnf(NodeTemplate):
 class Pnf(NodeTemplate):
     """Pnf dataclass."""
 
-    pnf_module: NfModule = None
-
-    def associate_pnf_module(self, pnf_modules: Iterable[NfModule]) -> None:
-        """Extract valid vf modules from service.
-
-        Args:
-            pnf_modules (Iterable[NfModule]): Service pnf modules
-
-        """
-        self.pnf_module = self.associate_nf_module(pnf_modules)
 
 
 class Network(NodeTemplate):  # pylint: disable=too-few-public-methods
@@ -330,7 +320,6 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
                         properties=values["properties"],
                         capabilities=values.get("capabilities", {})
                     )
-                    #pnf.associate_pnf_module(self.pnf_modules)
                     self._pnfs.append(pnf)
         return self._pnfs
 
