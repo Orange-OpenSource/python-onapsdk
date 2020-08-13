@@ -1,0 +1,30 @@
+{
+  "name": "{{ name }}",
+  "configurationsJson": {
+    "tca_policy": {
+      "domain": "measurementsForVfScaling",
+      "metricsPerEventName": [
+        {
+          "policyScope": "DCAE",
+          "thresholds": [
+            {
+              "version": "1.0.2",
+              "severity": "MAJOR",
+              "thresholdValue": 200,
+              "closedLoopEventStatus": "ONSET",
+              "closedLoopControlName": "{{ LOOP_name }}",
+              "direction": "LESS_OR_EQUAL",
+              "fieldPath": "$.event.measurementsForVfScalingFields.vNicPerformanceArray[*].receivedTotalPacketsDelta"
+            }
+          ],
+          "eventName": "vLoadBalancer",
+          "policyVersion": "v0.0.1",
+          "controlLoopSchemaType": "VM",
+          "policyName": "DCAE.Config_tca-hi-lo"
+        }
+      ]
+    }
+  },
+  "pdpGroup": "defaultGroup",
+  "pdpSubgroup": "xacml"
+}

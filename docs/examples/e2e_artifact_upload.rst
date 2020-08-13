@@ -24,7 +24,7 @@ E2E Upload of an artifact
     VF_NAME = "my_VF"
     SERVICENAME = "artifact_SERVICE"
 
-    ARTIFACT_NAME = "k8s_tca_clampnode.yaml"
+    ARTIFACT_NAME = "clampnode"
     ARTIFACT_TYPE = "DCAE_INVENTORY_BLUEPRINT"
     ARTIFACT_FILE_PATH = "{os.path.dirname(os.path.abspath(__file__))}/my_ArtifactFile.yaml"
 

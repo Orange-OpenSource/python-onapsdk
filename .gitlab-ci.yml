@@ -65,6 +65,8 @@
         alias: so.api.simpledemo.onap.org
       - name: registry.gitlab.com/orange-opensource/lfn/onap/mock_servers/mock-aai:latest
         alias: aai.api.sparky.simpledemo.onap.org
+      - name: registry.gitlab.com/orange-opensource/lfn/onap/mock_servers/mock-clamp:develop
+        alias: clamp.api.simpledemo.onap.org
       - name: registry.gitlab.com/orange-opensource/lfn/onap/mock_servers/mock-cds:latest
         alias: cds.api.simpledemo.onap.org
     script:
