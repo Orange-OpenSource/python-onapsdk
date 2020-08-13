@@ -58,7 +58,7 @@ class Vnf(NodeTemplate):
     vf_module: VfModule = None
 
     def associate_vf_module(self, vf_modules: Iterable[VfModule]) -> None:
-        """Iterate through Service nf modules and found the valid one.
+        """Iterate through Service vf modules and found the valid one.
 
         This is experimental! To be honest we are not sure if it works
             correctly, it should be clarified with ONAP community.
@@ -75,7 +75,7 @@ class Vnf(NodeTemplate):
                                                    vf_module.name.lower()).ratio()
             if current_ratio > best_match.ratio:
                 best_match = AssociateMatch(current_ratio, vf_module)
-        self.vf_module = self.associate_nf_module(vf_module)
+        self.vf_module = self.associate_vf_module(vf_module)
 
 
 @dataclass
