@@ -75,7 +75,7 @@ class Vnf(NodeTemplate):
                                                    vf_module.name.lower()).ratio()
             if current_ratio > best_match.ratio:
                 best_match = AssociateMatch(current_ratio, vf_module)
-        self.vf_module = self.associate_vf_module(vf_module)
+        self.vf_module = best_match.object
 
 
 @dataclass
