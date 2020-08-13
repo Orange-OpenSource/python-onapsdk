@@ -1,0 +1,94 @@
+[
+  {
+    "name": "{{ name }}",
+    "jsonRepresentation": {
+      "title": "onap.policies.controlloop.guard.common.MinMax",
+      "type": "object",
+      "description": "Supports Min/Max number of entity for scaling operations. Although min and max fields are marked as not\nrequired, you need to have at least one or the other.\n",
+      "required": [
+        "actor",
+        "operation",
+        "target"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The Control Loop id this applies to."
+        },
+        "actor": {
+          "type": "string",
+          "description": "Specifies the Actor the guard applies to."
+        },
+        "operation": {
+          "type": "string",
+          "description": "Specified the operation that the actor is performing the guard applies to."
+        },
+        "timeRange": {
+          "title": "tosca.datatypes.TimeInterval",
+          "type": "object",
+          "required": [
+            "start_time",
+            "end_time"
+          ],
+          "properties": {
+            "start_time": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "end_time": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        },
+        "min": {
+          "type": "integer",
+          "description": "The minimum instances of this entity"
+        },
+        "max": {
+          "type": "integer",
+          "description": "The maximum instances of this entity"
+        },
+        "target": {
+          "type": "string",
+          "description": "The target entity that has scaling restricted"
+        }
+      }
+    },
+    "configurationsJson": {
+      "actor": "test",
+      "operation": "test",
+      "target": "test",
+      "timeRange": {
+        "start_time": "00:00:00",
+        "end_time": "01:00:00"
+      },
+      "min": 1,
+      "max": 10
+    },
+    "policyModel": {
+      "policyModelType": "onap.policies.controlloop.guard.common.MinMax",
+      "version": "1.0.0",
+      "policyAcronym": "MinMax",
+      "policyPdpGroup": {
+        "supportedPdpGroups": [
+          {
+            "defaultGroup": [
+              "xacml"
+            ]
+          }
+        ]
+      },
+      "createdDate": "2020-07-22T01:37:35.861060Z",
+      "updatedDate": "2020-07-22T01:37:51.719018Z",
+      "updatedBy": "Not found",
+      "createdBy": "Not found"
+    },
+    "createdDate": "2020-07-22T09:01:14.168344Z",
+    "updatedDate": "2020-07-22T09:01:14.168344Z",
+    "updatedBy": "clamp@clamp.onap.org",
+    "createdBy": "clamp@clamp.onap.org",
+    "pdpGroup": "defaultGroup",
+    "pdpSubgroup": "xacml"
+  }
+]

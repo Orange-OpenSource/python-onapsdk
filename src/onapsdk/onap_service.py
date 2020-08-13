@@ -14,6 +14,7 @@ import urllib3
 from urllib3.util.retry import Retry
 import simplejson.errors
 
+
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
@@ -75,12 +76,15 @@ class OnapService(ABC):
             the request response if OK or None if an error occured
 
         """
+        cert = kwargs.pop('cert', None)
         exception = kwargs.pop('exception', None)
         headers = kwargs.pop('headers', cls.headers)
         data = kwargs.get('data', None)
         try:
             # build the request with the requested method
             session = cls.__requests_retry_session()
+            if cert:
+                session.cert = cert
             response = session.request(method,
                                        url,
                                        headers=headers,
