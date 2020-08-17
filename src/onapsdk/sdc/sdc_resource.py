@@ -6,6 +6,7 @@ import logging
 from abc import ABC
 from typing import Any, Dict, Iterator, List, Union
 import base64
+import time
 
 import onapsdk.constants as const
 from onapsdk.sdc import SDC
@@ -38,6 +39,7 @@ class SdcResource(SDC, ABC):  # pylint: disable=too-many-instance-attributes, to
         self._resource_type: str = "resources"
         self._properties_to_add: List[Property] = properties or []
         self._inputs_to_add: Union[Property, NestedInput] = inputs or []
+        self._time_wait: int = 10
         if sdc_values:
             self._logger.debug("SDC values given, using them")
             self.identifier = sdc_values['uuid']
@@ -340,6 +342,23 @@ class SdcResource(SDC, ABC):  # pylint: disable=too-many-instance-attributes, to
         """Really submit the SDC Vf in order to enable it."""
         raise NotImplementedError("SDC is an abstract class")
 
+    def onboard(self) -> None:
+        """Onboard resource in SDC."""
+        if not self.status:
+            self.create()
+            time.sleep(self._time_wait)
+            self.onboard()
+        elif self.status == const.DRAFT:
+            for property_to_add in self._properties_to_add:
+                self.add_property(property_to_add)
+            for input_to_add in self._inputs_to_add:
+                self.declare_input(input_to_add)
+            self.submit()
+            time.sleep(self._time_wait)
+            self.onboard()
+        elif self.status == const.CERTIFIED:
+            self.load()
+
     @classmethod
     def _sdc_path(cls) -> None:
         """Give back the end of SDC path."""
@@ -448,14 +467,23 @@ class SdcResource(SDC, ABC):  # pylint: disable=too-many-instance-attributes, to
     def resource_inputs_url(self) -> str:
         """Resource inputs url.
 
-        Abstract method which should be implemented by subclasses
-            and returns url which point to resource inputs.
-
-        Raises:
-            NotImplementedError: Method not implemented by subclass
+        Method which returns url which point to resource inputs.
 
         Returns:
             str: Resource inputs url
+
+        """
+        return (f"{self._base_create_url()}/resources/"
+                f"{self.unique_identifier}")
+
+
+    def create(self) -> None:
+        """Create resource.
+
+        Abstract method which should be implemented by subclasses and creates resource in SDC.
+
+        Raises:
+            NotImplementedError: Method not implemented by subclasses.
 
         """
         raise NotImplementedError
@@ -769,3 +797,4 @@ class SdcResource(SDC, ABC):  # pylint: disable=too-many-instance-attributes, to
                                     ),
                                exception=ValueError
                                )
+        

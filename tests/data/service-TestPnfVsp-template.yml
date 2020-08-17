@@ -1,0 +1,146 @@
+tosca_definitions_version: tosca_simple_yaml_1_1
+metadata:
+  invariantUUID: 25871897-1960-445b-8c4f-78111fab1e32
+  UUID: fda7e33f-775d-496c-a2a9-76bb8814fed7
+  name: test_service_pnf_vsp
+  description: service
+  type: Service
+  category: Network Service
+  serviceType: ''
+  serviceRole: ''
+  instantiationType: A-la-carte
+  serviceEcompNaming: true
+  ecompGeneratedNaming: true
+  namingPolicy: ''
+  environmentContext: General_Revenue-Bearing
+  serviceFunction: ''
+imports:
+- nodes:
+    file: nodes.yml
+- datatypes:
+    file: data.yml
+- capabilities:
+    file: capabilities.yml
+- relationships:
+    file: relationships.yml
+- groups:
+    file: groups.yml
+- policies:
+    file: policies.yml
+- annotations:
+    file: annotations.yml
+- service-test_service_pnf_vsp-interface:
+    file: service-TestServicePnfVsp-template-interface.yml
+- resource-test_pnf_vsp:
+    file: resource-TestPnfVsp-template.yml
+- resource-test_pnf_vsp-interface:
+    file: resource-TestPnfVsp-template-interface.yml
+topology_template:
+  inputs:
+    skip_post_instantiation_configuration:
+      default: true
+      type: boolean
+      required: false
+    controller_actor:
+      default: SO-REF-DATA
+      type: string
+      required: false
+    cds_model_version:
+      type: string
+      required: false
+    cds_model_name:
+      type: string
+      required: false
+  node_templates:
+    test_pnf_vsp 0:
+      type: org.openecomp.resource.pnf.TestPnfVsp
+      metadata:
+        invariantUUID: d52250cb-f4e4-4e16-880b-de0c3a9a3273
+        UUID: 081bc1b2-0283-44f6-80a2-f0f3672fec05
+        customizationUUID: dc0627b2-cdb6-40a7-8510-3ee70d98ce66
+        version: '1.0'
+        name: test_pnf_vsp
+        description: PNF
+        type: PNF
+        category: Generic
+        subcategory: Abstract
+        resourceVendor: test-vendor
+        resourceVendorRelease: '1.0'
+        resourceVendorModelNumber: ''
+      properties:
+        skip_post_instantiation_configuration: false
+        controller_actor: CDS
+        sdnc_model_version: 2.0.0
+        sdnc_artifact_name: vnf
+        sdnc_model_name: vSIM_CNF_CDS
+      capabilities:
+        pnfextcp_1.network.incoming.packets.rate:
+          properties:
+            name: network.incoming.packets.rate
+        pnfextcp_1.network.outgoing.packets.rate:
+          properties:
+            name: network.outgoing.packets.rate
+        pnfextcp_1.network.incoming.bytes:
+          properties:
+            name: network.incoming.bytes
+        pnfextcp_1.network.outgoing.bytes.rate:
+          properties:
+            name: network.outgoing.bytes.rate
+        pnfextcp_1.network.outpoing.packets:
+          properties:
+            name: network.outpoing.packets
+        pnfextcp_1.network.outgoing.bytes:
+          properties:
+            name: network.outgoing.bytes
+        pnfextcp_1.network.incoming.bytes.rate:
+          properties:
+            name: network.incoming.bytes.rate
+        pnfextcp_1.network.incoming.packets:
+          properties:
+            name: network.incoming.packets
+  substitution_mappings:
+    node_type: org.openecomp.service.TestServicePnfVsp8
+    capabilities:
+      test_pnf_vsp0.pnfextcp_1.network.outpoing.packets:
+      - test_pnf_vsp 0
+      - pnfextcp_1.network.outpoing.packets
+      test_pnf_vsp0.pnfextcp_1.feature:
+      - test_pnf_vsp 0
+      - pnfextcp_1.feature
+      test_pnf_vsp0.pnfextcp_1.network.incoming.bytes:
+      - test_pnf_vsp 0
+      - pnfextcp_1.network.incoming.bytes
+      test_pnf_vsp0.pnfextcp_1.network.incoming.packets:
+      - test_pnf_vsp 0
+      - pnfextcp_1.network.incoming.packets
+      test_pnf_vsp0.pnfextcp_1.port_mirroring:
+      - test_pnf_vsp 0
+      - pnfextcp_1.port_mirroring
+      test_pnf_vsp0.pnfextcp_1.network.incoming.packets.rate:
+      - test_pnf_vsp 0
+      - pnfextcp_1.network.incoming.packets.rate
+      test_pnf_vsp0.pnfextcp_1.network.outgoing.bytes.rate:
+      - test_pnf_vsp 0
+      - pnfextcp_1.network.outgoing.bytes.rate
+      test_pnf_vsp0.pnfextcp_1.network.incoming.bytes.rate:
+      - test_pnf_vsp 0
+      - pnfextcp_1.network.incoming.bytes.rate
+      test_pnf_vsp0.pnfextcp_1.forwarder:
+      - test_pnf_vsp 0
+      - pnfextcp_1.forwarder
+      test_pnf_vsp0.pnfextcp_1.network.outgoing.packets.rate:
+      - test_pnf_vsp 0
+      - pnfextcp_1.network.outgoing.packets.rate
+      test_pnf_vsp0.pnfextcp_1.network.outgoing.bytes:
+      - test_pnf_vsp 0
+      - pnfextcp_1.network.outgoing.bytes
+    requirements:
+      test_pnf_vsp0.pnfextcp_1.dependency:
+      - test_pnf_vsp 0
+      - pnfextcp_1.dependency
+      test_pnf_vsp0.pnfextcp_1.binding:
+      - test_pnf_vsp 0
+      - pnfextcp_1.binding
+      test_pnf_vsp0.pnfextcp_1.link:
+      - test_pnf_vsp 0
+      - pnfextcp_1.link

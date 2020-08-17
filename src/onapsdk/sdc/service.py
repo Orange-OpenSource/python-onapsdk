@@ -41,7 +41,7 @@ class VfModule:
 class NodeTemplate:
     """Node template dataclass.
 
-    Base class for Vnf and Network classes.
+    Base class for Vnf, Pnf and Network classes.
     """
 
     name: str
@@ -49,6 +49,7 @@ class NodeTemplate:
     metadata: dict
     properties: dict
     capabilities: dict
+
 
 
 @dataclass
@@ -76,6 +77,12 @@ class Vnf(NodeTemplate):
             if current_ratio > best_match.ratio:
                 best_match = AssociateMatch(current_ratio, vf_module)
         self.vf_module = best_match.object
+
+
+@dataclass
+class Pnf(NodeTemplate):
+    """Pnf dataclass."""
+
 
 
 class Network(NodeTemplate):  # pylint: disable=too-few-public-methods
@@ -152,15 +159,16 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
         self._tosca_model: bytes = None
         self._tosca_template: str = None
         self._vnfs: list = None
+        self._pnfs: list = None
         self._networks: list = None
         self._vf_modules: list = None
-        self._time_wait: int = 10
 
     def onboard(self) -> None:
         """Onboard the Service in SDC."""
         # first Lines are equivalent for all onboard functions but it's more
         # readable
         if not self.status:
+            # equivalent step as in onboard-function in sdc_resource
             self.create()
             time.sleep(self._time_wait)
             self.onboard()
@@ -279,6 +287,37 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
         return self._vnfs
 
     @property
+    def pnfs(self) -> List[Pnf]:
+        """Service Pnfs.
+
+        Load PNFs from service's tosca file
+
+        Raises:
+            AttributeError: Service has no TOSCA template
+
+        Returns:
+            List[Pnf]: Pnf objects list
+
+        """
+        if not self.tosca_template:
+            raise AttributeError("Service has no TOSCA template")
+        if self._pnfs is None:
+            self._pnfs = []
+            for node_template_name, values in \
+                self.tosca_template.get("topology_template", {}).get(
+                        "node_templates", {}).items():
+                if re.match("org.openecomp.resource.pnf.*", values["type"]):
+                    pnf: Pnf = Pnf(
+                        name=node_template_name,
+                        node_template_type=values["type"],
+                        metadata=values["metadata"],
+                        properties=values["properties"],
+                        capabilities=values.get("capabilities", {})
+                    )
+                    self._pnfs.append(pnf)
+        return self._pnfs
+
+    @property
     def networks(self) -> List[Network]:
         """Service networks.
 
@@ -330,6 +369,7 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
                     properties=values["properties"]
                 ))
         return self._vf_modules
+
 
     @property
     def deployment_artifacts_url(self) -> str:
@@ -679,31 +719,32 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
         """Give back the end of SDC path."""
         return cls.SERVICE_PATH
 
-    def get_vnf_unique_id(self, vnf_name: str) -> str:
+    def get_nf_unique_id(self, nf_name: str) -> str:
         """
-        Get vnf uniqueID.
+        Get nf (network function) uniqueID.
 
-        Get vnf uniqueID from service vnf in sdc.
+        Get nf uniqueID from service nf in sdc.
 
         Args:
-            vnf_name (str): the vnf from which we extract the unique ID
+            nf_name (str): the nf from which we extract the unique ID
 
         Returns:
-            the vnf unique ID
+            the nf unique ID
 
         Raises:
-            AttributeError: Couldn't find VNF
+            AttributeError: Couldn't find NF
 
         """
         url = f"{self._base_create_url()}/services/{self.unique_identifier}"
         request_return = self.send_message_json('GET',
-                                                'Get vnf unique ID',
+                                                'Get nf unique ID',
                                                 url)
         if request_return:
-            for instance in filter(lambda x: x["name"] == vnf_name,
+            for instance in filter(lambda x: x["name"] == nf_name,
                                    request_return["componentInstances"]):
                 return instance["uniqueId"]
-        raise AttributeError("Couldn't find VNF")
+        raise AttributeError("Couldn't find NF")
+
 
     def add_artifact_to_vf(self, vnf_name: str, artifact_type: str,
                            artifact_name: str, artifact: BinaryIO = None):
@@ -719,7 +760,7 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
             artifact (str): binary data to upload
 
         """
-        missing_identifier = self.get_vnf_unique_id(vnf_name)
+        missing_identifier = self.get_nf_unique_id(vnf_name)
         url = (f"{self._base_create_url()}/services/{self.unique_identifier}/"
                f"resourceInstance/{missing_identifier}/artifacts")
         template = jinja_env().get_template("add_artifact_to_vf.json.j2")

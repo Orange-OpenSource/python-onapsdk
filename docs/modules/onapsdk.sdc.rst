@@ -60,6 +60,14 @@ onapsdk.sdc.vsp module
    :undoc-members:
    :show-inheritance:
 
+onapsdk.sdc.pnf module
+----------------------
+
+.. automodule:: onapsdk.sdc.pnf
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 
 Module contents
 ---------------
