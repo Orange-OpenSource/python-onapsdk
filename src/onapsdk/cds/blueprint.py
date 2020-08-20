@@ -480,6 +480,18 @@ class Blueprint(CdsElement):
             exception=ValueError
         )
 
+    def deploy(self) -> None:
+        """Deploy blueprint."""
+        self.send_message(
+            "POST",
+            "Deploy CDS blueprint",
+            f"{self.url}",
+            files={"file": self.cba_file_bytes},
+            headers={},  # Leave headers empty to fill it correctly by `requests` library
+            auth=self.auth,
+            exception=ValueError
+        )
+
     def save(self, dest_file_path: str) -> None:
         """Save blueprint to file.
 

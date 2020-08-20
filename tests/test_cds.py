@@ -82,6 +82,13 @@ def test_blueprint_publish(send_message_mock):
     send_message_mock.assert_called_once()
 
 
+@patch.object(Blueprint, "send_message")
+def test_blueprint_deploy(send_message_mock):
+    blueprint = Blueprint(b"test cba - it will never work")
+    blueprint.deploy()
+    send_message_mock.assert_called_once()
+
+
 def test_blueprint_save():
     blueprint = Blueprint(b"test cba - it will never work")
     with TemporaryDirectory() as tmpdirname:
