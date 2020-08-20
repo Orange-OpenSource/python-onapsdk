@@ -548,7 +548,7 @@ class SdcResource(SDC, ABC):  # pylint: disable=too-many-instance-attributes, to
 
         """
         data = open(artifact, 'rb').read()
-
+        artifact_string = base64.b64encode(data).decode('utf-8')
         if self.status != const.DRAFT:
             raise AttributeError("Can't add artifact to resource which is not in DRAFT status")
         self._logger.debug("Add deployment artifact to sdc resource")
@@ -557,7 +557,7 @@ class SdcResource(SDC, ABC):  # pylint: disable=too-many-instance-attributes, to
                 render(artifact_name=artifact_name,
                        artifact_label=artifact_label,
                        artifact_type=artifact_type,
-                       b64_artifact=base64.b64encode(data))
+                       b64_artifact=artifact_string)
         my_header = headers_sdc_artifact_upload(base_header=self.headers, data=my_data)
 
         self.send_message_json("POST",
