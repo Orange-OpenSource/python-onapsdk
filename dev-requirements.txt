@@ -6,6 +6,6 @@ pytest==5.4.3
 pytest-cov==2.10.0
 pytest-mock==3.2.0
 yapf==0.30.0
-coverage==4.5.4
+coverage==5.2.1
 pyOpenSSL==19.1.0
 jsonschema==3.2.0
