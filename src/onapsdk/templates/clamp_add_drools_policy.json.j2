@@ -92,41 +92,41 @@
                             }
                           },
                           {
-                            "title": "VNF-ubuntu16_VF 0",
+                            "title": "VNF-ubuntu18agent_VF 0",
                             "properties": {
                               "resourceID": {
                                 "title": "Resource ID",
                                 "type": "string",
-                                "default": "f1483f34-4609-4a61-af16-7d47a95ca924",
+                                "default": "6daf6e05-fc26-4aa3-9f0b-d47cf3f37ece",
                                 "readOnly": "True"
                               }
                             }
                           },
                           {
-                            "title": "VFMODULE-Ubuntu16Vf..base_ubuntu16..module-0",
+                            "title": "VFMODULE-Ubuntu18agentVf..base_ubuntu18..module-0",
                             "properties": {
                               "resourceID": {
                                 "title": "Resource ID",
                                 "type": "string",
-                                "default": "Ubuntu16Vf..base_ubuntu16..module-0",
+                                "default": "Ubuntu18agentVf..base_ubuntu18..module-0",
                                 "readOnly": "True"
                               },
                               "modelInvariantId": {
                                 "title": "Model Invariant Id (ModelInvariantUUID)",
                                 "type": "string",
-                                "default": "4bb82fec-5316-41ec-a7b9-9ef6a37f75f3",
+                                "default": "2556faee-75dd-448f-8d2f-d4201a957e7c",
                                 "readOnly": "True"
                               },
                               "modelVersionId": {
                                 "title": "Model Version Id (ModelUUID)",
                                 "type": "string",
-                                "default": "93072307-0394-4843-a6fc-827dccc89a4a",
+                                "default": "98df9741-530a-486c-b156-b2cb62e6fc6c",
                                 "readOnly": "True"
                               },
                               "modelName": {
                                 "title": "Model Name",
                                 "type": "string",
-                                "default": "Ubuntu16Vf..base_ubuntu16..module-0",
+                                "default": "Ubuntu18agentVf..base_ubuntu18..module-0",
                                 "readOnly": "True"
                               },
                               "modelVersion": {
@@ -138,7 +138,7 @@
                               "modelCustomizationId": {
                                 "title": "Customization ID",
                                 "type": "string",
-                                "default": "109e69bd-b70d-4b8f-b86c-7da6aa5d6117",
+                                "default": "ba567b66-e46b-4521-8fdd-54185cb21a7f",
                                 "readOnly": "True"
                               }
                             }
@@ -259,44 +259,44 @@
       }
     },
     "configurationsJson": {
-		  "abatement": false,
-		  "operations": [
-		    {
-		      "failure_retries": "final_failure_retries",
-		      "id": "policy-1-vfmodule-create",
-		      "failure_timeout": "final_failure_timeout",
-		      "failure": "final_failure",
-		      "operation": {
-			"payload": {
-			  "requestParameters": {"usePreload":true,"userParams":[]},
-			  "configurationParameters": [{"ip-addr":"$.vf-module-topology.vf-module-parameters.param[16].value","oam-ip-addr":"$.vf-module-topology.vf-module-parameters.param[30].value"}]
-			},
-			"target": {
-			  "entityIds": {
-			    "resourceID": "{{ resourceID }}",
-          "modelInvariantId": "{{ modelInvariantId }}",
-          "modelVersionId": "{{ modelVersionId }}",
-          "modelName": "{{ modelName }}",
-          "modelVersion": "{{ modelVersion }}",
-          "modelCustomizationId": "{{ modelCustomizationId }}"
-			  },
-			  "targetType": "VFMODULE"
-			},
-			"actor": "SO",
-			"operation": "VF Module Create"
-		      },
-		      "failure_guard": "final_failure_guard",
-		      "retries": 1,
-		      "timeout": 300,
-		      "failure_exception": "final_failure_exception",
-		      "description": "test",
-		      "success": "final_success"
-		    }
-		  ],
-		  "trigger": "policy-1-vfmodule-create",
-		  "timeout": 650,
-		  "id": "{{ LOOP_name }}"
-		},
+      "abatement": false,
+      "operations": [
+        {
+          "failure_retries": "final_failure_retries",
+          "id": "policy-1-vfmodule-create",
+          "failure_timeout": "final_failure_timeout",
+          "failure": "final_failure",
+          "operation": {
+            "payload": {
+              "requestParameters": "{\"usePreload\":false,\"userParams\":[]}",
+              "configurationParameters": "[{\"ip-addr\":\"$.vf-module-topology.vf-module-parameters.param[16].value\",\"oam-ip-addr\":\"$.vf-module-topology.vf-module-parameters.param[30].value\"}]"
+            },
+            "target": {
+              "entityIds": {
+                "resourceID": "{{ resourceID }}",
+                "modelInvariantId": "{{ modelInvariantId }}",
+                "modelVersionId": "{{ modelVersionId }}",
+                "modelName": "{{ modelName }}",
+                "modelVersion": "{{ modelVersion }}",
+                "modelCustomizationId": "{{ modelCustomizationId }}"
+              },
+              "targetType": "VFMODULE"
+            },
+            "actor": "SO",
+            "operation": "VF Module Create"
+          },
+          "failure_guard": "final_failure_guard",
+          "retries": 1,
+          "timeout": 300,
+          "failure_exception": "final_failure_exception",
+          "description": "test",
+          "success": "final_success"
+        }
+      ],
+      "trigger": "policy-1-vfmodule-create",
+      "timeout": 650,
+      "id": "{{ LOOP_name }}"
+    },
     "policyModel": {
       "policyModelType": "onap.policies.controlloop.operational.common.Drools",
       "version": "1.0.0",
@@ -322,4 +322,4 @@
     "pdpGroup": "defaultGroup",
     "pdpSubgroup": "drools"
   }
-  ]
+]
