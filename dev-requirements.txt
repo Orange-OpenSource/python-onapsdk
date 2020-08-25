@@ -4,7 +4,7 @@ simplejson==3.17.2
 mock==4.0.2
 pytest==6.0.1
 pytest-cov==2.10.1
-pytest-mock==3.2.0
+pytest-mock==3.3.0
 yapf==0.30.0
 coverage==5.2.1
 pyOpenSSL==19.1.0
