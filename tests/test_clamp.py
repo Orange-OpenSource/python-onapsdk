@@ -187,6 +187,7 @@ def test_cl_initialization():
 
 @mock.patch.object(LoopInstance, '_update_loop_details')
 def test_details(mock_update):
+    """Test loop instace details gette."""
     loop = LoopInstance(template="template", name="LOOP_name", details={})
     mock_update.return_value = {"name" : "test"}
     details = loop.details
@@ -206,6 +207,31 @@ def test_update_loop_details(mock_send_message_json):
 
 
 @mock.patch.object(LoopInstance, 'send_message_json')
+def test_refresh_status(mock_send_message_json):
+    """Test Loop instance methode."""
+    loop = LoopInstance(template="template", name="test", details={})
+    mock_send_message_json.return_value = LOOP_DETAILS
+    loop.refresh_status()
+    mock_send_message_json.assert_called_once_with('GET', 'Get loop status',
+         (f"{loop.base_url()}/loop/getstatus/LOOP_test"),
+         cert=loop.cert)
+    assert loop.details == LOOP_DETAILS
+
+
+@mock.patch.object(LoopInstance, 'send_message_json')
+def test_refresh_status_error(mock_send_message_json):
+    """Test Loop instance methode."""
+    loop = LoopInstance(template="template", name="test", details={})
+    mock_send_message_json.return_value = {}
+    with pytest.raises(ValueError):       
+        loop.refresh_status()
+        mock_send_message_json.assert_called_once_with('GET', 'Get loop status',
+            (f"{loop.base_url()}/loop/getstatus/LOOP_test"),
+            cert=loop.cert)
+        assert loop.details == {}
+
+
+@mock.patch.object(LoopInstance, 'send_message_json')
 def test_not_update_loop_details(mock_send_message_json):
     """Test Loop instance update details."""
     loop = LoopInstance(template="template", name="test", details={})
@@ -222,6 +248,14 @@ def test_validate_details():
     loop = LoopInstance(template="template", name="test", details=LOOP_DETAILS)
     valid = loop.validate_details()
     assert  valid
+
+
+def test_validate_details():
+    """Test Loop instance details validation."""
+    loop = LoopInstance(template="template", name="test", details=LOOP_DETAILS)
+    loop.details = {"test":"test"}
+    valid = loop.validate_details()
+    assert  not valid
 
 
 @mock.patch.object(LoopInstance, 'send_message_json')
@@ -334,7 +368,25 @@ def test_update_microservice_policy_none(mock_send_message):
     loop = LoopInstance(template="template", name="test", details=LOOP_DETAILS)
     mock_send_message.return_value = False
     loop.update_microservice_policy()
-    mock_send_message.assert_called_once() 
+    mock_send_message.assert_called_once()
+
+
+def test_extract_operational_policy_name():
+    """Test Loop Instance extract operational policy name."""
+    loop = LoopInstance(template="template", name="test", details={})
+    loop.details = {"operationalPolicies":[{"name":"test","policyModel":{"policyAcronym":"Drools"}}]}
+    policy_name = loop.extract_operational_policy_name(policy_type="Drools")
+    assert policy_name=='test'
+
+
+def test_extract_none():
+    """Test Loop Instance extract operational policy name."""
+    loop = LoopInstance(template="template", name="test", details={})
+    loop.details = {"operationalPolicies":[]}
+    with pytest.raises(ValueError):
+        policy_name = loop.extract_operational_policy_name(policy_type="Drools")
+        assert policy_name == None
+
 
 @mock.patch.object(LoopInstance, 'extract_operational_policy_name')
 @mock.patch.object(LoopInstance, 'send_message')
@@ -343,6 +395,20 @@ def test_add_drools_policy_config(mock_send_message, mock_extract):
     loop = LoopInstance(template="template", name="test", details=LOOP_DETAILS)
     mock_send_message.return_value = True
     loop.add_op_policy_config(loop.add_drools_conf)
+    mock_send_message.assert_called_once() 
+    method, description, url = mock_send_message.call_args[0]
+    assert method == "POST"
+    assert description == "ADD operational policy config"
+    assert url == (f"{loop.base_url()}/loop/updateOperationalPolicies/{loop.name}")
+
+
+@mock.patch.object(LoopInstance, 'extract_operational_policy_name')
+@mock.patch.object(LoopInstance, 'send_message')
+def test_add_minmax_config(mock_send_message, mock_extract):
+    """Test Loop Instance add op policy configuration."""
+    loop = LoopInstance(template="template", name="test", details=LOOP_DETAILS)
+    mock_send_message.return_value = True
+    loop.add_op_policy_config(loop.add_minmax_config)
     mock_send_message.assert_called_once() 
     method, description, url = mock_send_message.call_args[0]
     assert method == "POST"
@@ -363,17 +429,33 @@ def test_add_frequency_policy_config(mock_send_message, mock_extract):
     assert description == "ADD operational policy config"
     assert url == (f"{loop.base_url()}/loop/updateOperationalPolicies/{loop.name}")
 
-
-@mock.patch.object(LoopInstance, 'extract_operational_policy_name')
 @mock.patch.object(LoopInstance, 'send_message')
-def test_add_op_policy_config_error(mock_send_message, mock_extract):
+@mock.patch.object(LoopInstance, 'add_minmax_config')
+@mock.patch.object(LoopInstance, 'add_frequency_limiter')
+def test_add_two_policies_config(mock_freq, mock_min, mock_send_message):
+    """Test Loop Instance add op policy configuration."""
+    loop = LoopInstance(template="template", name="test", details=LOOP_DETAILS)
+    mock_min.return_value = '[{"test1":"test1"}]'
+    mock_freq.return_value = '[{"test2":"test2"}]'
+    loop.add_op_policy_config(loop.add_minmax_config)
+    mock_min.assert_called_once()
+    mock_send_message.assert_called_once()
+    loop.add_op_policy_config(loop.add_frequency_limiter)
+    mock_freq.assert_called_once()
+    assert loop.operational_policies == '[{"test1":"test1"},{"test2":"test2"}]'
+
+
+
+@mock.patch.object(LoopInstance, 'add_frequency_limiter')
+@mock.patch.object(LoopInstance, 'send_message')
+def test_add_op_policy_config_error(mock_send_message, mock_freq):
     """Test Loop Instance add op policy configuration."""
     loop = LoopInstance(template="template", name="test", details=LOOP_DETAILS)
     mock_send_message.return_value = False
     #if u put a non cong function
     with pytest.raises(ValueError):      
         loop.add_op_policy_config(loop.add_frequency_limiter)
-        mock_send_message.assert_called_once() 
+        mock_send_message.assert_called_once()
         method, description, url = mock_send_message.call_args[0]
         assert method == "POST"
         assert description == "ADD operational policy config"
@@ -396,6 +478,37 @@ def test_submit_policy(mock_send_message, mock_refresh):
     assert loop.details["components"]["POLICY"]["componentState"]["stateName"] == "SENT_AND_DEPLOYED"
 
 
+@mock.patch.object(LoopInstance, 'refresh_status')
+@mock.patch.object(LoopInstance, 'send_message')
+def test_stop_policy(mock_send_message, mock_refresh):
+    """Test submit policies to policy engine."""
+    loop = LoopInstance(template="template", name="test", details=LOOP_DETAILS)
+    action = loop.act_on_loop_policy(loop.stop)
+    mock_send_message.assert_called_once_with('PUT',
+                                            'stop policy',
+                                            (f"{loop.base_url()}/loop/stop/LOOP_test"),
+                                            cert=loop.cert,
+                                            exception=ValueError)
+    mock_refresh.assert_called_once()
+    loop.details = {"components":{"POLICY":{"componentState":{"stateName":"SENT"}}}}
+    assert loop.details["components"]["POLICY"]["componentState"]["stateName"] == "SENT"
+
+
+@mock.patch.object(LoopInstance, 'refresh_status')
+@mock.patch.object(LoopInstance, 'send_message')
+def test_restart_policy(mock_send_message, mock_refresh):
+    """Test submit policies to policy engine."""
+    loop = LoopInstance(template="template", name="test", details=LOOP_DETAILS)
+    action = loop.act_on_loop_policy(loop.restart)
+    mock_send_message.assert_called_once_with('PUT',
+                                            'restart policy',
+                                            (f"{loop.base_url()}/loop/restart/LOOP_test"),
+                                            cert=loop.cert,
+                                            exception=ValueError)
+    mock_refresh.assert_called_once()
+    loop.details = SUBMITED_POLICY
+    assert loop.details["components"]["POLICY"]["componentState"]["stateName"] == "SENT_AND_DEPLOYED"
+
 
 @mock.patch.object(LoopInstance, 'refresh_status')
 @mock.patch.object(LoopInstance, 'send_message')
@@ -412,6 +525,21 @@ def test_not_submited_policy(mock_send_message, mock_refresh):
     mock_refresh.assert_called_once()
     loop.details = NOT_SUBMITED_POLICY
     assert loop.details["components"]["POLICY"]["componentState"]["stateName"] == "SENT"
+
+
+@mock.patch.object(LoopInstance, 'send_message_json')
+@mock.patch.object(LoopInstance, 'send_message')
+def test_deploy_microservice_to_dcae(mock_send_message, mock_send_message_json):
+    """Test stop microservice."""
+    loop = LoopInstance(template="template", name="test", details=LOOP_DETAILS)
+    mock_send_message_json.return_value = SUBMITED
+    state = loop.deploy_microservice_to_dcae()
+    mock_send_message.assert_called_once_with('PUT',
+                                            'Deploy microservice to DCAE',
+                                            (f"{loop.base_url()}/loop/deploy/LOOP_test"),
+                                            cert=loop.cert,
+                                            exception=ValueError)
+    assert state
 
 
 @mock.patch.object(LoopInstance, 'send_message')
