@@ -107,6 +107,7 @@ def test_exists_exists(mock_get_all):
     """Return True if vsp exists in SDC."""
     vsp_1 = Vsp(name="one")
     vsp_1.identifier = "1234"
+    vsp_1.version = "1.1"
     mock_get_all.return_value = [vsp_1]
     vsp = Vsp(name="one")
     assert vsp.exists()
