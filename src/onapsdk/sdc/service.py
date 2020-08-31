@@ -124,7 +124,7 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
 
     SERVICE_PATH = "services"
 
-    def __init__(self, name: str = None, sdc_values: Dict[str, str] = None,  # pylint: disable=too-many-arguments
+    def __init__(self, name: str = None, version: str = None, sdc_values: Dict[str, str] = None,  # pylint: disable=too-many-arguments
                  resources: List[SdcResource] = None, properties: List[Property] = None,
                  inputs: List[Union[Property, NestedInput]] = None,
                  instantiation_type: ServiceInstantiationType = \
@@ -134,6 +134,7 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
 
         Args:
             name (str, optional): the name of the service
+            version (str, optional): the version of the service
             sdc_values (Dict[str, str], optional): dictionary of values
                 returned by SDC
             resources (List[SdcResource], optional): list of SDC resources
@@ -146,7 +147,8 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
                 type. ServiceInstantiationType.A_LA_CARTE by default
 
         """
-        super().__init__(sdc_values=sdc_values, properties=properties, inputs=inputs)
+        super().__init__(sdc_values=sdc_values, version=version, properties=properties,
+                         inputs=inputs)
         self.name: str = name or "ONAP-test-Service"
         self.distribution_status = None
         if sdc_values:

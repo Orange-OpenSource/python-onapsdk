@@ -28,12 +28,13 @@ class SdcResource(SDC, ABC):  # pylint: disable=too-many-instance-attributes, to
     ACTION_METHOD = 'POST'
     headers = headers_sdc_creator(SDC.headers)
 
-    def __init__(self, name: str = None, sdc_values: Dict[str, str] = None,
-                 properties: List[Property] = None,
+    def __init__(self, name: str = None, version: str = None, # pylint: disable=too-many-arguments
+                 sdc_values: Dict[str, str] = None, properties: List[Property] = None,
                  inputs: Union[Property, NestedInput] = None):
         """Initialize the object."""
         super().__init__()
         self.name: str = name
+        self.version_filter: str = version
         self._unique_uuid: str = None
         self._unique_identifier: str = None
         self._resource_type: str = "resources"

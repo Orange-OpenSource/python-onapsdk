@@ -181,6 +181,37 @@ def test_init_with_sdc_values(mock_exists):
     assert svc._distribution_id is None
     assert isinstance(svc._base_url(), str)
 
+@mock.patch.object(Service, 'get_all')
+def test_version_filter(mock_get_all):
+    """Check version filter"""
+    svc_1 = Service(name="test_version_filter")
+    svc_1.identifier = "1111"
+    svc_1.unique_uuid = "2222"
+    svc_1.unique_identifier = "3333"
+    svc_1.status = const.CERTIFIED
+    svc_1.version = "1.0"
+
+    svc_2 = Service(name="test_version_filter")
+    svc_2.identifier = "1111"
+    svc_2.unique_uuid = "2222"
+    svc_2.unique_identifier = "3333"
+    svc_2.status = const.DRAFT
+    svc_2.version = "1.1"
+
+    mock_get_all.return_value = [svc_1, svc_2]
+
+    svc = Service(name='test_version_filter')
+    assert svc.exists()
+    assert svc.version == "1.1"
+
+    svc = Service(name='test_version_filter', version='1.0')
+    assert svc.exists()
+    assert svc.version == "1.0"
+
+    svc = Service(name='test_version_filter', version='-111')
+    assert not svc.exists()
+    assert not svc.version
+
 def test_equality_really_equals():
     """Check two vfs are equals if name is the same."""
     svc_1 = Service(name="equal")

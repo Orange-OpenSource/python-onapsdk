@@ -28,17 +28,19 @@ class Pnf(SdcResource):
 
     """
 
-    def __init__(self, name: str = None, vendor: Vendor = None, sdc_values: Dict[str, str] = None,  # pylint: disable=too-many-arguments
-                 vsp: Vsp = None, properties: List[Property] = None,
-                 inputs: Union[Property, NestedInput] = None):
+    def __init__(self, name: str = None, version: str = None, vendor: Vendor = None, # pylint: disable=too-many-arguments
+                 sdc_values: Dict[str, str] = None, vsp: Vsp = None,
+                 properties: List[Property] = None, inputs: Union[Property, NestedInput] = None):
         """
         Initialize pnf object.
 
         Args:
             name (optional): the name of the pnf
+            version (str, optional): the version of a PNF object
 
         """
-        super().__init__(sdc_values=sdc_values, properties=properties, inputs=inputs)
+        super().__init__(sdc_values=sdc_values, version=version, properties=properties,
+                         inputs=inputs)
         self.name: str = name or "ONAP-test-PNF"
         self.vendor: Vendor = vendor
         self.vsp: Vsp = vsp
