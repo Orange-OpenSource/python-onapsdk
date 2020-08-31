@@ -26,7 +26,7 @@ class Vf(SdcResource):
 
     """
 
-    def __init__(self, name: str = None, sdc_values: Dict[str, str] = None,  # pylint: disable=too-many-arguments
+    def __init__(self, name: str = None, version: str = None, sdc_values: Dict[str, str] = None,  # pylint: disable=too-many-arguments
                  vsp: Vsp = None, properties: List[Property] = None,
                  inputs: Union[Property, NestedInput] = None):
         """
@@ -34,9 +34,11 @@ class Vf(SdcResource):
 
         Args:
             name (optional): the name of the vf
+            version (str, optional): the version of the vf
 
         """
-        super().__init__(sdc_values=sdc_values, properties=properties, inputs=inputs)
+        super().__init__(sdc_values=sdc_values, version=version, properties=properties,
+                         inputs=inputs)
         self.name: str = name or "ONAP-test-VF"
         self.vsp: Vsp = vsp or None
 
