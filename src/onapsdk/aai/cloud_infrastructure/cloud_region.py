@@ -298,7 +298,7 @@ class CloudRegion(AaiElement):  # pylint: disable=too-many-instance-attributes
         )
         return (
             AvailabilityZone(
-                name=availability_zone.get("availability-zone-name"),
+                name=availability_zone.get("name"),
                 hypervisor_type=availability_zone.get("hypervisor-type"),
                 operational_status=availability_zone.get("operational-status"),
                 resource_version=availability_zone.get("resource-version")
@@ -389,6 +389,32 @@ class CloudRegion(AaiElement):  # pylint: disable=too-many-instance-attributes
             tenant_name=response["tenant-name"],
             tenant_context=response.get("tenant-context"),
             resource_version=response.get("resource-version"),
+        )
+
+    def get_availability_zone_by_name(self,
+                                      zone_name: str) -> "AvailabilityZone":
+        """Get availability zone with provided Name.
+
+        Args:
+            availability_zone name (str): The name of the availibilty zone
+
+        Returns:
+            AvailabilityZone: AvailabilityZone object
+
+        Raises:
+            ValueError: Availability Zone with provided name doesn't exist
+
+        """
+        response: dict = self.send_message_json(
+            "GET",
+            "get availability_zones",
+            f"{self.url}/availability-zones/availability-zone/{zone_name}",
+            exception=ValueError
+        )
+        return AvailabilityZone(
+            name=response["name"],
+            hypervisor_type=response["hypervisor-type"],
+            resource_version=response["resource-version"]
         )
 
     def add_availability_zone(self,

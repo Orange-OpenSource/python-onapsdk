@@ -406,15 +406,17 @@ def test_customer_subscribe_service(mock_send_message, mock_send_message_json):
     customer.subscribe_service(service)
 
 
-#test the Cloud Region Class  
+#test the Cloud Region Class
+AVAILABILITY_ZONE = {
+    "name":"OPNFV LaaS",
+    "hypervisor-type":"1234",
+    "operational-status":"working",
+    "resource-version":"version1.0"
+}
+
 AVAILABILITY_ZONES = {
     "availability-zone":[
-        {
-            "availability-zone-name":"OPNFV LaaS",
-            "hypervisor-type":"1234",
-            "operational-status":"working",
-            "resource-version":"version1.0"
-        }
+        AVAILABILITY_ZONE
     ]
 }
 
@@ -432,6 +434,18 @@ def test_availability_zones(mock_send_message_json):
     assert zone1.name == "OPNFV LaaS"
     assert zone1.hypervisor_type == "1234"
 
+@mock.patch.object(CloudRegion, "send_message_json")
+def test_get_availability_zone_from_name(mock_send_message_json):
+    """Test get Availability Zone by name"""
+    cloud_region = CloudRegion(cloud_owner="test_cloud_owner",
+                               cloud_region_id="test_cloud_region",
+                               orchestration_disabled=True,
+                               in_maint=False)
+    mock_send_message_json.return_value = AVAILABILITY_ZONE
+    availability_zone = cloud_region.get_availability_zone_by_name("OPNFV LaaS")
+    assert availability_zone.name == "OPNFV LaaS"
+    assert availability_zone.hypervisor_type == "1234"
+    assert availability_zone.resource_version == "version1.0"
 
 @mock.patch.object(CloudRegion, "send_message")
 def test_add_availability_zone(mock_send_message):
@@ -447,7 +461,6 @@ def test_add_availability_zone(mock_send_message):
     assert method == "PUT"
     assert description == "Add availability zone to cloud region"
     assert url == f"{cloud_region.url}/availability-zones/availability-zone/test_zone"
-
 
 @mock.patch.object(CloudRegion, "send_message")
 def test_add_tenant_to_cloud(mock_send_message):
