@@ -408,7 +408,7 @@ def test_customer_subscribe_service(mock_send_message, mock_send_message_json):
 
 #test the Cloud Region Class
 AVAILABILITY_ZONE = {
-    "name":"OPNFV LaaS",
+    "availability-zone-name":"OPNFV LaaS",
     "hypervisor-type":"1234",
     "operational-status":"working",
     "resource-version":"version1.0"
@@ -416,7 +416,12 @@ AVAILABILITY_ZONE = {
 
 AVAILABILITY_ZONES = {
     "availability-zone":[
-        AVAILABILITY_ZONE
+        {
+            "name":"OPNFV LaaS",
+            "hypervisor-type":"1234",
+            "operational-status":"working",
+            "resource-version":"version1.0"
+        }
     ]
 }
 
