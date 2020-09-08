@@ -412,7 +412,7 @@ class CloudRegion(AaiElement):  # pylint: disable=too-many-instance-attributes
             exception=ValueError
         )
         return AvailabilityZone(
-            name=response["name"],
+            name=response["availability-zone-name"],
             hypervisor_type=response["hypervisor-type"],
             resource_version=response["resource-version"]
         )
