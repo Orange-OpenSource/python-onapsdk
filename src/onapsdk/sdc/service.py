@@ -742,7 +742,7 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
                                                 'Get nf unique ID',
                                                 url)
         if request_return:
-            for instance in filter(lambda x: x["name"] == nf_name,
+            for instance in filter(lambda x: x["componentName"] == nf_name,
                                    request_return["componentInstances"]):
                 return instance["uniqueId"]
         raise AttributeError("Couldn't find NF")

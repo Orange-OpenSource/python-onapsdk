@@ -28,7 +28,7 @@ ARTIFACTS = {
     "componentInstances" : [
         {
             "uniqueId" : "test_unique_id",
-            "name" : "ubuntu16test_VF 0"
+            "componentName" : "ubuntu16test_VF 0"
         }
     ]                 
 }
