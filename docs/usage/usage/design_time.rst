@@ -97,52 +97,6 @@ Onboard a VF with Deployment Artifact
 
    vf.onboard()
 
-Onboard a PNF with VSP
-----------------------
-.. code:: Python
-
-   from onapsdk.sdc.pnf import Pnf
-   from onapsdk.sdc.vendor import Vendor
-
-   logger.info("******** Onboard Vendor *******")
-   vendor = Vendor(name="my_Vendor")
-   vendor.onboard()
-
-   # We assume here that the VSP has been already onboarded
-   vsp = Vsp(name="myVSP")
-
-   logger.info("******** Onboard PNF *******")
-   pnf = PNF(name="myPNF")
-   pnf.vsp = vsp
-   pnf.onboard()
-
-
-
-Onboard a PNF with Deployment Artifact (without VSP)
-----------------------------------------------------
-.. code:: Python
-
-   from onapsdk.sdc.vendor import Vendor
-   from onapsdk.sdc.pnf import Pnf
-
-   logger.info("******** Onboard Vendor *******")
-   vendor = Vendor(name="my_Vendor")
-   vendor.onboard()
-
-   logger.info("******** Onboard PNF *******")
-   pnf = Pnf(name=PNF, vendor=vendor)
-   pnf.create()
-
-   logger.info("******** Upload Artifact *******")
-   pnf.add_deployment_artifact(artifact_type=ARTIFACT_TYPE,
-                               artifact_name=ARTIFACT_NAME,
-                               artifact_label=ARTIFACT_LABEL,
-                               artifact=ARTIFACT_FILE_PATH)
-   pnf.onboard()
-
-
-
-
 Onboard a Service
 -----------------
 
@@ -238,3 +192,40 @@ Onboard a Service with Deployment Artifact
 
    svc.onboard()
 
+Onboard a Service with a CBA blueprint for Macro Instantiation
+--------------------------------------------------------------
+
+.. code:: Python
+
+   from onapsdk.sdc.service import Service, ServiceInstantiationType
+
+   # Set CBA variables and artifact level
+   # Must match to values in the CBA TOSCA.meta file
+   SDNC_TEMPLATE_NAME = "vFW-CDS"
+   SDNC_TEMPLATE_VERSION = "1.0.0"
+   SDNC_ARTIFACT_NAME = "vnf"
+
+   svc = Service(name="myService",
+                 instantiation_type=ServiceInstantiationType.MACRO)
+
+   svc.create()
+
+   logger.info("*** add a VF, which includes a CBA blueprint ***")
+   svc.add_resource(vf)
+
+   logger.info("******** Set SDNC properties for VF ********")
+   component = svc.get_component(vf)
+   prop = component.get_property("sdnc_model_version")
+   prop.value = SDNC_TEMPLATE_NAME
+   prop = component.get_property("sdnc_artifact_name")
+   prop.value = SDNC_ARTIFACT_NAME
+   prop = component.get_property("sdnc_model_name")
+   prop.value = SDNC_TEMPLATE_NAME
+   prop = component.get_property("controller_actor")
+   prop.value = "CDS"
+   prop = component.get_property("skip_post_instantiation_configuration")
+   prop.value = False
+
+   logger.info("******** Onboard Service *******")
+   svc.checkin()
+   svc.onboard()

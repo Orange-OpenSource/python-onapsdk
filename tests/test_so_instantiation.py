@@ -15,7 +15,7 @@ from onapsdk.vid import Vid
 
 
 @mock.patch.object(ServiceInstantiation, "send_message_json")
-def test_service_instantiation(mock_service_instantiation_send_message):
+def test_service_ala_carte_instantiation(mock_service_instantiation_send_message):
     mock_sdc_service = mock.MagicMock()
     mock_sdc_service.distributed = False
     with pytest.raises(ValueError):
@@ -45,6 +45,51 @@ def test_service_instantiation(mock_service_instantiation_send_message):
                                     customer=mock.MagicMock(),
                                     owning_entity=mock.MagicMock(),
                                     project=mock.MagicMock())
+    assert service_instance.name.startswith("Python_ONAP_SDK_service_instance_")
+    mock_service_instantiation_send_message.assert_called()
+    method, _, url = mock_service_instantiation_send_message.call_args[0]
+    assert method == "POST"
+    assert url == (f"{ServiceInstantiation.base_url}/onap/so/infra/"
+                   f"serviceInstantiation/{ServiceInstantiation.api_version}/serviceInstances")
+
+
+@mock.patch.object(ServiceInstantiation, "send_message_json")
+def test_service_macro_instantiation(mock_service_instantiation_send_message):
+    mock_sdc_service = mock.MagicMock()
+    mock_sdc_service.distributed = False
+    with pytest.raises(ValueError):
+        ServiceInstantiation.\
+            instantiate_macro(sdc_service=mock_sdc_service,
+                              cloud_region=mock.MagicMock(),
+                              tenant=mock.MagicMock(),
+                              customer=mock.MagicMock(),
+                              owning_entity=mock.MagicMock(),
+                              project=mock.MagicMock(),
+                              line_of_business=mock.MagicMock(),
+                              platform=mock.MagicMock(),
+                              service_instance_name="test")
+    mock_sdc_service.distributed = True
+    service_instance = ServiceInstantiation.\
+            instantiate_macro(sdc_service=mock_sdc_service,
+                              cloud_region=mock.MagicMock(),
+                              tenant=mock.MagicMock(),
+                              customer=mock.MagicMock(),
+                              owning_entity=mock.MagicMock(),
+                              project=mock.MagicMock(),
+                              line_of_business=mock.MagicMock(),
+                              platform=mock.MagicMock(),
+                              service_instance_name="test")
+    assert service_instance.name == "test"
+
+    service_instance = ServiceInstantiation.\
+            instantiate_macro(sdc_service=mock_sdc_service,
+                              cloud_region=mock.MagicMock(),
+                              tenant=mock.MagicMock(),
+                              customer=mock.MagicMock(),
+                              owning_entity=mock.MagicMock(),
+                              line_of_business=mock.MagicMock(),
+                              platform=mock.MagicMock(),
+                              project=mock.MagicMock())
     assert service_instance.name.startswith("Python_ONAP_SDK_service_instance_")
     mock_service_instantiation_send_message.assert_called()
     method, _, url = mock_service_instantiation_send_message.call_args[0]

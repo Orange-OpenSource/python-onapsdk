@@ -82,12 +82,13 @@ Load blueprint from file
     from onapsdk.cds import Blueprint
     blueprint = Blueprint.load_from_file("<< path to CBA file >>")
 
-Enrich blueprint
-----------------
+Enrich blueprint and save
+-------------------------
 
 .. code:: Python
 
     enriched_blueprint = blueprint.enrich()
+    enriched_blueprint.save("<< path to dest file >>")
 
 Publish blueprint
 -----------------
@@ -115,5 +116,5 @@ Upload data dictionary set
 --------------------------
 
 .. code:: Python
-    
+
     dd_set.upload()
