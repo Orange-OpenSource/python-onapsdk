@@ -6,6 +6,7 @@ from abc import ABC
 from dataclasses import dataclass
 from typing import Iterable, Optional
 from uuid import uuid4
+from warnings import warn
 
 from onapsdk.onap_service import OnapService
 from onapsdk.sdnc import NetworkPreload, VfModulePreload
@@ -21,7 +22,42 @@ from .so_element import OrchestrationRequest
 class VnfParameter:
     """Class to store vnf parameter used for preload.
 
+    IT'S DEPRECATED! `InstantiationParameter` SHOULD BE USED
+
     Contains two values: name of vnf parameter and it's value
+    """
+
+    name: str
+    value: str
+
+@dataclass
+class VnfParameters:
+    """Class to store vnf parameters used for macro instantiation.
+
+    Contains value lists: List vnf Instantiation parameters and list of
+    vfModule parameters
+    """
+
+    name: str
+    vnf_parameters: Iterable["InstantiationParameter"] = None
+    vfmodule_parameters: Iterable["VfmoduleParameters"] = None
+
+@dataclass
+class VfmoduleParameters:
+    """Class to store vfmodule parameters used for macro instantiation.
+
+    Contains value lists: List of vfModule parameters
+    """
+
+    name: str
+    vfmodule_parameters: Iterable["InstantiationParameter"] = None
+
+
+@dataclass
+class InstantiationParameter:
+    """Class to store instantiation parameters used for preload or macro instantiation.
+
+    Contains two values: name of parameter and it's value
     """
 
     name: str
@@ -107,7 +143,7 @@ class VfModuleInstantiation(Instantiation):  # pytest: disable=too-many-ancestor
                               cloud_region: "CloudRegion" = None,
                               tenant: "Tenant" = None,
                               vf_module_instance_name: str = None,
-                              vnf_parameters: Iterable[VnfParameter] = None
+                              vnf_parameters: Iterable["InstantiationParameter"] = None
                               ) -> "VfModuleInstantiation":
         """Instantiate VF module.
 
@@ -130,7 +166,7 @@ class VfModuleInstantiation(Instantiation):  # pytest: disable=too-many-ancestor
                 If no value is provided it's going to be
                 "Python_ONAP_SDK_vf_module_service_instance_{str(uuid4())}".
                 Defaults to None.
-            vnf_parameters (Iterable[VnfParameter], optional): Parameters which are
+            vnf_parameters (Iterable[InstantiationParameter], optional): Parameters which are
                 going to be used in preload upload for vf modules. Defaults to None.
 
         Raises:
@@ -178,7 +214,6 @@ class VfModuleInstantiation(Instantiation):  # pytest: disable=too-many-ancestor
             instance_id=response["requestReferences"].get("instanceId"),
             vf_module=vf_module
         )
-
 
 class NodeTemplateInstantiation(Instantiation, ABC):  # pytest: disable=too-many-ancestors
     """Base class for service's node_template object instantiation."""
@@ -406,7 +441,40 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
                                  customer: "Customer",
                                  owning_entity: "OwningEntity",
                                  project: "Project",
-                                 service_instance_name: str = None) -> "ServiceInstantiationc":
+                                 service_instance_name: str = None) -> "ServiceInstantiation":
+        """Instantiate service using SO a'la carte request.
+
+        THIS METHOD IS DEPRECATED! USE `instantiate_ala_carte`.
+
+        Args:
+            sdc_service (SdcService): Service to instantiate
+            cloud_region (CloudRegion): Cloud region to use in instantiation request
+            tenant (Tenant): Tenant to use in instantiation request
+            customer (Customer): Customer to use in instantiation request
+            owning_entity (OwningEntity): Owning entity to use in instantiation request
+            project (Project): Project to use in instantiation request
+            service_instance_name (str, optional): Service instance name. Defaults to None.
+
+        Raises:
+            ValueError: Instantiation request returns HTTP error code.
+
+        Returns:
+            ServiceInstantiation: instantiation request object
+
+        """
+        warn("This method is deprecated, use `instantiate_ala_carte`.", DeprecationWarning)
+        return cls.instantiate_ala_carte(sdc_service, cloud_region, tenant, customer,
+                                         owning_entity, project, service_instance_name)
+
+    @classmethod
+    def instantiate_ala_carte(cls,  # pylint: disable=too-many-arguments
+                              sdc_service: "SdcService",
+                              cloud_region: "CloudRegion",
+                              tenant: "Tenant",
+                              customer: "Customer",
+                              owning_entity: "OwningEntity",
+                              project: "Project",
+                              service_instance_name: str = None) -> "ServiceInstantiation":
         """Instantiate service using SO a'la carte request.
 
         Args:
@@ -434,7 +502,7 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
             f"Instantiate {sdc_service.name} service a'la carte",
             (f"{cls.base_url}/onap/so/infra/"
              f"serviceInstantiation/{cls.api_version}/serviceInstances"),
-            data=jinja_env().get_template("instantiate_ala_carte.json.j2").
+            data=jinja_env().get_template("instantiate_service_ala_carte.json.j2").
             render(
                 sdc_service=sdc_service,
                 cloud_region=cloud_region,
@@ -443,6 +511,79 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
                 owning_entity=owning_entity,
                 service_instance_name=service_instance_name,
                 project=project
+            ),
+            headers=headers_so_creator(OnapService.headers),
+            exception=ValueError
+        )
+        return cls(
+            name=service_instance_name,
+            request_id=response["requestReferences"].get("requestId"),
+            instance_id=response["requestReferences"].get("instanceId"),
+            sdc_service=sdc_service,
+            cloud_region=cloud_region,
+            tenant=tenant,
+            customer=customer,
+            owning_entity=owning_entity,
+            project=project
+        )
+
+    @classmethod
+    def instantiate_macro(cls,  # pylint: disable=too-many-arguments
+                          sdc_service: "SdcService",
+                          cloud_region: "CloudRegion",
+                          tenant: "Tenant",
+                          customer: "Customer",
+                          owning_entity: "OwningEntity",
+                          project: "Project",
+                          line_of_business: "LineOfBusiness",
+                          platform: "Platform",
+                          service_instance_name: str = None,
+                          vnf_parameters: Iterable["VnfParameters"] = None
+                         ) -> "ServiceInstantiation":
+        """Instantiate service using SO macro request.
+
+        Args:
+            sdc_service (SdcService): Service to instantiate
+            cloud_region (CloudRegion): Cloud region to use in instantiation request
+            tenant (Tenant): Tenant to use in instantiation request
+            customer (Customer): Customer to use in instantiation request
+            owning_entity (OwningEntity): Owning entity to use in instantiation request
+            project (Project): Project to use in instantiation request
+            line_of_business_object (LineOfBusiness): LineOfBusiness to use
+                in instantiation request
+            platform_object (Platform): Platform to use in instantiation request
+            service_instance_name (str, optional): Service instance name. Defaults to None.
+            vnf_parameters: (Iterable[VnfParameters]): Parameters which are
+                going to be used for vnfs instantiation. Defaults to None.
+
+        Raises:
+            ValueError: Instantiation request returns HTTP error code.
+
+        Returns:
+            ServiceInstantiation: instantiation request object
+
+        """
+        if not sdc_service.distributed:
+            raise ValueError("Service is not distributed")
+        if service_instance_name is None:
+            service_instance_name = f"Python_ONAP_SDK_service_instance_{str(uuid4())}"
+        response: dict = cls.send_message_json(
+            "POST",
+            f"Instantiate {sdc_service.name} service macro",
+            (f"{cls.base_url}/onap/so/infra/"
+             f"serviceInstantiation/{cls.api_version}/serviceInstances"),
+            data=jinja_env().get_template("instantiate_service_macro.json.j2").\
+            render(
+                sdc_service=sdc_service,
+                cloud_region=cloud_region,
+                tenant=tenant,
+                customer=customer,
+                owning_entity=owning_entity,
+                project=project,
+                line_of_business=line_of_business,
+                platform=platform,
+                service_instance_name=service_instance_name,
+                vnf_parameters=vnf_parameters
             ),
             headers=headers_so_creator(OnapService.headers),
             exception=ValueError

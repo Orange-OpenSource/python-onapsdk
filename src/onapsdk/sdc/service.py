@@ -2,21 +2,20 @@
 # -*- coding: utf-8 -*-
 # SPDX-License-Identifier: Apache-2.0
 """Service module."""
-from collections import namedtuple
+import base64
+import pathlib as Path
+import re
+import string
+import time
+from dataclasses import dataclass, field
 from enum import Enum
-from dataclasses import dataclass
-from difflib import SequenceMatcher
 from io import BytesIO, TextIOWrapper
 from os import makedirs
-import time
-import re
-import pathlib as Path
-from typing import Dict, Iterable, List, Callable, Union, Any, BinaryIO
+from typing import Dict, List, Callable, Union, Any, BinaryIO
 from zipfile import ZipFile, BadZipFile
-import base64
-from requests import Response
 
 import oyaml as yaml
+from requests import Response
 
 import onapsdk.constants as const
 from onapsdk.sdc.properties import NestedInput, Property
@@ -56,33 +55,29 @@ class NodeTemplate:
 class Vnf(NodeTemplate):
     """Vnf dataclass."""
 
-    vf_module: VfModule = None
+    vf_modules: List[VfModule] = field(default_factory=list)
 
-    def associate_vf_module(self, vf_modules: Iterable[VfModule]) -> None:
-        """Iterate through Service vf modules and found the valid one.
+    @property
+    def tosca_groups_parsed_name(self) -> str:
+        """Property used to associate vf modules.
 
-        This is experimental! To be honest we are not sure if it works
-            correctly, it should be clarified with ONAP community.
+        It's created using the vnf name by with all
+            characters before first `_` lowercase, then
+            from all letters and numbers after first `_` are concatenated.
 
-        Args:
-            vf_modules (Iterable[VfModule]): Service vf modules
+        Returns:
+            str: String used to associate vf modules from tosca template
 
         """
-        AssociateMatch = namedtuple("AssociateMatch", ["ratio", "object"])
-        best_match: AssociateMatch = AssociateMatch(0.0, None)
-        for vf_module in vf_modules:  # type: VfModule
-            current_ratio: float = SequenceMatcher(None,
-                                                   self.name.lower(),
-                                                   vf_module.name.lower()).ratio()
-            if current_ratio > best_match.ratio:
-                best_match = AssociateMatch(current_ratio, vf_module)
-        self.vf_module = best_match.object
+        prefix, suffix = self.name.split("_", 1)
+        return "_".join([prefix.lower(),
+                         "".join(filter(lambda x: x in [*string.ascii_letters,
+                                                        *string.digits], suffix)).lower()])
 
 
 @dataclass
 class Pnf(NodeTemplate):
     """Pnf dataclass."""
-
 
 
 class Network(NodeTemplate):  # pylint: disable=too-few-public-methods
@@ -284,8 +279,9 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
                         properties=values["properties"],
                         capabilities=values.get("capabilities", {})
                     )
-                    vnf.associate_vf_module(self.vf_modules)
+                    # vnf.associate_vf_module(self.vf_modules)
                     self._vnfs.append(vnf)
+            self.associate_vf_modules()
         return self._vnfs
 
     @property
@@ -825,3 +821,27 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
             return super().get_component_properties_value_set_url(component)
         return (f"{self.resource_inputs_url}/"
                 f"resourceInstance/{component.unique_id}/inputs")
+
+    def associate_vf_modules(self) -> None:
+        """Associate vf modules to vnfs.
+
+        This is experimental! To be honest we are not sure if it works
+            correctly, it should be clarified with ONAP community.
+
+        Sometimes vnf has one vf module, but it can have assosicated
+            more than one. There can be also more than one vnf in
+            TOSCA template and it't difficult to determine which
+            vnf should be associated with which vf module. Usually
+            their name are similar, but not always.
+
+        """
+        if len(self.vnfs) == 0:
+            return
+        if len(self.vnfs) == 1:
+            self.vnfs[0].vf_modules = self.vf_modules[:]
+        else:
+            for vnf in self.vnfs:
+                vnf.vf_modules = list(filter(\
+                    lambda vf_module: vf_module.name.startswith(
+                        vnf.tosca_groups_parsed_name),  # pylint: disable=cell-var-from-loop
+                    self.vf_modules))

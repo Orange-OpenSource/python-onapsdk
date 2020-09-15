@@ -108,15 +108,15 @@ class VfModulePreload(Preload):
                                  vnf_instance: "VnfInstance",
                                  vf_module_instance_name: str,
                                  vf_module: "VfModule",
-                                 vnf_parameters: Iterable["VnfParameter"] = None) -> None:
+                                 vnf_parameters: Iterable["InstantiationParameter"] = None) -> None:
         """Upload vf module preload.
 
         Args:
             vnf_instance: VnfInstance object
             vf_module_instance_name (str): VF module instance name
             vf_module (VfModule): VF module
-            vnf_parameters (Iterable[VnfParameter], optional): Iterable object of VnfParameters.
-                Defaults to None.
+            vnf_parameters (Iterable[InstantiationParameter], optional): Iterable object
+                of InstantiationParameter. Defaults to None.
 
         Raises:
             ValueError: Preload request returns HTTP response with error code

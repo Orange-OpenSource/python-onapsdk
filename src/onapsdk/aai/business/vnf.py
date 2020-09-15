@@ -328,7 +328,8 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
                       cloud_region: "CloudRegion" = None,
                       tenant: "Tenant" = None,
                       vf_module_instance_name: str = None,
-                      vnf_parameters: Iterable["VnfParameter"] = None) -> "VfModuleInstantiation":
+                      vnf_parameters: Iterable["InstantiationParameter"] = None)\
+                           -> "VfModuleInstantiation":
         """Instantiate vf module for that VNF instance.
 
         Args:
@@ -342,8 +343,8 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
                 THAT PROPERTY WILL BE REQUIRED IN ONE OF THE FUTURE RELEASE. REFACTOR YOUR CODE
                 TO USE IT!.
             vf_module_instance_name (str, optional): VfModule instance name. Defaults to None.
-            vnf_parameters (Iterable[VnfParameter], optional): VnfParameters to use for preloading.
-                Defaults to None.
+            vnf_parameters (Iterable[InstantiationParameter], optional): InstantiationParameter
+                to use for preloading. Defaults to None.
 
         Returns:
             VfModuleInstantiation: VfModuleInstantiation request object

@@ -196,12 +196,12 @@ class LoopInstance(Clamp):
         data = template.render(name=microservice_name,
                                LOOP_name=self.name)
         try:
-            upload_result = self.send_message('POST',
-                                              'ADD TCA config',
-                                              url,
-                                              data=data,
-                                              cert=self.cert,
-                                              exception=ValueError)
+            self.send_message('POST',
+                              'ADD TCA config',
+                              url,
+                              data=data,
+                              cert=self.cert,
+                              exception=ValueError)
         except  ValueError:
             self._logger.error(("an error occured during file upload for TCA config to loop's"
                                 " microservice %s"), self.name)

@@ -836,8 +836,8 @@ def test_vnf_vf_modules_one():
         vnf = service.vnfs[0]
         assert vnf.name == "ubuntu16_VF 0"
         assert vnf.node_template_type == "org.openecomp.resource.vf.Ubuntu16Vf"
-        assert vnf.vf_module
-        assert vnf.vf_module.name == "ubuntu16_vf0..Ubuntu16Vf..base_ubuntu16..module-0"
+        assert vnf.vf_modules
+        assert vnf.vf_modules[0].name == "ubuntu16_vf0..Ubuntu16Vf..base_ubuntu16..module-0"
 
 def test_pnf_modules_one():
     """Test parsing TOSCA file with one PNF which has associated one PNFmodule"""
@@ -859,14 +859,24 @@ def test_vnf_vf_modules_two():
         vnf = service.vnfs[0]
         assert vnf.name == "vFWCL_vPKG-vf 0"
         assert vnf.node_template_type == "org.openecomp.resource.vf.VfwclVpkgVf"
-        assert vnf.vf_module
-        assert vnf.vf_module.name == "vfwcl_vpkgvf0..VfwclVpkgVf..base_vpkg..module-0"
+        assert vnf.vf_modules
+        assert vnf.vf_modules[0].name == "vfwcl_vpkgvf0..VfwclVpkgVf..base_vpkg..module-0"
 
         vnf = service.vnfs[1]
         assert vnf.name == "vFWCL_vFWSNK-vf 0"
         assert vnf.node_template_type == "org.openecomp.resource.vf.VfwclVfwsnkVf"
-        assert vnf.vf_module
-        assert vnf.vf_module.name == "vfwcl_vfwsnkvf0..VfwclVfwsnkVf..base_vfw..module-0"
+        assert vnf.vf_modules
+        assert vnf.vf_modules[0].name == "vfwcl_vfwsnkvf0..VfwclVfwsnkVf..base_vfw..module-0"
+
+
+def test_vnf_two_vf_modules():
+    """Test parsing TOSCA file with two VNF which has associated one VFmodule"""
+    service = Service(name="test")
+    with open(Path(Path(__file__).resolve().parent, "data/service-VfwcdsService-template.yml"), "r") as template:
+        service._tosca_template = yaml.safe_load(template.read())
+        assert len(service.vnfs) == 1
+        vnf = service.vnfs[0]
+        assert len(vnf.vf_modules) == 4
 
 
 @mock.patch.object(Service, 'send_message_json')
