@@ -12,6 +12,15 @@ from .service import ServiceInstance
 
 
 @dataclass
+class ServiceSubscriptionCloudRegionTenantData:
+    """Dataclass to store cloud regions and tenants data for service subscription."""
+
+    cloud_owner: str = None
+    cloud_region_id: str = None
+    tenant_id: str = None
+
+
+@dataclass
 class ServiceSubscription(AaiElement):
     """Service subscription class."""
 
@@ -31,9 +40,6 @@ class ServiceSubscription(AaiElement):
         self.customer: "Customer" = customer
         self.service_type: str = service_type
         self.resource_version: str = resource_version
-
-        self._cloud_region: "CloudRegion" = None
-        self._tenant: "Tenant" = None
 
     def _get_service_instance_by_filter_parameter(self,
                                                   filter_parameter_name: str,
@@ -171,6 +177,8 @@ class ServiceSubscription(AaiElement):
     def cloud_region(self) -> "CloudRegion":
         """Cloud region associated with service subscription.
 
+        IT'S DEPRECATED! `cloud_regions` parameter SHOULD BE USED
+
         Raises:
             AttributeError: Service subscription has no associated cloud region.
 
@@ -178,24 +186,16 @@ class ServiceSubscription(AaiElement):
             CloudRegion: CloudRegion object
 
         """
-        if not self._cloud_region:
-            cloud_owner: str = None
-            cloud_region: str = None
-            for relationship in self.tenant_relationships:
-                for data in relationship.relationship_data:
-                    if data["relationship-key"] == "cloud-region.cloud-owner":
-                        cloud_owner = data["relationship-value"]
-                    if data["relationship-key"] == "cloud-region.cloud-region-id":
-                        cloud_region = data["relationship-value"]
-            if not all([cloud_owner, cloud_region]):
-                raise AttributeError("ServiceSubscription has no CloudOwner and/or "
-                                     "CloudRegion relationship")
-            self._cloud_region = CloudRegion.get_by_id(cloud_owner, cloud_region)
-        return self._cloud_region
+        try:
+            return next(self.cloud_regions)
+        except StopIteration:
+            raise AttributeError
 
     @property
     def tenant(self) -> "Tenant":
         """Tenant associated with service subscription.
+
+        IT'S DEPRECATED! `tenants` parameter SHOULD BE USED
 
         Raises:
             AttributeError: Service subscription has no associated tenants
@@ -204,19 +204,64 @@ class ServiceSubscription(AaiElement):
             Tenant: Tenant object
 
         """
-        if not self._tenant:
-            for relationship in self.tenant_relationships:
-                for data in relationship.relationship_data:
-                    if data["relationship-key"] == "tenant.tenant-id":
-                        try:
-                            self._tenant = self.cloud_region.\
-                                get_tenant(data["relationship-value"])
-                            return self._tenant
-                        except ValueError:
-                            self._logger.info("Cloud region has no related tenant")
-                            raise AttributeError("Cloud region has no related tenant")
-            raise AttributeError("ServiceSubscription has no tenant relationship")
-        return self._tenant
+        try:
+            return next(self.tenants)
+        except StopIteration:
+            raise AttributeError
+
+    @property
+    def _cloud_regions_tenants_data(self) -> Iterator["ServiceSubscriptionCloudRegionTenantData"]:
+        for relationship in self.tenant_relationships:
+            cr_tenant_data: ServiceSubscriptionCloudRegionTenantData = \
+                ServiceSubscriptionCloudRegionTenantData()
+            for data in relationship.relationship_data:
+                if data["relationship-key"] == "cloud-region.cloud-owner":
+                    cr_tenant_data.cloud_owner = data["relationship-value"]
+                if data["relationship-key"] == "cloud-region.cloud-region-id":
+                    cr_tenant_data.cloud_region_id = data["relationship-value"]
+                if data["relationship-key"] == "tenant.tenant-id":
+                    cr_tenant_data.tenant_id = data["relationship-value"]
+            if all([cr_tenant_data.cloud_owner,
+                    cr_tenant_data.cloud_region_id,
+                    cr_tenant_data.tenant_id]):
+                yield cr_tenant_data
+            else:
+                self._logger.error("Invalid tenant relationship: %s", relationship)
+
+    @property
+    def cloud_regions(self) -> Iterator["CloudRegion"]:
+        """Cloud regions associated with service subscription.
+
+        Yields:
+            CloudRegion: CloudRegion object
+
+        """
+        cloud_region_set: set = set()
+        for cr_data in self._cloud_regions_tenants_data:
+            cloud_region_set.add((cr_data.cloud_owner, cr_data.cloud_region_id))
+        for cloud_region_data in cloud_region_set:
+            try:
+                yield CloudRegion.get_by_id(cloud_owner=cloud_region_data[0],
+                                            cloud_region_id=cloud_region_data[1])
+            except ValueError:
+                self._logger.error("Can't get cloud region %s %s", cloud_region_data[0], \
+                                                                   cloud_region_data[1])
+
+    @property
+    def tenants(self) -> Iterator["Tenant"]:
+        """Tenants associated with service subscription.
+
+        Yields:
+            Tenant: Tenant object
+
+        """
+        for cr_data in self._cloud_regions_tenants_data:
+            try:
+                cloud_region: CloudRegion = CloudRegion.get_by_id(cr_data.cloud_owner,
+                                                                  cr_data.cloud_region_id)
+                yield cloud_region.get_tenant(cr_data.tenant_id)
+            except ValueError:
+                self._logger.error("Can't get %s tenant", cr_data.tenant_id)
 
     @property
     def sdc_service(self) -> "SdcService":

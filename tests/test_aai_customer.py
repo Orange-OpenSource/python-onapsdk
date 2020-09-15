@@ -323,7 +323,6 @@ def test_customer_service_subscription_cloud_region(mock_cloud_region, mock_send
     relationships = list(service_subscription.relationships)
     assert len(relationships) == 1
     cloud_region = service_subscription.cloud_region
-    assert service_subscription._cloud_region == cloud_region
     assert cloud_region.cloud_owner == "OPNFV"
     assert cloud_region.cloud_region_id == "RegionOne"
     assert cloud_region.cloud_type == "openstack"
@@ -331,10 +330,8 @@ def test_customer_service_subscription_cloud_region(mock_cloud_region, mock_send
     mock_cloud_region.side_effect = ValueError
     with pytest.raises(AttributeError):
         service_subscription.tenant
-    mock_cloud_region.side_effect = None
-    mock_cloud_region.return_value = TENANT
+    mock_cloud_region.side_effect = [CLOUD_REGION, TENANT]
     tenant = service_subscription.tenant
-    assert tenant == service_subscription._tenant
     assert tenant.tenant_id == "4bdc6f0f2539430f9428c852ba606808"
     assert tenant.name == "onap-dublin-daily-vnfs"
 

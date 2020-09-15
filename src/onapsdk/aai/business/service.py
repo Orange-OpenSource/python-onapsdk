@@ -188,6 +188,8 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
                 vnf: "Vnf",
                 line_of_business: "LineOfBusiness",
                 platform: "Platform",
+                cloud_region: "CloudRegion" = None,
+                tenant: "Tenant" = None,
                 vnf_instance_name: str = None) -> "VnfInstantiation":
         """Add vnf into service instance.
 
@@ -197,6 +199,14 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
             vnf (Vnf): Vnf from service configuration to instantiate
             line_of_business (LineOfBusiness): LineOfBusiness to use in instantiation request
             platform (Platform): Platform to use in instantiation request
+            cloud_region (CloudRegion, optional): Cloud region to use in instantiation request.
+                Defaults to None.
+                THAT PROPERTY WILL BE REQUIRED IN ONE OF THE FUTURE RELEASE. REFACTOR YOUR CODE
+                TO USE IT!.
+            tenant (Tenant, optional): Tenant to use in instnatiation request.
+                Defaults to None.
+                THAT PROPERTY WILL BE REQUIRED IN ONE OF THE FUTURE RELEASE. REFACTOR YOUR CODE
+                TO USE IT!.
             vnf_instance_name (str, optional): VNF instantion name.
                 If no value is provided it's going to be
                 "Python_ONAP_SDK_vnf_instance_{str(uuid4())}".
@@ -217,13 +227,17 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
             vnf,
             line_of_business,
             platform,
-            vnf_instance_name
+            cloud_region=cloud_region,
+            tenant=tenant,
+            vnf_instance_name=vnf_instance_name
         )
 
     def add_network(self,  # pylint: disable=too-many-arguments
                     network: "Network",
                     line_of_business: "LineOfBusiness",
                     platform: "Platform",
+                    cloud_region: "CloudRegion" = None,
+                    tenant: "Tenant" = None,
                     network_instance_name: str = None,
                     subnets: Iterator["Subnet"] = None) -> "NetworkInstantiation":
         """Add network into service instance.
@@ -234,6 +248,14 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
             network (Network): Network from service configuration to instantiate
             line_of_business (LineOfBusiness): LineOfBusiness to use in instantiation request
             platform (Platform): Platform to use in instantiation request
+            cloud_region (CloudRegion, optional): Cloud region to use in instantiation request.
+                Defaults to None.
+                THAT PROPERTY WILL BE REQUIRED IN ONE OF THE FUTURE RELEASE. REFACTOR YOUR CODE
+                TO USE IT!.
+            tenant (Tenant, optional): Tenant to use in instnatiation request.
+                Defaults to None.
+                THAT PROPERTY WILL BE REQUIRED IN ONE OF THE FUTURE RELEASE. REFACTOR YOUR CODE
+                TO USE IT!.
             network_instance_name (str, optional): Network instantion name.
                 If no value is provided it's going to be
                 "Python_ONAP_SDK_network_instance_{str(uuid4())}".
@@ -254,8 +276,10 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
             network,
             line_of_business,
             platform,
-            network_instance_name,
-            subnets
+            cloud_region=cloud_region,
+            tenant=tenant,
+            network_instance_name=network_instance_name,
+            subnets=subnets
         )
 
     def delete(self) -> "ServiceDeletionRequest":

@@ -102,8 +102,10 @@ class VfModuleInstantiation(Instantiation):  # pytest: disable=too-many-ancestor
 
     @classmethod
     def instantiate_ala_carte(cls,  # pylint: disable=too-many-arguments
-                              vf_module,
-                              vnf_instance,
+                              vf_module: "VfModule",
+                              vnf_instance: "VnfInstance",
+                              cloud_region: "CloudRegion" = None,
+                              tenant: "Tenant" = None,
                               vf_module_instance_name: str = None,
                               vnf_parameters: Iterable[VnfParameter] = None
                               ) -> "VfModuleInstantiation":
@@ -112,6 +114,16 @@ class VfModuleInstantiation(Instantiation):  # pytest: disable=too-many-ancestor
         Iterate throught vf modules from service Tosca file and instantiate vf modules.
 
         Args:
+            vf_module (VfModule): VfModule to instantiate
+            vnf_instance (VnfInstance): VnfInstance object
+            cloud_region (CloudRegion, optional): Cloud region to use in instantiation request.
+                Defaults to None.
+                THAT PROPERTY WILL BE REQUIRED IN ONE OF THE FUTURE RELEASE. REFACTOR YOUR CODE
+                TO USE IT!.
+            tenant (Tenant, optional): Tenant to use in instnatiation request.
+                Defaults to None.
+                THAT PROPERTY WILL BE REQUIRED IN ONE OF THE FUTURE RELEASE. REFACTOR YOUR CODE
+                TO USE IT!.
             vf_module_instance_name_factory (str, optional): Factory to create VF module names.
                 It's going to be a prefix of name. Index of vf module in Tosca file will be
                 added to it.
@@ -151,8 +163,10 @@ class VfModuleInstantiation(Instantiation):  # pytest: disable=too-many-ancestor
                 vf_module_instance_name=vf_module_instance_name,
                 vf_module=vf_module,
                 service=sdc_service,
-                cloud_region=vnf_instance.service_instance.service_subscription.cloud_region,
-                tenant=vnf_instance.service_instance.service_subscription.tenant,
+                cloud_region=cloud_region or \
+                    vnf_instance.service_instance.service_subscription.cloud_region,
+                tenant=tenant or \
+                    vnf_instance.service_instance.service_subscription.tenant,
                 vnf_instance=vnf_instance
             ),
             headers=headers_so_creator(OnapService.headers),
@@ -289,6 +303,8 @@ class VnfInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-many-a
                               vnf_object: "Vnf",
                               line_of_business_object: "LineOfBusiness",
                               platform_object: "Platform",
+                              cloud_region: "CloudRegion" = None,
+                              tenant: "Tenant" = None,
                               vnf_instance_name: str = None) -> "VnfInstantiation":
         """Instantiate Vnf using a'la carte method.
 
@@ -296,6 +312,14 @@ class VnfInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-many-a
             vnf_object (Vnf): Vnf to instantiate
             line_of_business_object (LineOfBusiness): LineOfBusiness to use in instantiation request
             platform_object (Platform): Platform to use in instantiation request
+            cloud_region (CloudRegion, optional): Cloud region to use in instantiation request.
+                Defaults to None.
+                THAT PROPERTY WILL BE REQUIRED IN ONE OF THE FUTURE RELEASE. REFACTOR YOUR CODE
+                TO USE IT!.
+            tenant (Tenant, optional): Tenant to use in instnatiation request.
+                Defaults to None.
+                THAT PROPERTY WILL BE REQUIRED IN ONE OF THE FUTURE RELEASE. REFACTOR YOUR CODE
+                TO USE IT!.
             vnf_instance_name (str, optional): Vnf instance name. Defaults to None.
 
         Raises:
@@ -320,8 +344,9 @@ class VnfInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-many-a
                 instance_name=vnf_instance_name,
                 vnf=vnf_object,
                 service=sdc_service,
-                cloud_region=aai_service_instance.service_subscription.cloud_region,
-                tenant=aai_service_instance.service_subscription.tenant,
+                cloud_region=cloud_region or \
+                    aai_service_instance.service_subscription.cloud_region,
+                tenant=tenant or aai_service_instance.service_subscription.tenant,
                 line_of_business=line_of_business_object,
                 platform=platform_object,
                 service_instance=aai_service_instance
@@ -487,6 +512,8 @@ class NetworkInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-ma
                               network_object: "Network",
                               line_of_business_object: "LineOfBusiness",
                               platform_object: "Platform",
+                              cloud_region: "CloudRegion" = None,
+                              tenant: "Tenant" = None,
                               network_instance_name: str = None,
                               subnets: Iterable[Subnet] = None) -> "NetworkInstantiation":
         """Instantiate Network using a'la carte method.
@@ -495,6 +522,14 @@ class NetworkInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-ma
             network_object (Network): Network to instantiate
             line_of_business_object (LineOfBusiness): LineOfBusiness to use in instantiation request
             platform_object (Platform): Platform to use in instantiation request
+            cloud_region (CloudRegion, optional): Cloud region to use in instantiation request.
+                Defaults to None.
+                THAT PROPERTY WILL BE REQUIRED IN ONE OF THE FUTURE RELEASE. REFACTOR YOUR CODE
+                TO USE IT!.
+            tenant (Tenant, optional): Tenant to use in instnatiation request.
+                Defaults to None.
+                THAT PROPERTY WILL BE REQUIRED IN ONE OF THE FUTURE RELEASE. REFACTOR YOUR CODE
+                TO USE IT!.
             network_instance_name (str, optional): Network instance name. Defaults to None.
 
         Raises:
@@ -522,8 +557,9 @@ class NetworkInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-ma
                 instance_name=network_instance_name,
                 network=network_object,
                 service=sdc_service,
-                cloud_region=aai_service_instance.service_subscription.cloud_region,
-                tenant=aai_service_instance.service_subscription.tenant,
+                cloud_region=cloud_region or \
+                    aai_service_instance.service_subscription.cloud_region,
+                tenant=tenant or aai_service_instance.service_subscription.tenant,
                 line_of_business=line_of_business_object,
                 platform=platform_object,
                 service_instance=aai_service_instance,
