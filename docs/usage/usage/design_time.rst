@@ -97,6 +97,47 @@ Onboard a VF with Deployment Artifact
 
    vf.onboard()
 
+Onboard a PNF with VSP
+----------------------
+.. code:: Python
+
+   from onapsdk.sdc.pnf import Pnf
+   from onapsdk.sdc.vendor import Vendor
+
+   logger.info("******** Onboard Vendor *******")
+   vendor = Vendor(name="my_Vendor")
+   vendor.onboard()
+
+   # We assume here that the VSP has been already onboarded
+   vsp = Vsp(name="myVSP")
+
+   logger.info("******** Onboard PNF *******")
+   pnf = PNF(name="myPNF")
+   pnf.vsp = vsp
+   pnf.onboard()
+
+Onboard a PNF with Deployment Artifact (without VSP)
+----------------------------------------------------
+.. code:: Python
+
+   from onapsdk.sdc.vendor import Vendor
+   from onapsdk.sdc.pnf import Pnf
+
+   logger.info("******** Onboard Vendor *******")
+   vendor = Vendor(name="my_Vendor")
+   vendor.onboard()
+
+   logger.info("******** Onboard PNF *******")
+   pnf = Pnf(name=PNF, vendor=vendor)
+   pnf.create()
+
+   logger.info("******** Upload Artifact *******")
+   pnf.add_deployment_artifact(artifact_type=ARTIFACT_TYPE,
+                               artifact_name=ARTIFACT_NAME,
+                               artifact_label=ARTIFACT_LABEL,
+                               artifact=ARTIFACT_FILE_PATH)
+   pnf.onboard()
+
 Onboard a Service
 -----------------
 
