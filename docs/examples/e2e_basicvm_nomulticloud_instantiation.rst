@@ -212,17 +212,24 @@ E2E Instantiation of a simple VM without muticloud
     logger.info("******** Get Tenant *******")
     cloud_region = CloudRegion(cloud_owner=CLOUD_OWNER, cloud_region_id=CLOUD_REGION,
                                    orchestration_disabled=True, in_maint=False)
-    tenant = None
-    for found_tenant in cloud_region.tenants:
-        logger.debug("Tenant %s found in %s_%s",found_tenant.name,cloud_region.cloud_owner,cloud_region.cloud_region_id)
-        if found_tenant.name == TENANT_NAME:
-            logger.info("Found my Tenant %s",found_tenant.name)
-            tenant = found_tenant
-            break
+     try:
+         tenant: Tenant = cloud_region.get_tenant(settings.TENANT_ID)
+     except ValueError:
+         logger.warning("Impossible to retrieve the Specificed Tenant")
+         logger.debug("If no multicloud selected, add the tenant")
+         cloud_region.add_tenant(
+             tenant_id=settings.TENANT_ID,
+             tenant_name=settings.TENANT_NAME)
 
-    if not tenant:
-        logger.error("tenant %s not found",TENANT_NAME)
-        exit(1)
+     # be sure that an availability zone has been created
+     # if not, create it
+     try:
+         cloud_region.get_availability_zone_by_name(
+             settings.AVAILABILITY_ZONE_NAME)
+     except ValueError:
+         cloud_region.add_availability_zone(
+             settings.AVAILABILITY_ZONE_NAME,
+             settings.AVAILABILITY_ZONE_HYPERVISOR_TYPE)
 
     logger.info("******** Connect Service to Tenant *******")
     service_subscription = None
@@ -329,20 +336,22 @@ E2E Instantiation of a simple VM without muticloud
 
         logger.info("******** Create VF Module %s *******",vf_module.name)
 
-        vf_module_instantiation = vnf_instance.add_vf_module(
-                                   vf_module,
-                                   vnf_parameters=[]
-                                  )
-        nb_try = 0
-        nb_try_max = 30
-        while not vf_module_instantiation.finished and nb_try < nb_try_max:
-            logger.info("Wait for vf module instantiation")
-            nb_try += 1
-            time.sleep(10)
-        if vf_module_instantiation.finished:
-            logger.info("VfModule %s instantiated",vf_module.name)
-        else:
-            logger.error("VfModule instantiation %s failed",vf_module.name)
+        for vf_module in vnf_instance.vnf.vf_modules:
+          vf_module_instantiation = vnf_instance.add_vf_module(
+            vf_module,
+            cloud_region,tenant,
+            SERVICE_INSTANCE_NAME,
+            vnf_parameters=[])
+          nb_try = 0
+          nb_try_max = 30
+          while not vf_module_instantiation.finished and nb_try < nb_try_max:
+              logger.info("Wait for vf module instantiation")
+              nb_try += 1
+              time.sleep(10)
+          if vf_module_instantiation.finished:
+              logger.info("VfModule %s instantiated",vf_module.name)
+          else:
+              logger.error("VfModule instantiation %s failed",vf_module.name)
 
     if SERVICE_DELETION is False:
         logger.info("*****************************************")
