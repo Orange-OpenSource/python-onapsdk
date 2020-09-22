@@ -25,7 +25,7 @@ class SoElement(OnapService):
     name: str = None
     _server: str = "SO"
     base_url = settings.SO_URL
-    api_version = "v7"
+    api_version = settings.SO_API_VERSION
     _status: str = None
 
     @property
