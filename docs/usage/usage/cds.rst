@@ -100,9 +100,16 @@ Publish blueprint
 Generate data dictionary from blueprint
 ---------------------------------------
 
+The method to generate data dictionaries based on the blueprint mappings. As the result it returns a data dictionaries set
+with valid structure, but some additional actions may be needed. Data dictionary input has to be filled by the user
+if the type is neither "source-input" nor "source-default". Things, which are needed to be filled are marked by `<< FILL >>` mark.
+If the blueprint you are using has only "source-input" or "source-default" input types, the generated data dictionary set is
+ready to upload to CDS.
+
 .. code:: Python
 
-    blueprint.get_data_dictionaries().save_to_file("<< path to dest file >>")
+    generated_dd: DataDictionarySet = blueprint.get_data_dictionaries()
+    generated_dd.save_to_file("<< path to dest file >>")
 
 Load data dictionary set from file
 ----------------------------------
