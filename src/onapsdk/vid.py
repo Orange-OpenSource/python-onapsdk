@@ -13,7 +13,7 @@ class Vid(OnapService, ABC):
     """VID base class."""
 
     base_url = settings.VID_URL
-    api_version = "/vid"
+    api_version = settings.VID_API_VERSION
 
     def __init__(self, name: str) -> None:
         """VID resource object initialization.

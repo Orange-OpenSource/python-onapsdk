@@ -1,0 +1,42 @@
+{
+    "requestDetails": {
+        "requestInfo": {
+            "instanceName": "{{ instance_name }}",
+            "source": "VID",
+            "suppressRollback": false,
+            "requestorId": "test",
+            "productFamilyId": "{{ service_instance.model_invariant_id }}"
+        },
+        "modelInfo": {
+            {% block model_info %}{% endblock %}
+        },
+        "requestParameters": {
+            "userParams": [],
+            "aLaCarte": true,
+            "testApi": "GR_API"
+        },
+        "cloudConfiguration": {
+            "tenantId": "{{ tenant.tenant_id }}",
+            "cloudOwner": "{{ cloud_region.cloud_owner }}",
+            "lcpCloudRegionId": "{{ cloud_region.cloud_region_id }}"
+        },
+        "lineOfBusiness": {
+            "lineOfBusinessName": "{{ line_of_business.name }}"
+        },
+        "platform": {
+            "platformName": "{{ platform.name }}"
+        },
+        "relatedInstanceList": [{
+            "relatedInstance": {
+                "instanceId": "{{ service_instance.instance_id }}",
+                "modelInfo": {
+                    "modelType": "service",
+                    "modelName": "{{ service.name }}",
+                    "modelInvariantId": "{{ service.unique_uuid }}",
+                    "modelVersion": "1.0",
+                    "modelVersionId": "{{ service.identifier }}"
+                }
+            }
+        }]
+    }
+}

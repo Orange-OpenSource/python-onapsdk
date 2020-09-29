@@ -7,10 +7,10 @@ import json
 import pytest
 import requests
 
-from onapsdk.vsp import Vsp
-from onapsdk.vendor import Vendor
+from onapsdk.sdc.vsp import Vsp
+from onapsdk.sdc.vendor import Vendor
 import onapsdk.constants as const
-from onapsdk.sdc_element import SdcElement
+from onapsdk.sdc.sdc_element import SdcElement
 
 @mock.patch.object(Vsp, 'send_message_json')
 def test_get_all_no_vsp(mock_send):
@@ -107,6 +107,7 @@ def test_exists_exists(mock_get_all):
     """Return True if vsp exists in SDC."""
     vsp_1 = Vsp(name="one")
     vsp_1.identifier = "1234"
+    vsp_1.version = "1.1"
     mock_get_all.return_value = [vsp_1]
     vsp = Vsp(name="one")
     assert vsp.exists()

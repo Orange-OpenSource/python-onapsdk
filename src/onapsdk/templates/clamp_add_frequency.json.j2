@@ -1,0 +1,102 @@
+[
+  {
+    "name": "{{ name }}",
+    "jsonRepresentation": {
+      "title": "onap.policies.controlloop.guard.common.FrequencyLimiter",
+      "type": "object",
+      "description": "Supports limiting the frequency of actions being taken by a Actor.",
+      "required": [
+        "actor",
+        "operation",
+        "limit",
+        "timeWindow",
+        "timeUnits"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The Control Loop id this applies to."
+        },
+        "actor": {
+          "type": "string",
+          "description": "Specifies the Actor the guard applies to."
+        },
+        "operation": {
+          "type": "string",
+          "description": "Specified the operation that the actor is performing the guard applies to."
+        },
+        "timeRange": {
+          "title": "tosca.datatypes.TimeInterval",
+          "type": "object",
+          "required": [
+            "start_time",
+            "end_time"
+          ],
+          "properties": {
+            "start_time": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "end_time": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        },
+        "limit": {
+          "type": "integer",
+          "description": "The limit",
+          "exclusiveMinimum": "0"
+        },
+        "timeWindow": {
+          "type": "integer",
+          "description": "The time window to count the actions against."
+        },
+        "timeUnits": {
+          "type": "string",
+          "description": "The units of time the window is counting.",
+          "enum": [
+            "second",
+            "minute",
+            "hour",
+            "day",
+            "week",
+            "month",
+            "year"
+          ]
+        }
+      }
+    },
+    "configurationsJson": {
+      "actor": "SO",
+      "operation": "VF Module Create",
+      "limit": {{ limit }},
+      "timeWindow": 10,
+      "timeUnits": "minute"
+    },
+    "policyModel": {
+      "policyModelType": "onap.policies.controlloop.guard.common.FrequencyLimiter",
+      "version": "1.0.0",
+      "policyAcronym": "FrequencyLimiter",
+      "policyPdpGroup": {
+        "supportedPdpGroups": [
+          {
+            "defaultGroup": [
+              "xacml"
+            ]
+          }
+        ]
+      },
+      "createdDate": "2020-07-22T01:37:35.106757Z",
+      "updatedDate": "2020-07-22T01:37:51.709386Z",
+      "updatedBy": "Not found",
+      "createdBy": "Not found"
+    },
+    "createdDate": "2020-07-22T08:27:34.576868Z",
+    "updatedDate": "2020-07-22T08:27:34.576868Z",
+    "updatedBy": "clamp@clamp.onap.org",
+    "createdBy": "clamp@clamp.onap.org",
+    "pdpGroup": "defaultGroup",
+    "pdpSubgroup": "xacml"
+  }
+]

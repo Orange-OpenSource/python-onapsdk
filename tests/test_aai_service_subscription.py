@@ -3,7 +3,8 @@ from unittest import mock
 import pytest
 
 from onapsdk.aai.business import Customer, ServiceSubscription, ServiceInstance
-from onapsdk.service import Service as SdcService
+from onapsdk.aai.cloud_infrastructure import CloudRegion
+from onapsdk.sdc.service import Service as SdcService
 
 
 SERVICE_INSTANCES = {
@@ -43,6 +44,62 @@ SERVICE_INSTANCES = {
                     }
                 ]
             }
+        }
+    ]
+}
+
+
+MULTIPLE_CLOUD_REGIONS_AND_TENATS_RELATIONSHIP = {
+    "relationship":[
+        {
+            "related-to":"tenant",
+            "relationship-label":"org.onap.relationships.inventory.Uses",
+            "related-link":"/aai/v19/cloud-infrastructure/cloud-regions/cloud-region/DT/RegionOne/tenants/tenant/8fa33ca96caa4172aeeeefd1dbf5c715",
+            "relationship-data":[
+                {
+                    "relationship-key":"cloud-region.cloud-owner",
+                    "relationship-value":"DT"
+                },
+                {
+                    "relationship-key":"cloud-region.cloud-region-id",
+                    "relationship-value":"RegionOne"
+                },
+                {
+                    "relationship-key":"tenant.tenant-id",
+                    "relationship-value":"8fa33ca96caa4172aeeeefd1dbf5c715"
+                }
+            ],
+            "related-to-property":[
+                {
+                    "property-key":"tenant.tenant-name",
+                    "property-value":"ci-onap-master-vnfs"
+                }
+            ]
+        },
+        {
+            "related-to":"tenant",
+            "relationship-label":"org.onap.relationships.inventory.Uses",
+            "related-link":"/aai/v19/cloud-infrastructure/cloud-regions/cloud-region/test_cloud_owner/test_cloud_region_id/tenants/tenant/1234",
+            "relationship-data":[
+                {
+                    "relationship-key":"cloud-region.cloud-owner",
+                    "relationship-value":"test_cloud_owner"
+                },
+                {
+                    "relationship-key":"cloud-region.cloud-region-id",
+                    "relationship-value":"test_cloud_region_id"
+                },
+                {
+                    "relationship-key":"tenant.tenant-id",
+                    "relationship-value":"1234"
+                }
+            ],
+            "related-to-property":[
+                {
+                    "property-key":"tenant.tenant-name",
+                    "property-value":"test_tenant"
+                }
+            ]
         }
     ]
 }
@@ -92,3 +149,27 @@ def test_sdc_service_subscription():
                                                service_type="test_service_type",
                                                resource_version="test_resource_version")  
     assert service_subscription.sdc_service == SdcService("test_service_type")
+
+
+@mock.patch.object(ServiceSubscription, "send_message_json")
+@mock.patch.object(CloudRegion, "get_by_id")
+def test_cloud_regions(mock_cloud_region_get_by_id, mock_send_message_json):
+    """Test service subscription `cloud_regions` property"""
+    service_subscription = ServiceSubscription(customer=mock.MagicMock(),
+                                               service_type="test_service_type",
+                                               resource_version="test_resource_version")
+    mock_send_message_json.return_value = MULTIPLE_CLOUD_REGIONS_AND_TENATS_RELATIONSHIP
+    assert len(list(service_subscription.cloud_regions)) == 2
+    assert len(mock_cloud_region_get_by_id.mock_calls) == 2
+
+
+@mock.patch.object(ServiceSubscription, "send_message_json")
+@mock.patch.object(CloudRegion, "get_by_id")
+@mock.patch.object(CloudRegion, "get_tenant")
+def test_tenants(mock_cloud_region_get_tenant, mock_cloud_region_get_by_id, mock_send_message_json):
+    """Test service subscription `tenants` property"""
+    service_subscription = ServiceSubscription(customer=mock.MagicMock(),
+                                               service_type="test_service_type",
+                                               resource_version="test_resource_version")
+    mock_send_message_json.return_value = MULTIPLE_CLOUD_REGIONS_AND_TENATS_RELATIONSHIP
+    assert len(list(service_subscription.tenants)) == 2

@@ -14,9 +14,9 @@ class Complex(AaiElement):  # pylint: disable=too-many-instance-attributes
     """
 
     def __init__(self,  # pylint: disable=too-many-locals
-                 name: str,
                  physical_location_id: str,
                  *,
+                 name: str = "",
                  data_center_code: str = "",
                  identity_url: str = "",
                  resource_version: str = "",
@@ -96,9 +96,9 @@ class Complex(AaiElement):  # pylint: disable=too-many-instance-attributes
 
     @classmethod
     def create(cls,  # pylint: disable=too-many-locals
-               name: str,
                physical_location_id: str,
                *,
+               name: str = "",
                data_center_code: str = "",
                identity_url: str = "",
                resource_version: str = "",
@@ -188,7 +188,7 @@ class Complex(AaiElement):  # pylint: disable=too-many-instance-attributes
                                                   "get cloud regions",
                                                   url).get("complex", []):
             yield Complex(
-                name=complex_json["complex-name"],
+                name=complex_json.get("complex-name"),
                 physical_location_id=complex_json["physical-location-id"],
                 data_center_code=complex_json.get("data-center-code"),
                 identity_url=complex_json.get("identity-url"),

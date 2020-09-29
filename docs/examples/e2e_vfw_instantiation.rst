@@ -1,5 +1,5 @@
 E2E Instantiation of vFW
-##########################################
+########################
 
 
 .. code:: Python
@@ -30,10 +30,10 @@ E2E Instantiation of vFW
         VnfParameter
     )
     from onapsdk.sdc import SDC
-    from onapsdk.vendor import Vendor
-    from onapsdk.vsp import Vsp
-    from onapsdk.vf import Vf
-    from onapsdk.service import Service
+    from onapsdk.sdc.vendor import Vendor
+    from onapsdk.sdc.vsp import Vsp
+    from onapsdk.sdc.vf import Vf
+    from onapsdk.sdc.service import Service
     import onapsdk.constants as const
     import os
     from onapsdk.vid import LineOfBusiness, OwningEntity, Platform, Project
@@ -132,7 +132,9 @@ E2E Instantiation of vFW
         orchestration_disabled=False,
         in_maint=False,
         cloud_type="openstack",
-        cloud_region_version="titanium_cloud"
+        cloud_region_version="titanium_cloud",
+        cloud_zone="z1",
+        complex_name=COMPLEX_PHYSICAL_LOCATION_ID
     )
 
     logger.info("******** Link Complex to CloudRegion *******")
@@ -143,9 +145,12 @@ E2E Instantiation of vFW
         esr_system_info_id=str(uuid4()),
         user_name=VIM_USERNAME,
         password=VIM_PASSWORD,
-        system_type="openstack",
+        system_type="VIM",
         service_url=VIM_SERVICE_URL,
-        cloud_domain="Default"
+        cloud_domain="Default",
+        ssl_insecure=False,
+        system_status="active",
+        default_tenant=TENANT_NAME
     )
 
     logger.info("******** Register CloudRegion to MultiCloud *******")

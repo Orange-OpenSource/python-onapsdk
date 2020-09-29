@@ -1,0 +1,10 @@
+{% extends "instantiate_network_vnf_ala_carte_base.json.j2" %}
+{% block model_info %}
+    "modelType": "network",
+    "modelInvariantId": "{{ network.metadata["invariantUUID"] }}",
+    "modelVersionId": "{{ network.metadata["UUID"] }}",
+    "modelName": "{{ network.metadata["name"] }}",
+    "modelVersion": "{{ network.metadata["version"] }}",
+    "modelCustomizationId": "{{ network.metadata["customizationUUID"] }}",
+    "modelCustomizationName": "{{ network.name }}"
+{% endblock %}

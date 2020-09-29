@@ -5,7 +5,7 @@
 from typing import Any
 from typing import Dict
 
-from onapsdk.sdc_element import SdcElement
+from onapsdk.sdc.sdc_element import SdcElement
 import onapsdk.constants as const
 from onapsdk.utils.headers_creator import headers_sdc_creator
 

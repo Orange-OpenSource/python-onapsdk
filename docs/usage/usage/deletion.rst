@@ -22,5 +22,7 @@ Service, vnf and vf module deletion
             time.sleep(10)
 
     service_instance_deletion_request = service_instance.delete()
-    while not service_instance_deletion_request.finished:
-        time.sleep(10)
+    if service_instance_deletion_request.wait_for_finish():
+        print("Service instance deleted")
+    else:
+        print("Service deletion failed, check logs"

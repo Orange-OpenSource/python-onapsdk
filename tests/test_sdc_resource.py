@@ -8,10 +8,47 @@ import pytest
 
 import onapsdk.constants as const
 from onapsdk.onap_service import OnapService
-from onapsdk.sdc_resource import SdcResource
-from onapsdk.vf import Vf
+from onapsdk.sdc.component import Component
+from onapsdk.sdc.properties import ComponentProperty, Input, NestedInput, Property
+from onapsdk.sdc.sdc_resource import SdcResource
+from onapsdk.sdc.vf import Vf
 from onapsdk.utils.headers_creator import headers_sdc_tester
 from onapsdk.utils.headers_creator import headers_sdc_creator
+
+
+COMPONENT_PROPERTIES = [
+    {
+        "uniqueId":"3d9a184f-4268-4a0e-9ddd-252e49670013.vf_module_id",
+        "type":"string",
+        "required":False,
+        "definition":False,
+        "description":"The vFirewall Module ID is provided by ECOMP",
+        "password":False,
+        "name":"vf_module_id",
+        "label":"vFirewall module ID",
+        "hidden":False,
+        "immutable":False,
+        "isDeclaredListInput":False,
+        "getInputProperty":False,
+        "empty":False
+    },{
+        "uniqueId":"74f79006-ae56-4d58-947e-6a5089000774.skip_post_instantiation_configuration",
+        "type":"boolean",
+        "required":False,
+        "definition":False,
+        "password":False,
+        "name":"skip_post_instantiation_configuration",
+        "value":"true",
+        "hidden":False,
+        "immutable":False,
+        "parentUniqueId":"74f79006-ae56-4d58-947e-6a5089000774",
+        "isDeclaredListInput":False,
+        "getInputProperty":False,
+        "ownerId":"74f79006-ae56-4d58-947e-6a5089000774",
+        "empty":False
+    }
+]
+
 
 
 def test_init():
@@ -26,7 +63,10 @@ def test_class_variables():
     assert SdcResource.base_back_url == "https://sdc.api.be.simpledemo.onap.org:30204"
     assert SdcResource.headers == {
             "Content-Type": "application/json",
-            "Accept": "application/json"
+            "Accept": "application/json",
+            "Authorization": "Basic YWFpOktwOGJKNFNYc3pNMFdYbGhhazNlSGxjc2UyZ0F3ODR2YW9HR21KdlV5MlU=",
+            "USER_ID": "cs0008",
+            "X-ECOMP-InstanceID": "onapsdk"
         }
 
 @mock.patch.object(Vf, 'created')
@@ -274,3 +314,152 @@ def test_update_informations_from_sdc_creation_distribitution_state(mock_parse):
     assert sdcResource.version == "v12"
     assert sdcResource.unique_identifier == "5678"
     mock_parse.assert_called_once_with("state", 'trez', mock.ANY)
+
+@mock.patch.object(SdcResource, "is_own_property")
+@mock.patch.object(SdcResource, "declare_input_for_own_property")
+@mock.patch.object(SdcResource, "declare_nested_input")
+def test_declare_input(mock_nested, mock_own, mock_is_own):
+    sdc_resource = SdcResource()
+    prop = Property(name="test", property_type="test")
+    mock_is_own.return_value = False
+    with pytest.raises(ValueError):
+        sdc_resource.declare_input(prop)
+    mock_is_own.return_value = True
+    sdc_resource.declare_input(prop)
+    mock_own.assert_called_once()
+    mock_nested.assert_not_called()
+
+    mock_nested.reset_mock()
+    mock_own.reset_mock()
+    sdc_resource.declare_input(NestedInput(sdc_resource=mock.MagicMock(), input_obj=mock.MagicMock()))
+    mock_own.assert_not_called()
+    mock_nested.assert_called_once()
+
+@mock.patch.object(SdcResource, "send_message_json")
+@mock.patch.object(SdcResource, "get_component")
+@mock.patch.object(SdcResource, "resource_inputs_url", new_callable=mock.PropertyMock)
+def test_declare_nested_input(mock_resource_inputs, mock_get_component, mock_send_json):
+    sdc_resource = SdcResource()
+    sdc_resource.unique_identifier = "toto"
+    mock_resource_inputs.return_value = "test"
+    sdc_resource.declare_input(NestedInput(sdc_resource=mock.MagicMock(), input_obj=mock.MagicMock()))
+    mock_get_component.assert_called_once()
+    mock_send_json.assert_called_once()
+
+@mock.patch.object(SdcResource, "inputs", new_callable=mock.PropertyMock)
+def test_get_input(mock_inputs):
+    sdc_resource = SdcResource()
+
+    mock_inputs.return_value = [
+        Input(unique_id="123",
+              input_type="integer",
+              name="test",
+              sdc_resource=sdc_resource),
+        Input(unique_id="321",
+              input_type="string",
+              name="test2",
+              sdc_resource=sdc_resource)
+    ]
+    assert sdc_resource.get_input("test")
+    assert sdc_resource.get_input("test2")
+    with pytest.raises(AttributeError):
+        sdc_resource.get_input("test3")
+
+@mock.patch.object(SdcResource, "components", new_callable=mock.PropertyMock)
+def test_get_component(mock_components):
+    sdc_resource = SdcResource()
+
+    mock_components.return_value = [
+        Component(
+            created_from_csar=False,
+            actual_component_uid="123",
+            unique_id="123",
+            normalized_name="123",
+            name="123",
+            origin_type="123",
+            customization_uuid="123",
+            tosca_component_name="123",
+            component_name="123",
+            component_uid="123",
+            component_version="123",
+            sdc_resource=SdcResource(name="test"),
+            parent_sdc_resource=sdc_resource
+        )
+    ]
+    assert sdc_resource.get_component(SdcResource(name="test"))
+    with pytest.raises(AttributeError):
+        sdc_resource.get_component(SdcResource(name="test2"))
+
+def test_component_properties():
+    sdc_resource = mock.MagicMock()
+    parent_sdc_resource = SdcResource()
+
+    component = Component(
+            created_from_csar=False,
+            actual_component_uid="123",
+            unique_id="123",
+            normalized_name="123",
+            name="123",
+            origin_type="123",
+            customization_uuid="123",
+            tosca_component_name="123",
+            component_name="123",
+            component_uid="123",
+            component_version="123",
+            sdc_resource=sdc_resource,
+            parent_sdc_resource=mock.MagicMock()
+    )
+    sdc_resource.send_message_json.return_value = {}
+    assert not len(list(component.properties))
+
+    sdc_resource.send_message_json.return_value = COMPONENT_PROPERTIES
+    properties = list(component.properties)
+    assert len(properties) == 2
+    prop1, prop2 = properties
+
+    assert prop1.unique_id == "3d9a184f-4268-4a0e-9ddd-252e49670013.vf_module_id"
+    assert prop1.property_type == "string"
+    assert prop1.name == "vf_module_id"
+    assert prop1.value is None
+
+    assert prop2.unique_id == "74f79006-ae56-4d58-947e-6a5089000774.skip_post_instantiation_configuration"
+    assert prop2.property_type == "boolean"
+    assert prop2.name == "skip_post_instantiation_configuration"
+    assert prop2.value == "true"
+
+@mock.patch.object(Component, "properties", new_callable=mock.PropertyMock)
+def test_component_property_set_value(mock_component_properties):
+    mock_sdc_resource = mock.MagicMock()
+    component = Component(
+            created_from_csar=False,
+            actual_component_uid="123",
+            unique_id="123",
+            normalized_name="123",
+            name="123",
+            origin_type="123",
+            customization_uuid="123",
+            tosca_component_name="123",
+            component_name="123",
+            component_uid="123",
+            component_version="123",
+            sdc_resource=mock_sdc_resource,
+            parent_sdc_resource=mock.MagicMock()
+    )
+    mock_component_properties.return_value = [
+        ComponentProperty(
+            unique_id="123",
+            property_type="string",
+            name="test_property",
+            component=component
+        )
+    ]
+    with pytest.raises(AttributeError):
+        component.get_property(property_name="non_exists")
+    prop1 = component.get_property(property_name="test_property")
+    assert prop1.name == "test_property"
+    assert prop1.unique_id == "123"
+    assert prop1.property_type == "string"
+    assert not prop1.value
+
+    prop1.value = "123"
+    mock_sdc_resource.send_message_json.assert_called_once()

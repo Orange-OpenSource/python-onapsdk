@@ -156,9 +156,11 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
                 Defaults to None.
 
         """
-        super().__init__(resource_version=resource_version, model_version_id=model_version_id,
-                         persona_model_version=persona_model_version,
+        super().__init__(resource_version=resource_version,
+                         model_invariant_id=model_invariant_id,
+                         model_version_id=model_version_id,
                          widget_model_id=widget_model_id,
+                         persona_model_version=persona_model_version,
                          widget_model_version=widget_model_version)
         self.service_instance: "ServiceInstance" = service_instance
         self.vnf_id: str = vnf_id
@@ -321,17 +323,28 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
                    vlan_id_outer=api_response.get("vlan-id-outer"),
                    nm_profile_name=api_response.get("nm-profile-name"))
 
-    def add_vf_module(self,
+    def add_vf_module(self,  # pylint: disable=too-many-arguments
                       vf_module: "VfModule",
+                      cloud_region: "CloudRegion" = None,
+                      tenant: "Tenant" = None,
                       vf_module_instance_name: str = None,
-                      vnf_parameters: Iterable["VnfParameter"] = None) -> "VfModuleInstantiation":
+                      vnf_parameters: Iterable["InstantiationParameter"] = None)\
+                           -> "VfModuleInstantiation":
         """Instantiate vf module for that VNF instance.
 
         Args:
             vf_module (VfModule): VfModule to instantiate
-            vf_module_instance_name (str, optional): VfModule instance name. Defaults to None.
-            vnf_parameters (Iterable[VnfParameter], optional): VnfParameters to use for preloading.
+            cloud_region (CloudRegion, optional): Cloud region to use in instantiation request.
                 Defaults to None.
+                THAT PROPERTY WILL BE REQUIRED IN ONE OF THE FUTURE RELEASE. REFACTOR YOUR CODE
+                TO USE IT!.
+            tenant (Tenant, optional): Tenant to use in instnatiation request.
+                Defaults to None.
+                THAT PROPERTY WILL BE REQUIRED IN ONE OF THE FUTURE RELEASE. REFACTOR YOUR CODE
+                TO USE IT!.
+            vf_module_instance_name (str, optional): VfModule instance name. Defaults to None.
+            vnf_parameters (Iterable[InstantiationParameter], optional): InstantiationParameter
+                to use for preloading. Defaults to None.
 
         Returns:
             VfModuleInstantiation: VfModuleInstantiation request object
@@ -340,8 +353,10 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
         return VfModuleInstantiation.instantiate_ala_carte(
             vf_module,
             self,
-            vf_module_instance_name,
-            vnf_parameters
+            cloud_region=cloud_region,
+            tenant=tenant,
+            vf_module_instance_name=vf_module_instance_name,
+            vnf_parameters=vnf_parameters
         )
 
     def delete(self) -> "VnfDeletionRequest":

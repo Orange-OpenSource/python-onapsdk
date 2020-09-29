@@ -5,7 +5,7 @@ import pytest
 import requests
 from onapsdk.aai.cloud_infrastructure import CloudRegion, Tenant
 from onapsdk.aai.business import Customer, ServiceSubscription
-from onapsdk.service import Service
+from onapsdk.sdc.service import Service
 
 
 @pytest.mark.integration

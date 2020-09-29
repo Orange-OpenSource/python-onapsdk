@@ -5,9 +5,9 @@ from unittest import mock
 
 import pytest
 
-from onapsdk.vendor import Vendor
+from onapsdk.sdc.vendor import Vendor
 import onapsdk.constants as const
-from onapsdk.sdc_element import SdcElement
+from onapsdk.sdc.sdc_element import SdcElement
 
 @mock.patch.object(Vendor, 'send_message_json')
 def test_get_all_no_vendors(mock_send):
@@ -94,6 +94,7 @@ def test_exists_exists(mock_get_all):
     """Return True if vendor exists in SDC."""
     vendor_1 = Vendor(name="one")
     vendor_1.identifier = "1234"
+    vendor_1.version = "1.1"
     mock_get_all.return_value = [vendor_1]
     vendor = Vendor(name="one")
     assert vendor.exists()

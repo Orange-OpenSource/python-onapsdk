@@ -2,19 +2,19 @@
 # -*- coding: utf-8 -*-
 # SPDX-License-Identifier: Apache-2.0
 """SO Element module."""
+import json
 from abc import ABC
 from dataclasses import dataclass
 from enum import Enum
 from typing import Dict
 
-import json
-
 from onapsdk.configuration import settings
-from onapsdk.service import Service
-from onapsdk.vf import Vf
+from onapsdk.sdc.service import Service
+from onapsdk.sdc.vf import Vf
 from onapsdk.onap_service import OnapService
 from onapsdk.utils.headers_creator import headers_so_creator
 from onapsdk.utils.jinja import jinja_env
+from onapsdk.utils.mixins import WaitForFinishMixin
 from onapsdk.utils.tosca_file_handler import get_modules_list_from_tosca_file
 
 
@@ -25,7 +25,7 @@ class SoElement(OnapService):
     name: str = None
     _server: str = "SO"
     base_url = settings.SO_URL
-    api_version = "v7"
+    api_version = settings.SO_API_VERSION
     _status: str = None
 
     @property
@@ -102,8 +102,10 @@ class SoElement(OnapService):
         )
 
 
-class OrchestrationRequest(SoElement, ABC):
+class OrchestrationRequest(SoElement, WaitForFinishMixin, ABC):
     """Base SO orchestration request class."""
+
+    WAIT_FOR_SLEEP_TIME = 10
 
     def __init__(self,
                  request_id: str) -> None:

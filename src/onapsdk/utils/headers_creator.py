@@ -4,6 +4,8 @@
 """Header creator package."""
 from typing import Dict
 from uuid import uuid4
+import base64
+import hashlib
 
 
 def headers_sdc_creator(base_header: Dict[str, str],
@@ -176,4 +178,26 @@ def headers_sdnc_creator(base_header: Dict[str, str]):
         "Basic YWRtaW46S3A4Yko0U1hzek0wV1hsaGFrM2VIbGNzZTJnQXc4NHZhb0dHbUp2VXkyVQ=="
     headers["x-transactionid"] = str(uuid4())
     headers["x-fromappid"] = "API client"
+    return headers
+
+
+def headers_sdc_artifact_upload(base_header: Dict[str, str], data: str):
+    """
+    Create the right headers for sdc artifact upload.
+
+    Args:
+        base_header (Dict[str, str]): the base header to use
+        data (str): payload data used to create an md5 content header
+
+    Returns:
+        Dict[str, str]: the needed headers
+
+    """
+    headers = base_header.copy()
+    headers["Accept"] = "application/json, text/plain, */*"
+    headers["Accept-Encoding"] = "gzip, deflate, br"
+    headers["Content-Type"] = "application/json; charset=UTF-8"
+    md5_content = hashlib.md5(data.encode('UTF-8')).hexdigest()
+    content = base64.b64encode(md5_content.encode('ascii')).decode('UTF-8')
+    headers["Content-MD5"] = content
     return headers

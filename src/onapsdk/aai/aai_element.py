@@ -32,7 +32,7 @@ class AaiElement(OnapService):
     name: str = "AAI"
     server: str = "AAI"
     base_url = settings.AAI_URL
-    api_version = "/aai/v16"
+    api_version = "/aai/" + settings.AAI_API_VERSION
     headers = headers_aai_creator(OnapService.headers)
 
     @classmethod
