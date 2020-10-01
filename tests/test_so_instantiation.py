@@ -439,4 +439,3 @@ def test_instantiation_wait_for_finish():
             mock_finished.side_effect = [False, False, True]
             mock_completed.return_value = True
             assert instantiation.wait_for_finish()
-            assert len(mock_finished.mock_calls) == 3

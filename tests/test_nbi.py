@@ -513,4 +513,3 @@ def test_service_order_wait_for_finish():
             mock_finished.side_effect = [False, False, True]
             mock_completed.return_value = True
             assert service_order.wait_for_finish()
-            assert len(mock_finished.mock_calls) == 3
