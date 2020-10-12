@@ -28,6 +28,14 @@ onapsdk.utils.jinja module
    :undoc-members:
    :show-inheritance:
 
+onapsdk.utils.mixins module
+---------------------------
+
+.. automodule:: onapsdk.utils.mixins
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 onapsdk.utils.tosca\_file\_handler module
 -----------------------------------------
 

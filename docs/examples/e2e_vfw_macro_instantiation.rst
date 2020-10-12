@@ -1,5 +1,5 @@
-E2E Instantiation of vFW
-########################
+E2E Instantiation of vFW (macro)
+################################
 
 
 .. code:: Python

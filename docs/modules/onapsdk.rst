@@ -9,6 +9,7 @@ Subpackages
 
    onapsdk.aai
    onapsdk.cds
+   onapsdk.clamp
    onapsdk.configuration
    onapsdk.sdc
    onapsdk.sdnc
