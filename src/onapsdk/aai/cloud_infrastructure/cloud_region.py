@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, Iterator, List, Optional
 from urllib.parse import urlencode
 
-from onapsdk.multicloud import Multicloud
+from onapsdk.msb.multicloud import Multicloud
 from onapsdk.utils.jinja import jinja_env
 
 from ..aai_element import AaiElement, Relationship

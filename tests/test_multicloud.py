@@ -2,7 +2,7 @@ from unittest import mock
 
 import pytest
 
-from onapsdk.multicloud import Multicloud
+from onapsdk.msb.multicloud import Multicloud
 
 
 @mock.patch.object(Multicloud, "send_message")

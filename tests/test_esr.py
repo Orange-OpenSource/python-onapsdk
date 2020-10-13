@@ -2,7 +2,7 @@ from unittest import mock
 
 import pytest
 
-from onapsdk.esr import ESR, MSB
+from onapsdk.msb.esr import ESR, MSB
 
 
 def test_esr():

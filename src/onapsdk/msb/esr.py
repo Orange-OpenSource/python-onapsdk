@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 # SPDX-License-Identifier: Apache-2.0
 """ESR module."""
-from onapsdk.msb import MSB
 from onapsdk.utils.jinja import jinja_env
+from .msb_service import MSB
 
 
 class ESR(MSB):

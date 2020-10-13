@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Multicloud module."""
 
-from onapsdk.msb import MSB
+from .msb_service import MSB
 
 
 class Multicloud(MSB):

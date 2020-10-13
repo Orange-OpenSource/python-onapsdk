@@ -69,6 +69,8 @@
         alias: clamp.api.simpledemo.onap.org
       - name: registry.gitlab.com/orange-opensource/lfn/onap/mock_servers/mock-cds:latest
         alias: cds.api.simpledemo.onap.org
+      - name: registry.gitlab.com/orange-opensource/lfn/onap/mock_servers/mock-msb-k8s:latest
+        alias: msb.k8s.api.simpledemo.onap.org
     script:
       - pip install .
       - pip install pytest mock # mock is needed as pytest parse all files before selection
