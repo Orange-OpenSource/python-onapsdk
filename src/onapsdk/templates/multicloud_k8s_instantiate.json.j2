@@ -1,0 +1,18 @@
+{
+    "cloud-region": "{{ cloud_region_id }}",
+    "profile-name": "{{ profile_name }}",
+    "rb-name": "{{ rb_name }}",
+    "rb-version": "{{ rb_version }}",
+    "override-values":
+        {
+            {% for override_value in override_values %}
+            "{{ override_value.name }}": "{{ override_value.value }}"{% if not loop.last %},{% endif %}
+            {% endfor %}
+        },
+    "labels":
+        {
+            {% for label in labels %}
+            "{{ label.name }}": "{{ label.value }}"{% if not loop.last %},{% endif %}
+            {% endfor %}
+        }
+}
