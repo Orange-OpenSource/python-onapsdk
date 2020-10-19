@@ -138,11 +138,11 @@ Instantiate a service (Macro)
        InstantiationParameter(name="onap_private_net_id", value=ONAP_PRIVATE_NET),
        InstantiationParameter(name="onap_private_subnet_id", value=ONAP_PRIVATE_SUBNET),
        InstantiationParameter(name="pub_key", value="ssh-rsa AAAAB3NzaC1yc2EAA\
-AADAQABAAABAQDFBOB1Ea2yej68aqIQw10kEsVf+rNoxT39qrV8JvvTK2yhkniQka1t2oD9h6DlXOL\
-M3HJ6nBegWjOasJmIbminKZ6wvmxZrDVFJXp9Sn1gni0vtEnlDgH14shRUrFDYO0PYjXRHoj7QXZMY\
-xtAdFSbzGuCsaTLcV/xchLBQmqZ4AGhMIiYMfJJF+Ygy0lbgcVmT+8DH7kUUt8SAdh2rRsYFwpKANn\
-QJyPV1dBNuTcD0OW1hEOhXnwqH28tjfb7uHJzTyGZlTmwTs544teTNz5B9L4yT3XiCAlMcaLOBMfBT\
-KRIse+NkiTb+tc60JNnEYR6MqZoqTea/w+YBQaIMcil"),
+    AADAQABAAABAQDFBOB1Ea2yej68aqIQw10kEsVf+rNoxT39qrV8JvvTK2yhkniQka1t2oD9h6DlXOL\
+    M3HJ6nBegWjOasJmIbminKZ6wvmxZrDVFJXp9Sn1gni0vtEnlDgH14shRUrFDYO0PYjXRHoj7QXZMY\
+    xtAdFSbzGuCsaTLcV/xchLBQmqZ4AGhMIiYMfJJF+Ygy0lbgcVmT+8DH7kUUt8SAdh2rRsYFwpKANn\
+    QJyPV1dBNuTcD0OW1hEOhXnwqH28tjfb7uHJzTyGZlTmwTs544teTNz5B9L4yT3XiCAlMcaLOBMfBT\
+    KRIse+NkiTb+tc60JNnEYR6MqZoqTea/w+YBQaIMcil"),
        InstantiationParameter(name="image_name", value=IMAGE_NAME),
        InstantiationParameter(name="flavor_name", value=FLAVOR_NAME),
        InstantiationParameter(name="sec_group", value=TENANT_SEC_GROUP),
