@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
+import json
 import os.path
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -89,6 +90,15 @@ def test_blueprint_deploy(send_message_mock):
     send_message_mock.assert_called_once()
 
 
+def test_blueprint_load_from_file():
+    with TemporaryDirectory() as tmpdirname:
+        path = os.path.join(tmpdirname, "test.zip")
+        with open(path, "wb") as f:
+            f.write(b"test cba - it will never work")
+        blueprint = Blueprint.load_from_file(path)
+        assert blueprint.cba_file_bytes == b"test cba - it will never work"
+
+
 def test_blueprint_save():
     blueprint = Blueprint(b"test cba - it will never work")
     with TemporaryDirectory() as tmpdirname:
@@ -177,6 +187,18 @@ def test_data_dictionary_set(send_message_mock):
 
     dd_set.upload()
     assert send_message_mock.call_count == 2
+
+
+def test_data_dictionary_set_save_to_file_load_from_file():
+    dd = DataDictionarySet()
+    dd.add(DataDictionary(DD_1))
+    with TemporaryDirectory() as tmpdirname:
+        path = os.path.join(tmpdirname, "dd.json")
+        dd.save_to_file(path)
+        with open(path, "r") as f:
+            assert f.read() == json.dumps([dd.data_dictionary_json for dd in dd.dd_set], indent=4)
+        dd_2 = DataDictionarySet.load_from_file(path)
+        assert dd.dd_set == dd_2.dd_set
 
 
 def test_mapping():
