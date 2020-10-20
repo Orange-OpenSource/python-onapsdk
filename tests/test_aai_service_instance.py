@@ -5,7 +5,7 @@ import pytest
 from onapsdk.aai.aai_element import AaiElement
 from onapsdk.aai.business import ServiceInstance, VnfInstance
 from onapsdk.so.deletion import ServiceDeletionRequest
-from onapsdk.so.instantiation import VnfInstantiation
+from onapsdk.so.instantiation import NetworkInstantiation, VnfInstantiation
 
 
 RELATIONSHIPS_VNF = {
@@ -185,6 +185,22 @@ def test_service_instance_add_vnf(mock_vnf_instantiation):
                              mock.MagicMock(),
                              mock.MagicMock())
     mock_vnf_instantiation.assert_called_once()
+
+
+@mock.patch.object(NetworkInstantiation, "instantiate_ala_carte")
+def test_service_instance_add_network(mock_network_instantiation):
+    service_instance = ServiceInstance(service_subscription=mock.MagicMock(),
+                                       instance_id="test_service_instance_id")
+    service_instance.orchestration_status = "Inactive"
+    with pytest.raises(AttributeError):
+        service_instance.add_network(mock.MagicMock(),
+                                     mock.MagicMock(),
+                                     mock.MagicMock())
+    service_instance.orchestration_status = "Active"
+    service_instance.add_network(mock.MagicMock(),
+                                 mock.MagicMock(),
+                                 mock.MagicMock())
+    mock_network_instantiation.assert_called_once()
 
 
 @mock.patch.object(ServiceDeletionRequest, "send_request")
