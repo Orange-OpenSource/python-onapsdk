@@ -9,7 +9,7 @@ import base64
 import time
 
 import onapsdk.constants as const
-from onapsdk.sdc import SDC
+from onapsdk.sdc import SdcOnboardable
 from onapsdk.sdc.component import Component
 from onapsdk.sdc.properties import Input, NestedInput, Property
 from onapsdk.utils.headers_creator import (headers_sdc_creator,
@@ -20,20 +20,19 @@ from onapsdk.utils.jinja import jinja_env
 
 # For an unknown reason, pylint keeps seeing _unique_uuid and
 # _unique_identifier as attributes along with unique_uuid and unique_identifier
-class SdcResource(SDC, ABC):  # pylint: disable=too-many-instance-attributes, too-many-public-methods
+class SdcResource(SdcOnboardable, ABC):  # pylint: disable=too-many-instance-attributes, too-many-public-methods
     """Mother Class of all SDC resources."""
 
     RESOURCE_PATH = 'resources'
     ACTION_TEMPLATE = 'sdc_resource_action.json.j2'
     ACTION_METHOD = 'POST'
-    headers = headers_sdc_creator(SDC.headers)
+    headers = headers_sdc_creator(SdcOnboardable.headers)
 
     def __init__(self, name: str = None, version: str = None, # pylint: disable=too-many-arguments
                  sdc_values: Dict[str, str] = None, properties: List[Property] = None,
                  inputs: Union[Property, NestedInput] = None):
         """Initialize the object."""
-        super().__init__()
-        self.name: str = name
+        super().__init__(name)
         self.version_filter: str = version
         self._unique_uuid: str = None
         self._unique_identifier: str = None

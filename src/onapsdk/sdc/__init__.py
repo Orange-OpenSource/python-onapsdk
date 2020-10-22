@@ -18,60 +18,103 @@ class SDC(OnapService, ABC):
     """Mother Class of all SDC elements."""
 
     server: str = "SDC"
-    ACTION_TEMPLATE: str
-    ACTION_METHOD: str
     base_front_url = settings.SDC_FE_URL
     base_back_url = settings.SDC_BE_URL
 
-    def __init__(self):
-        """Initialize the object."""
+    def __init__(self, name: str = None) -> None:
+        """Initialize SDC."""
         super().__init__()
-        self.name: str = None
-        self._identifier: str = None
-        self._status: str = None
-        self._version: str = None
+        self.name: str = name
 
-    @property
-    def identifier(self) -> str:
-        """Return and lazy load the identifier."""
-        if not self._identifier:
-            self.load()
-        return self._identifier
+    def __eq__(self, other: Any) -> bool:
+        """
+        Check equality for SDC and children.
 
-    @property
-    def status(self) -> str:
-        """Return and lazy load the status."""
-        if self.created() and not self._status:
-            self.load()
-        return self._status
+        Args:
+            other: another object
 
-    @property
-    def version(self) -> str:
-        """Return and lazy load the version."""
-        if self.created() and not self._version:
-            self.load()
-        return self._version
+        Returns:
+            bool: True if same object, False if not
 
-    @identifier.setter
-    def identifier(self, value: str) -> None:
-        """Set value for identifier."""
-        self._identifier = value
+        """
+        if isinstance(other, type(self)):
+            return self.name == other.name
+        return False
 
-    @status.setter
-    def status(self, status: str) -> None:
-        """Return and lazy load the status."""
-        self._status = status
+    @classmethod
+    @abstractmethod
+    def _get_all_url(cls) -> str:
+        """
+        Get URL for all elements in SDC.
 
-    @version.setter
-    def version(self, version: str) -> None:
-        """Return and lazy load the status."""
-        self._version = version
+        Raises:
+            NotImplementedError: this is an abstract method.
 
-    def created(self) -> bool:
-        """Determine if SDC is created."""
-        if self.name and not self._identifier:
-            return self.exists()
-        return bool(self._identifier)
+        """
+
+    @classmethod
+    @abstractmethod
+    def _get_objects_list(cls,
+                          result: List[Dict[str, Any]]) -> List['SdcResource']:
+        """
+        Import objects created in SDC.
+
+        Args:
+            result (Dict[str, Any]): the result returned by SDC in a Dict
+
+        Raises:
+            NotImplementedError: this is an abstract method.
+
+        """
+
+    @classmethod
+    @abstractmethod
+    def _base_url(cls) -> str:
+        """
+        Give back the base url of Sdc.
+
+        Raises:
+            NotImplementedError: this is an abstract method.
+
+        """
+
+    @classmethod
+    @abstractmethod
+    def _base_create_url(cls) -> str:
+        """
+        Give back the base url of Sdc.
+
+        Raises:
+            NotImplementedError: this is an abstract method.
+
+        """
+
+    @abstractmethod
+    def _copy_object(self, obj: 'SDC') -> None:
+        """
+        Copy relevant properties from object.
+
+        Args:
+            obj (Sdc): the object to "copy"
+
+        Raises:
+            NotImplementedError: this is an abstract method.
+
+        """
+
+    @classmethod
+    @abstractmethod
+    def import_from_sdc(cls, values: Dict[str, Any]) -> 'SDC':
+        """
+        Import Sdc object from SDC.
+
+        Args:
+            values (Dict[str, Any]): dict to parse returned from SDC.
+
+        Raises:
+            NotImplementedError: this is an abstract method.
+
+        """
 
     @classmethod
     def get_all(cls) -> List['SDC']:
@@ -133,6 +176,62 @@ class SDC(OnapService, ABC):
         self._logger.info("%s found, updating information", type(self).__name__)
         self._copy_object(versioned_object)
         return True
+
+
+class SdcOnboardable(SDC, ABC):
+    """Base class for onboardable SDC resources (Vendors, Services, ...)."""
+
+    ACTION_TEMPLATE: str
+    ACTION_METHOD: str
+
+    def __init__(self, name: str = None) -> None:
+        """Initialize the object."""
+        super().__init__(name)
+        self._identifier: str = None
+        self._status: str = None
+        self._version: str = None
+
+    @property
+    def identifier(self) -> str:
+        """Return and lazy load the identifier."""
+        if not self._identifier:
+            self.load()
+        return self._identifier
+
+    @property
+    def status(self) -> str:
+        """Return and lazy load the status."""
+        if self.created() and not self._status:
+            self.load()
+        return self._status
+
+    @property
+    def version(self) -> str:
+        """Return and lazy load the version."""
+        if self.created() and not self._version:
+            self.load()
+        return self._version
+
+    @identifier.setter
+    def identifier(self, value: str) -> None:
+        """Set value for identifier."""
+        self._identifier = value
+
+    @status.setter
+    def status(self, status: str) -> None:
+        """Return and lazy load the status."""
+        self._status = status
+
+    @version.setter
+    def version(self, version: str) -> None:
+        """Return and lazy load the status."""
+        self._version = version
+
+    def created(self) -> bool:
+        """Determine if SDC is created."""
+        if self.name and not self._identifier:
+            return self.exists()
+        return bool(self._identifier)
 
     def submit(self) -> None:
         """Submit the SDC object in order to enable it."""
@@ -234,45 +333,6 @@ class SDC(OnapService, ABC):
             return self.send_message_json('GET', 'get item version', url)
         return {}
 
-    @classmethod
-    @abstractmethod
-    def _get_objects_list(cls,
-                          result: List[Dict[str, Any]]) -> List['SdcResource']:
-        """
-        Import objects created in SDC.
-
-        Args:
-            result (Dict[str, Any]): the result returned by SDC in a Dict
-
-        Raises:
-            NotImplementedError: this is an abstract method.
-
-        """
-    @classmethod
-    @abstractmethod
-    def _get_all_url(cls) -> str:
-        """
-        Get URL for all elements in SDC.
-
-        Raises:
-            NotImplementedError: this is an abstract method.
-
-        """
-    def __eq__(self, other: Any) -> bool:
-        """
-        Check equality for SDC and children.
-
-        Args:
-            other: another object
-
-        Returns:
-            bool: True if same object, False if not
-
-        """
-        if isinstance(other, type(self)):
-            return self.name == other.name
-        return False
-
     @abstractmethod
     def update_informations_from_sdc(self, details: Dict[str, Any]) -> None:
         """
@@ -294,39 +354,7 @@ class SDC(OnapService, ABC):
             details ([type]): the details from SDC
 
         """
-    @classmethod
-    @abstractmethod
-    def _base_url(cls) -> str:
-        """
-        Give back the base url of Sdc.
 
-        Raises:
-            NotImplementedError: this is an abstract method.
-
-        """
-    @classmethod
-    @abstractmethod
-    def _base_create_url(cls) -> str:
-        """
-        Give back the base url of Sdc.
-
-        Raises:
-            NotImplementedError: this is an abstract method.
-
-        """
-    @classmethod
-    @abstractmethod
-    def import_from_sdc(cls, values: Dict[str, Any]) -> 'SDC':
-        """
-        Import Sdc object from SDC.
-
-        Args:
-            values (Dict[str, Any]): dict to parse returned from SDC.
-
-        Raises:
-            NotImplementedError: this is an abstract method.
-
-        """
     @abstractmethod
     def load(self) -> None:
         """
@@ -336,18 +364,7 @@ class SDC(OnapService, ABC):
             NotImplementedError: this is an abstract method.
 
         """
-    @abstractmethod
-    def _copy_object(self, obj: 'SDC') -> None:
-        """
-        Copy relevant properties from object.
 
-        Args:
-            obj (SdcResource): the object to "copy"
-
-        Raises:
-            NotImplementedError: this is an abstract method.
-
-        """
     @abstractmethod
     def _get_version_from_sdc(self, sdc_infos: Dict[str, Any]) -> str:
         """
@@ -414,3 +431,12 @@ class SDC(OnapService, ABC):
     @abstractmethod
     def _sdc_path(cls) -> None:
         """Give back the end of SDC path."""
+
+    @abstractmethod
+    def onboard(self) -> None:
+        """Onboard resource.
+
+        Onboarding is a full stack of actions which needs to be done to
+            make SDC resource ready to use. It depends on the type of object
+            but most of them needs to be created and submitted.
+        """
