@@ -258,6 +258,19 @@ def test_resource_category_get(mock_send_message_json):
     assert not rc.owner_id
     assert not rc.empty
     assert not rc.type
+    assert len(rc.subcategories) == 2
+    with pytest.raises(ValueError):
+        ResourceCategory.get(name="Network Connectivity", subcategory="Toto")
+    rc = ResourceCategory.get(name="Network Connectivity", subcategory="Connection Points")
+    assert rc.name == "Network Connectivity"
+    assert rc.normalized_name == "network connectivity"
+    assert rc.unique_id == "resourceNewCategory.network connectivity"
+    assert not rc.icons
+    assert not rc.version
+    assert not rc.owner_id
+    assert not rc.empty
+    assert not rc.type
+    assert len(rc.subcategories) == 1
 
 @mock.patch.object(ResourceCategory, "send_message_json")
 def test_resource_category_create(mock_send_message_json):

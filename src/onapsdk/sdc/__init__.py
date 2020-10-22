@@ -117,7 +117,7 @@ class SDC(OnapService, ABC):
         """
 
     @classmethod
-    def get_all(cls) -> List['SDC']:
+    def get_all(cls, **kwargs) -> List['SDC']:
         """
         Get the objects list created in SDC.
 
@@ -129,7 +129,7 @@ class SDC(OnapService, ABC):
                          cls.__name__)
         url = cls._get_all_url()
         result = cls.send_message_json('GET', "get {}s".format(cls.__name__),
-                                       url)
+                                       url, **kwargs)
         objects = []
         if result:
             for obj_info in cls._get_objects_list(result):

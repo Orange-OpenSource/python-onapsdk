@@ -50,6 +50,29 @@ class BaseCategory(SDC, ABC):  # pylint: disable=too-many-instance-attributes
         return f"{settings.SDC_FE_URL}/sdc1/feProxy/rest/v1/category"
 
     @classmethod
+    def headers(cls) -> Dict[str, str]:
+        """Headers used for category management.
+
+        It uses SDC admin user.
+
+        Returns:
+            Dict[str, str]: Headers
+
+        """
+        return headers_sdc_generic(super().headers, user=cls.SDC_ADMIN_USER)
+
+    @classmethod
+    def get_all(cls, **kwargs) -> List['SDC']:
+        """
+        Get the categories list created in SDC.
+
+        Returns:
+            the list of the categories
+
+        """
+        return super().get_all(headers=cls.headers())
+
+    @classmethod
     def import_from_sdc(cls, values: Dict[str, Any]) -> 'BaseCategory':
         """
         Import category object from SDC.
@@ -117,7 +140,7 @@ class BaseCategory(SDC, ABC):  # pylint: disable=too-many-instance-attributes
                               f"Create {name} {cls.category_name()}",
                               cls._base_create_url(),
                               data=json.dumps({"name": name}),
-                              headers=headers_sdc_generic(cls.headers, user=cls.SDC_ADMIN_USER),
+                              headers=cls.headers(),
                               exception=ValueError)
         category_obj.exists()
         return category_obj
@@ -180,6 +203,36 @@ class ResourceCategory(BaseCategory):
 
         """
         return "Resource Category"
+
+    @classmethod
+    def get(cls, name: str, subcategory: str = None) -> "ResourceCategory":  # pylint: disable=arguments-differ
+        """Get resource category with given name.
+
+        It returns resource category with all subcategories by default. You can
+            get resource category with only one subcategory if you provide it's
+            name as `subcategory` parameter.
+
+        Args:
+            name (str): Resource category name.
+            subcategory (str, optional): Name of subcategory. Defaults to None.
+
+        Raises:
+            ValueError: Category with given name does not exist
+            ValueError: Subcategory with given name does not exist
+
+        Returns:
+            BaseCategory: BaseCategory instance
+
+        """
+        category_obj: "ResourceCategory" = super().get(name=name)
+        if not subcategory:
+            return category_obj
+        filtered_subcategories: Dict[str, str] = list(filter(lambda x: x["name"] == subcategory,
+                                                             category_obj.subcategories))
+        if not filtered_subcategories:
+            raise ValueError(f"Subcategory {subcategory} does not exist")
+        category_obj.subcategories = filtered_subcategories
+        return category_obj
 
 
 class ServiceCategory(BaseCategory):
