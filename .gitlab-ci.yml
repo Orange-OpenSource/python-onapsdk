@@ -11,6 +11,8 @@
     - docker:dind
   variables:
     DOCKER_DRIVER: overlay
+    # Variables for pytest.gitlab-ci.yml
+    PYTHON_VERSIONS: "v3.7 v3.8 v3.9"
     # Variables for Container-Scanning.gitlab-ci.yml
     CI_APPLICATION_REPOSITORY: $CI_REGISTRY_IMAGE #/$CI_COMMIT_REF_SLUG
     CI_APPLICATION_TAG: $CI_COMMIT_REF_SLUG #$CI_COMMIT_SHA
@@ -65,6 +67,12 @@
         alias: so.api.simpledemo.onap.org
       - name: registry.gitlab.com/orange-opensource/lfn/onap/mock_servers/mock-aai:latest
         alias: aai.api.sparky.simpledemo.onap.org
+      - name: registry.gitlab.com/orange-opensource/lfn/onap/mock_servers/mock-clamp:develop
+        alias: clamp.api.simpledemo.onap.org
+      - name: registry.gitlab.com/orange-opensource/lfn/onap/mock_servers/mock-cds:latest
+        alias: cds.api.simpledemo.onap.org
+      - name: registry.gitlab.com/orange-opensource/lfn/onap/mock_servers/mock-msb-k8s:latest
+        alias: msb.k8s.api.simpledemo.onap.org
     script:
       - pip install .
       - pip install pytest mock # mock is needed as pytest parse all files before selection
@@ -80,6 +88,10 @@
 
   integration_tests:3.8:
     image: python:3.8
+    <<: *integration_tests
+
+  integration_tests:3.9:
+    image: python:3.9
     <<: *integration_tests
 
   pages:

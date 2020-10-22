@@ -94,6 +94,7 @@ def test_exists_exists(mock_get_all):
     """Return True if vendor exists in SDC."""
     vendor_1 = Vendor(name="one")
     vendor_1.identifier = "1234"
+    vendor_1.version = "1.1"
     mock_get_all.return_value = [vendor_1]
     vendor = Vendor(name="one")
     assert vendor.exists()

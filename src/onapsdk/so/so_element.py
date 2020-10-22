@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: Apache-2.0
 """SO Element module."""
 import json
-import time
 from abc import ABC
 from dataclasses import dataclass
 from enum import Enum
@@ -15,6 +14,7 @@ from onapsdk.sdc.vf import Vf
 from onapsdk.onap_service import OnapService
 from onapsdk.utils.headers_creator import headers_so_creator
 from onapsdk.utils.jinja import jinja_env
+from onapsdk.utils.mixins import WaitForFinishMixin
 from onapsdk.utils.tosca_file_handler import get_modules_list_from_tosca_file
 
 
@@ -25,7 +25,7 @@ class SoElement(OnapService):
     name: str = None
     _server: str = "SO"
     base_url = settings.SO_URL
-    api_version = "v7"
+    api_version = settings.SO_API_VERSION
     _status: str = None
 
     @property
@@ -102,7 +102,7 @@ class SoElement(OnapService):
         )
 
 
-class OrchestrationRequest(SoElement, ABC):
+class OrchestrationRequest(SoElement, WaitForFinishMixin, ABC):
     """Base SO orchestration request class."""
 
     WAIT_FOR_SLEEP_TIME = 10
@@ -194,20 +194,3 @@ class OrchestrationRequest(SoElement, ABC):
 
         """
         return self.finished and self.status == self.StatusEnum.FAILED
-
-    def wait_for_finish(self) -> bool:
-        """Wait until orchestration request is finished.
-
-        It uses time.sleep with WAIT_FOR_SLEEP_TIME value as a parameter to
-            wait unitl request is finished (OrchestrationRequest.finished
-            returns True).
-
-        Returns:
-            bool: True if request if successfully completed, False otherwise
-
-        """
-        self._logger.debug("Wait unit orchestation request is not finished")
-        while not self.finished:
-            time.sleep(self.WAIT_FOR_SLEEP_TIME)
-        self._logger.info("Orchestration request finished")
-        return self.completed

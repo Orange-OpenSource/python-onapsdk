@@ -4,6 +4,30 @@ onapsdk.sdc package
 Submodules
 ----------
 
+onapsdk.sdc.component module
+----------------------------
+
+.. automodule:: onapsdk.sdc.component
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+onapsdk.sdc.pnf module
+----------------------
+
+.. automodule:: onapsdk.sdc.pnf
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+onapsdk.sdc.properties module
+-----------------------------
+
+.. automodule:: onapsdk.sdc.properties
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 onapsdk.sdc.sdc\_element module
 -------------------------------
 

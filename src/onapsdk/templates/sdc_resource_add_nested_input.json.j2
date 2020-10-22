@@ -1,0 +1,35 @@
+{
+    "componentInstanceInputsMap":{
+        "{{ component.unique_id }}":[
+            {
+                {# "defaultValue":null, #}
+                "name":"{{ input.name }}",
+                "origName":"{{ input.name }}",
+                {# "parentUniqueId":"cs0008", #}
+                "password":false,
+                "required":false,
+                "schema":{
+                    "property":{
+                        {# "type":"",
+                        "required":false,
+                        "definition":false,
+                        "password":false #}
+                    }
+                },
+                {# "schemaType":"", #}
+                "type":"{{ input.input_type }}",
+                "uniqueId":"{{ sdc_resource.unique_identifier }}.{{ input.name }}",
+                {% if input.default_value is not none %}
+                "value":"{{ input.default_value }}",
+                {% endif %}
+                "definition":false
+                {# "type":"{{ input.input_type }}", #}
+            }
+        ]
+    },
+    "componentInstanceProperties":{
+        "{{ component.unique_id }}":[]
+    },
+    "groupProperties":{},
+    "policyProperties":{}
+}

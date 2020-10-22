@@ -24,7 +24,7 @@ E2E Upload of an artifact
     VF_NAME = "my_VF"
     SERVICENAME = "artifact_SERVICE"
 
-    ARTIFACT_NAME = "k8s_tca_clampnode.yaml"
+    ARTIFACT_NAME = "clampnode"
     ARTIFACT_TYPE = "DCAE_INVENTORY_BLUEPRINT"
     ARTIFACT_FILE_PATH = "{os.path.dirname(os.path.abspath(__file__))}/my_ArtifactFile.yaml"
 
@@ -34,7 +34,7 @@ E2E Upload of an artifact
     logger.info("*******************************")
 
     logger.info("******** Get VF *******")
-    Vf = vf(VF_NAME)
+    vf = Vf(VF_NAME)
     vf.onboard()
 
     logger.info("******** Create Service *******")
@@ -43,7 +43,7 @@ E2E Upload of an artifact
     svc.add_resource(vf)
 
     logger.info("******** Extract Artifact Data *******")
-    data = open(ARTIFACT_FILE_PATH).read()
+    data = open(ARTIFACT_FILE_PATH,'rb').read()
 
     logger.info("******** Upload Artifact *******")
     svc.add_artifact_to_vf(vnf_name=VF_NAME, 

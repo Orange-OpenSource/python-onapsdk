@@ -1,0 +1,13 @@
+[
+    {
+        "name":"{{ property.name }}",
+        "parentUniqueId":"{{ sdc_resource.unique_identifier }}",
+        "type":"{{ property.property_type }}",
+        "uniqueId":"{{ sdc_resource.unique_identifier }}.{{ property.name }}",
+        "value":"{{ value }}",
+        "definition":false,
+        "toscaPresentation":{
+            "ownerId":"{{ sdc_resource.unique_identifier }}"
+        }
+    }
+]

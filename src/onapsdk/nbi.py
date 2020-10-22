@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """NBI module."""
 from abc import ABC
+from enum import Enum
 from typing import Iterator
 from uuid import uuid4
 
@@ -10,6 +11,7 @@ from onapsdk.aai.business.customer import Customer
 from onapsdk.onap_service import OnapService
 from onapsdk.utils import get_zulu_time_isoformat
 from onapsdk.utils.jinja import jinja_env
+from onapsdk.utils.mixins import WaitForFinishMixin
 
 
 class Nbi(OnapService, ABC):
@@ -220,8 +222,10 @@ class Service(Nbi):
         return ServiceSpecification.get_by_id(self._service_specification_id)
 
 
-class ServiceOrder(Nbi):  # pylint: disable=too-many-instance-attributes
+class ServiceOrder(Nbi, WaitForFinishMixin):  # pylint: disable=too-many-instance-attributes
     """Service order class."""
+
+    WAIT_FOR_SLEEP_TIME = 10
 
     def __init__(self,  # pylint: disable=too-many-arguments
                  unique_id: str,
@@ -266,6 +270,25 @@ class ServiceOrder(Nbi):  # pylint: disable=too-many-instance-attributes
         self._service_specification_id: str = service_specification_id
         self.service_instance_name: str = service_instance_name
         self.state: str = state
+
+    class StatusEnum(Enum):
+        """Status enum.
+
+        Store possible statuses for service order:
+            - completed,
+            - failed,
+            - inProgress.
+        If instantiation has status which is not covered by these values
+            `unknown` value is used.
+
+        """
+
+        ACKNOWLEDGED = "acknowledged"
+        IN_PROGRESS = "inProgress"
+        FAILED = "failed"
+        COMPLETED = "completed"
+        REJECTED = "rejected"
+        UNKNOWN = "unknown"
 
     def __repr__(self) -> str:
         """Service order object representation.
@@ -383,3 +406,73 @@ class ServiceOrder(Nbi):  # pylint: disable=too-many-instance-attributes
             service_specification=service_specification,
             service_instance_name=name
         )
+
+    @property
+    def status(self) -> "StatusEnum":
+        """Service order instantiation status.
+
+        It's populated by call Service order endpoint.
+
+        Returns:
+            StatusEnum: Service order status.
+
+        """
+        response: dict = self.send_message_json("GET",
+                                                "Get service order status",
+                                                (f"{self.base_url}{self.api_version}/"
+                                                 f"serviceOrder/{self.unique_id}"),
+                                                exception=ValueError)
+        try:
+            return self.StatusEnum(response.get("state"))
+        except (KeyError, ValueError):
+            self._logger.exception("Invalid status")
+            return self.StatusEnum.UNKNOWN
+
+    @property
+    def completed(self) -> bool:
+        """Store an information if service order is completed or not.
+
+        Service orded is completed if it's status is COMPLETED.
+
+        Returns:
+            bool: True if service orded is completed, False otherwise.
+
+        """
+        return self.status == self.StatusEnum.COMPLETED
+
+    @property
+    def rejected(self) -> bool:
+        """Store an information if service order is rejected or not.
+
+        Service orded is completed if it's status is REJECTED.
+
+        Returns:
+            bool: True if service orded is rejected, False otherwise.
+
+        """
+        return self.status == self.StatusEnum.REJECTED
+
+    @property
+    def failed(self) -> bool:
+        """Store an information if service order is failed or not.
+
+        Service orded is completed if it's status is FAILED.
+
+        Returns:
+            bool: True if service orded is failed, False otherwise.
+
+        """
+        return self.status == self.StatusEnum.FAILED
+
+    @property
+    def finished(self) -> bool:
+        """Store an information if service order is finished or not.
+
+        Service orded is finished if it's status is not ACKNOWLEDGED or IN_PROGRESS.
+
+        Returns:
+            bool: True if service orded is finished, False otherwise.
+
+        """
+        return self.status not in [self.StatusEnum.ACKNOWLEDGED,
+                                   self.StatusEnum.IN_PROGRESS]

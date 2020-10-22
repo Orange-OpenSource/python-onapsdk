@@ -3,8 +3,10 @@
 import json
 import re
 from dataclasses import dataclass, field
+from datetime import datetime
 from io import BytesIO
 from typing import Any, Dict, Generator, Iterator, List
+from uuid import uuid4
 from zipfile import ZipFile
 
 import oyaml as yaml
@@ -301,6 +303,58 @@ class Workflow(CdsElement):
                 )
         return self._outputs
 
+    @property
+    def url(self) -> str:
+        """Workflow execution url.
+
+        Returns:
+            str: Url to call warkflow execution.
+
+        """
+        return f"{self._url}/api/v1/execution-service/process"
+
+    def execute(self, inputs: dict) -> dict:
+        """Execute workflow.
+
+        Call CDS HTTP API to execute workflow.
+
+        Args:
+            inputs (dict): Inputs dictionary.
+
+        Raises:
+            AttributeError: Execution returns error.
+
+        Returns:
+            dict: Response's payload.
+
+        """
+        # There should be some flague to check if CDS UI API is used or blueprintprocessor.
+        # For CDS UI API there is no endporint to execute workflow, so it has to be turned off.
+        execution_service_input: dict = {
+            "commonHeader": {
+                "originatorId": "onapsdk",
+                "requestId": str(uuid4()),
+                "subRequestId": str(uuid4()),
+                "timestamp": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+            },
+            "actionIdentifiers": {
+                "blueprintName": self.blueprint.metadata.template_name,
+                "blueprintVersion": self.blueprint.metadata.template_version,
+                "actionName": self.name,
+                "mode": "SYNC",  # Has to be SYNC for REST call
+            },
+            "payload": {f"{self.name}-request": inputs},
+        }
+        response: "requests.Response" = self.send_message_json(
+            "POST",
+            f"Execute {self.blueprint.metadata.template_name} blueprint {self.name} workflow",
+            self.url,
+            auth=self.auth,
+            data=json.dumps(execution_service_input),
+            exception=ValueError
+        )
+        return response["payload"]
+
 
 class Blueprint(CdsElement):
     """CDS blueprint representation."""
@@ -337,7 +391,7 @@ class Blueprint(CdsElement):
             str: URL to CDS blueprintprocessor.
 
         """
-        return self._url
+        return f"{self._url}/api/v1/blueprint-model"
 
     @property
     def metadata(self) -> CbaMetadata:
@@ -406,12 +460,12 @@ class Blueprint(CdsElement):
         response: "requests.Response" = self.send_message(
             "POST",
             "Enrich CDS blueprint",
-            f"{self.url}/controllerblueprint/enrich-blueprint",
+            f"{self.url}/enrich",
             files={"file": self.cba_file_bytes},
             headers={},  # Leave headers empty to fill it correctly by `requests` library
+            auth=self.auth,
+            exception=ValueError
         )
-        if response is None:
-            raise AttributeError("Can't enrich blueprint, look on logs to get more information")
         return Blueprint(response.content)
 
     def publish(self) -> None:
@@ -419,19 +473,23 @@ class Blueprint(CdsElement):
         self.send_message(
             "POST",
             "Publish CDS blueprint",
-            f"{self.url}/controllerblueprint/publish",
+            f"{self.url}/publish",
             files={"file": self.cba_file_bytes},
             headers={},  # Leave headers empty to fill it correctly by `requests` library
+            auth=self.auth,
+            exception=ValueError
         )
 
     def deploy(self) -> None:
-        """Deploy bluepirint using CDS API."""
+        """Deploy blueprint."""
         self.send_message(
             "POST",
             "Deploy CDS blueprint",
-            f"{self.url}/controllerblueprint/deploy-blueprint",
+            f"{self.url}",
             files={"file": self.cba_file_bytes},
             headers={},  # Leave headers empty to fill it correctly by `requests` library
+            auth=self.auth,
+            exception=ValueError
         )
 
     def save(self, dest_file_path: str) -> None:

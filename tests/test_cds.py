@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
+import json
 import os.path
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -39,6 +40,26 @@ DD_1 = {
 }
 
 
+RAW_DD = {
+    "tags": "vf-module-name",
+    "name": "vf-module-name",
+    "property": {
+        "description": "vf-module-name",
+        "type": "string"
+    },
+    "updated-by": "Singal, Kapil <ks220y@att.com>",
+    "sources": {
+        "input": {
+            "type": "source-input"
+        },
+        "default": {
+            "type": "source-default",
+            "properties": {}
+        }
+    }
+}
+
+
 vLB_CBA_Python_meta_bytes = b'TOSCA-Meta-File-Version: 1.0.0\nCSAR-Version: 1.0\nCreated-By: PLATANIA, MARCO <platania@research.att.com>\nEntry-Definitions: Definitions/vLB_CDS.json\nTemplate-Tags: vDNS-CDS-test1\nContent-Type: application/vnd.oasis.bpmn\nTemplate-Name: vDNS-CDS-test1\nTemplate-Version: 1.0'
 
 vLB_CBA_Python_base_template_mapping_bytes = b'[\n  {\n    "name": "service-instance-id",\n    "property": {\n      "description": "",\n      "required": false,\n      "type": "string",\n      "status": "",\n      "constraints": [\n        {}\n      ],\n      "entry_schema": {\n        "type": ""\n      }\n    },\n    "input-param": false,\n    "dictionary-name": "service-instance-id",\n    "dictionary-source": "input",\n    "dependencies": [],\n    "version": 0\n  },\n  {\n    "name": "vnf-id",\n    "property": {\n      "description": "",\n      "required": false,\n      "type": "string",\n      "status": "",\n      "constraints": [\n        {}\n      ],\n      "entry_schema": {\n        "type": ""\n      }\n    },\n    "input-param": false,\n    "dictionary-name": "vnf-id",\n    "dictionary-source": "input",\n    "dependencies": [],\n    "version": 0\n  },\n  {\n    "name": "vdns_vf_module_id",\n    "property": {\n      "description": "",\n      "required": false,\n      "type": "string",\n      "status": "",\n      "constraints": [\n        {}\n      ],\n      "entry_schema": {\n        "type": ""\n      }\n    },\n    "input-param": false,\n    "dictionary-name": "vdns_vf_module_id",\n    "dictionary-source": "sdnc",\n    "dependencies": [\n\t  "service-instance-id",\n      "vnf-id"\n    ],\n    "version": 0\n  },\n  {\n    "name": "vdns_int_private_ip_0",\n    "property": {\n      "description": "",\n      "required": false,\n      "type": "string",\n      "status": "",\n      "constraints": [\n        {}\n      ],\n      "entry_schema": {\n        "type": ""\n      }\n    },\n    "input-param": false,\n    "dictionary-name": "vdns_int_private_ip_0",\n    "dictionary-source": "sdnc",\n    "dependencies": [\n      "service-instance-id",\n      "vnf-id",\n      "vdns_vf_module_id"\n    ],\n    "version": 0\n  },\n  {\n    "name": "vdns_onap_private_ip_0",\n    "property": {\n      "description": "",\n      "required": false,\n      "type": "string",\n      "status": "",\n      "constraints": [\n        {}\n      ],\n      "entry_schema": {\n        "type": ""\n      }\n    },\n    "input-param": false,\n    "dictionary-name": "vdns_onap_private_ip_0",\n    "dictionary-source": "sdnc",\n    "dependencies": [\n      "service-instance-id",\n      "vnf-id",\n      "vdns_vf_module_id"\n    ],\n    "version": 0\n  }\n]'
@@ -67,6 +88,15 @@ def test_blueprint_deploy(send_message_mock):
     blueprint = Blueprint(b"test cba - it will never work")
     blueprint.deploy()
     send_message_mock.assert_called_once()
+
+
+def test_blueprint_load_from_file():
+    with TemporaryDirectory() as tmpdirname:
+        path = os.path.join(tmpdirname, "test.zip")
+        with open(path, "wb") as f:
+            f.write(b"test cba - it will never work")
+        blueprint = Blueprint.load_from_file(path)
+        assert blueprint.cba_file_bytes == b"test cba - it will never work"
 
 
 def test_blueprint_save():
@@ -125,8 +155,10 @@ def test_blueprint_generate_data_dictionary_set():
 @patch.object(CdsElement, "_url", new_callable=PropertyMock)
 def test_data_dictionary(cds_element_url_property_mock):
     cds_element_url_property_mock.return_value = "http://127.0.0.1"
-    dd = DataDictionary({})
-    assert dd.url == "http://127.0.0.1/resourcedictionary"
+    with raises(ValueError):
+        DataDictionary({})
+    dd = DataDictionary({}, fix_schema=False)
+    assert dd.url == "http://127.0.0.1/api/v1/dictionary"
     assert dd.data_dictionary_json == {}
 
     dd = DataDictionary(DD_1)
@@ -150,11 +182,23 @@ def test_data_dictionary_set(send_message_mock):
     dd_set.add(DataDictionary(DD_1))
     assert dd_set.length == 1
 
-    dd_set.add(DataDictionary({"name": "test"}))
+    dd_set.add(DataDictionary({"name": "test"}, fix_schema=False))
     assert dd_set.length == 2
 
     dd_set.upload()
     assert send_message_mock.call_count == 2
+
+
+def test_data_dictionary_set_save_to_file_load_from_file():
+    dd = DataDictionarySet()
+    dd.add(DataDictionary(DD_1))
+    with TemporaryDirectory() as tmpdirname:
+        path = os.path.join(tmpdirname, "dd.json")
+        dd.save_to_file(path)
+        with open(path, "r") as f:
+            assert f.read() == json.dumps([dd.data_dictionary_json for dd in dd.dd_set], indent=4)
+        dd_2 = DataDictionarySet.load_from_file(path)
+        assert dd.dd_set == dd_2.dd_set
 
 
 def test_mapping():
@@ -202,13 +246,21 @@ def test_blueprint_get_workflows_from_entry_definitions_file():
     assert len(workflow.outputs) == 1
 
 
-@patch.object(DataDictionary, "send_message")
-def test_no_data_upload(send_message_mock):
-    dd = DataDictionary(DD_1)
-    send_message_mock.return_value = None 
-    with raises(RuntimeError):
-        dd.upload()
-        send_message_mock.assert_called_once()
+@patch.object(Workflow, "send_message")
+def test_workflow_execute(send_message_mock):
+    metadata = MagicMock(template_name="test", template_version="test")
+    blueprint = MagicMock(metadata=metadata)
+    workflow = Workflow("test_workflow", {}, blueprint)
+    assert len(workflow.steps) == 0
+    assert len(workflow.inputs) == 0
+    assert len(workflow.outputs) == 0
+    workflow.execute({})
+    send_message_mock.assert_called_once()
 
 
-
+def test_data_dictionary_validation():
+    assert DataDictionary(DD_1).has_valid_schema()
+    raw_dd = DataDictionary(RAW_DD, fix_schema=False)
+    assert not raw_dd.has_valid_schema()
+    raw_dd = DataDictionary(RAW_DD, fix_schema=True)
+    assert raw_dd.has_valid_schema()

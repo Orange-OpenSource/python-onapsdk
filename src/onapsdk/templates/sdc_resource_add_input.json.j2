@@ -1,0 +1,39 @@
+{
+    "serviceProperties":{
+        "{{ sdc_resource.unique_identifier }}":[
+            {
+                "constraints":null,
+                "defaultValue":null,
+                "description":null,
+                "name":"{{ property.name }}",
+                "origName":"{{ property.name }}",
+                "parentUniqueId":"{{ sdc_resource.unique_identifier }}",
+                "password":false,
+                "required":false,
+                "schema":{
+                    "property":{
+                        "type":"",
+                        "required":false,
+                        "definition":false,
+                        "description":null,
+                        "password":false
+                    }
+                },
+                "schemaType":"",
+                "type":"{{ property.property_type }}",
+                "uniqueId":"{{ sdc_resource.unique_identifier }}.{{ property.name }}",
+                {% if property.value is not none %}
+                "value":"{{ property.value }}",
+                {% else %}
+                "value":null,
+                {% endif %}
+                "definition":false,
+                "getInputValues":null,
+                "parentPropertyType":null,
+                "subPropertyInputPath":null,
+                "getPolicyValues":null,
+                "inputPath":null
+            }
+        ]
+    }
+}

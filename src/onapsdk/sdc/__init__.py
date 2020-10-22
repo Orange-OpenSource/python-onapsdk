@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """SDC Element module."""
 from typing import Any, Dict, List
+from operator import attrgetter
 from abc import ABC, abstractmethod
 
 from requests import Response
@@ -102,19 +103,36 @@ class SDC(OnapService, ABC):
             True if exists, False either
 
         """
-        self._logger.debug("check if %s %s exists in SDC",
-                           type(self).__name__, self.name)
+        self._logger.debug("check if %s %s exists in SDC", type(self).__name__, self.name)
         objects = self.get_all()
-        for obj in objects:
-            self._logger.debug("checking if %s is the same", obj.name)
-            if obj == self:
-                self._logger.info("%s found, updating information",
-                                  type(self).__name__)
-                self._copy_object(obj)
-                return True
-        self._logger.info("%s %s doesn't exist in SDC",
-                          type(self).__name__, self.name)
-        return False
+
+        self._logger.debug("filtering objects of all versions to be %s", self.name)
+        relevant_objects = list(filter(lambda obj: obj == self, objects))
+
+        if not relevant_objects:
+
+            self._logger.info("%s %s doesn't exist in SDC", type(self).__name__, self.name)
+            return False
+
+        if hasattr(self, 'version_filter') and self.version_filter is not None: # pylint: disable=no-member
+
+            self._logger.debug("filtering %s objects by version %s", self.name, self.version_filter) # pylint: disable=no-member
+            all_versioned = filter(lambda obj: obj.version == self.version_filter,  # pylint: disable=no-member
+                                   relevant_objects)
+
+            try:
+                versioned_object = next(all_versioned)
+            except StopIteration:
+                self._logger.info("Version %s of %s %s, doesn't exist in SDC",
+                                  self.version_filter, type(self).__name__, self.name) # pylint: disable=no-member
+                return False
+
+        else:
+            versioned_object = max(relevant_objects, key=attrgetter('version'))
+
+        self._logger.info("%s found, updating information", type(self).__name__)
+        self._copy_object(versioned_object)
+        return True
 
     def submit(self) -> None:
         """Submit the SDC object in order to enable it."""

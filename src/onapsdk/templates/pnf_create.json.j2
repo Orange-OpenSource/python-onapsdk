@@ -1,0 +1,52 @@
+{
+    "artifacts": {},
+    "attributes": [],
+    "capabilities": {},
+    "categories":[
+        {
+            "name": "Generic",
+            "normalizedName": "generic",
+            "uniqueId": "resourceNewCategory.generic",
+            "icons": null,
+            "subcategories":[
+                {
+                    "name": "Abstract",
+                    "normalizedName": "abstract",
+                    "uniqueId": "resourceNewCategory.generic.abstract",
+                    "icons":[
+                        "objectStorage",
+                        "compute"
+                    ],
+                    "groupings": null,
+                    "ownerId": null,
+                    "empty": false
+                }
+            ],
+            "ownerId": null,
+            "empty": false
+        }
+    ],
+    "componentInstances": [],
+    "componentInstancesAttributes": {},
+    "componentInstancesProperties": {},
+    "componentType": "RESOURCE",
+    "contactId": "cs0008",
+    {% if vsp is not none %}
+    "csarUUID": "{{ vsp.csar_uuid }}",
+    "csarVersion": "1.0",
+    "vendorName": "{{ vsp.vendor.name }}",
+    {% else %}
+    "vendorName": "{{ vendor.name }}",
+    {% endif %}
+    "deploymentArtifacts": {},
+    "description": "PNF",
+    "icon": "defaulticon",
+    "name": "{{ name }}",
+    "properties": [],
+    "groups": [],
+    "requirements": {},
+    "resourceType": "PNF",
+    "tags": ["{{ name }}"],
+    "toscaArtifacts": {},
+    "vendorRelease": "1.0"
+}

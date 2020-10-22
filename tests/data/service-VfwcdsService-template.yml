@@ -1,0 +1,1439 @@
+tosca_definitions_version: tosca_simple_yaml_1_1
+metadata:
+  invariantUUID: 40f5261c-38dd-4e7b-9ef4-4af383982efe
+  UUID: 7227d3dc-fa6c-470c-b752-9879395e3560
+  name: vfwcds_SERVICE
+  description: service
+  type: Service
+  category: Network Service
+  serviceType: ''
+  serviceRole: ''
+  instantiationType: Macro
+  serviceEcompNaming: true
+  ecompGeneratedNaming: true
+  namingPolicy: ''
+  environmentContext: General_Revenue-Bearing
+  serviceFunction: ''
+imports:
+- nodes:
+    file: nodes.yml
+- datatypes:
+    file: data.yml
+- capabilities:
+    file: capabilities.yml
+- relationships:
+    file: relationships.yml
+- groups:
+    file: groups.yml
+- policies:
+    file: policies.yml
+- annotations:
+    file: annotations.yml
+- service-vfwcds_SERVICE-interface:
+    file: service-VfwcdsService-template-interface.yml
+- resource-vfwcds_VF:
+    file: resource-VfwcdsVf-template.yml
+- resource-vfwcds_VF-interface:
+    file: resource-VfwcdsVf-template-interface.yml
+topology_template:
+  inputs:
+    skip_post_instantiation_configuration:
+      default: true
+      type: boolean
+      required: false
+    controller_actor:
+      default: SO-REF-DATA
+      type: string
+      required: false
+    cds_model_version:
+      type: string
+      required: false
+    cds_model_name:
+      type: string
+      required: false
+  node_templates:
+    vfwcds_VF 0:
+      type: org.openecomp.resource.vf.VfwcdsVf
+      metadata:
+        invariantUUID: 1d96a236-7c64-4bfe-9eeb-5026e060e6cd
+        UUID: 8726a1fd-e84e-4477-bffb-319defb84b76
+        customizationUUID: eabe78af-3a24-45ed-a50a-24ad778d0bac
+        version: '1.0'
+        name: vfwcds_VF
+        description: VF
+        type: VF
+        category: Generic
+        subcategory: Abstract
+        resourceVendor: VNFVendor
+        resourceVendorRelease: '1.0'
+        resourceVendorModelNumber: ''
+      properties:
+        vf_module_id: vFirewallCL
+        skip_post_instantiation_configuration: false
+        controller_actor: CDS
+        vsn_flavor_name: PUT THE VM FLAVOR NAME HERE (m1.medium suggested)
+        vfw_int_private2_ip_0: 192.168.20.100
+        int_private1_subnet_id: zdfw1fwl01_unprotected_sub
+        public_net_id: PUT THE PUBLIC NETWORK ID HERE
+        vnf_name: vFW_NextGen
+        onap_private_subnet_id: PUT THE ONAP PRIVATE NETWORK NAME HERE
+        vsn_int_private2_ip_0: 192.168.20.250
+        sec_group: PUT THE ONAP SECURITY GROUP HERE
+        vfw_name_0: zdfw1fwl01fwl01
+        nexus_artifact_repo: https://nexus.onap.org
+        onap_private_net_cidr: 10.0.0.0/16
+        vpg_onap_private_ip_0: 10.0.100.2
+        dcae_collector_ip: 10.0.4.1
+        vsn_image_name: PUT THE VM IMAGE NAME HERE (UBUNTU 1404)
+        vnf_id: vSink_demo_app
+        vpg_flavor_name: PUT THE VM FLAVOR NAME HERE (m1.medium suggested)
+        dcae_collector_port: '30417'
+        vfw_int_private2_floating_ip: 192.168.10.200
+        vpg_name_0: zdfw1fwl01pgn01
+        int_private2_subnet_id: zdfw1fwl01_protected_sub
+        int_private2_net_cidr: 192.168.20.0/24
+        nf_naming:
+          ecomp_generated_naming: true
+        vsn_name_0: zdfw1fwl01snk01
+        multi_stage_design: 'false'
+        vpg_image_name: PUT THE VM IMAGE NAME HERE (UBUNTU 1404)
+        onap_private_net_id: PUT THE ONAP PRIVATE NETWORK NAME HERE
+        availability_zone_max_count: 1
+        sdnc_artifact_name: vfwcds
+        vsn_onap_private_ip_0: 10.0.100.3
+        vfw_flavor_name: PUT THE VM FLAVOR NAME HERE (m1.medium suggested)
+        demo_artifacts_version: 1.6.0-SNAPSHOT
+        pub_key: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDQXYJYYi3/OUZXUiCYWdtc7K0m5C0dJKVxPG0eI8EWZrEHYdfYe6WoTSDJCww+1qlBSpA5ac/Ba4Wn9vh+lR1vtUKkyIC/nrYb90ReUd385Glkgzrfh5HdR5y5S2cL/Frh86lAn9r6b3iWTJD8wBwXFyoe1S2nMTOIuG4RPNvfmyCTYVh8XTCCE8HPvh3xv2r4egawG1P4Q4UDwk+hDBXThY2KS8M5/8EMyxHV0ImpLbpYCTBA6KYDIRtqmgS6iKyy8v2D1aSY5mc9J0T5t9S2Gv+VZQNWQDDKNFnxqYaAo1uEoq/i1q63XC5AD3ckXb2VT6dp23BQMdDfbHyUWfJN
+        key_name: vfw_key
+        vfw_int_private1_ip_0: 192.168.10.100
+        sdnc_model_version: 1.0.0
+        int_private1_net_cidr: 192.168.10.0/24
+        install_script_version: 1.6.0-SNAPSHOT
+        vfw_image_name: PUT THE VM IMAGE NAME HERE (UBUNTU 1404)
+        vfw_onap_private_ip_0: 10.0.100.1
+        vpg_int_private1_ip_0: 192.168.10.200
+        int_private2_net_id: zdfw1fwl01_protected
+        cloud_env: PUT openstack OR rackspace HERE
+        sdnc_model_name: vFW-CDS
+        int_private1_net_id: zdfw1fwl01_unprotected
+      capabilities:
+        abstract_vfw.cpu_vfw:
+          properties:
+            name: cpu
+        abstract_vpg.memory.resident_vpg:
+          properties:
+            name: memory.resident
+        abstract_vfw.disk.device.read.requests_vfw:
+          properties:
+            name: disk.device.read.requests
+        abstract_vpg.disk.write.bytes_vpg:
+          properties:
+            name: disk.write.bytes
+        abstract_vsn.disk.device.write.requests.rate_vsn:
+          properties:
+            name: disk.device.write.requests.rate
+        abstract_vpg.disk.usage_vpg:
+          properties:
+            name: disk.usage
+        abstract_vfw.network.outpoing.packets_vfw_vfw_int_private1_port_0:
+          properties:
+            name: network.outpoing.packets
+        abstract_vfw.disk.device.latency_vfw:
+          properties:
+            name: disk.device.latency
+        abstract_vfw.network.outpoing.packets_vfw_vfw_int_private2_port_0:
+          properties:
+            name: network.outpoing.packets
+        abstract_vfw.network.outpoing.packets_vfw_vfw_onap_private_port_0:
+          properties:
+            name: network.outpoing.packets
+        abstract_vsn.disk.device.write.bytes_vsn:
+          properties:
+            name: disk.device.write.bytes
+        abstract_vfw.disk.read.requests_vfw:
+          properties:
+            name: disk.read.requests
+        abstract_vsn.memory.resident_vsn:
+          properties:
+            name: memory.resident
+        abstract_vfw.network.incoming.bytes_vfw_vfw_int_private1_port_0:
+          properties:
+            name: network.incoming.bytes
+        abstract_vfw.network.incoming.bytes_vfw_vfw_int_private2_port_0:
+          properties:
+            name: network.incoming.bytes
+        abstract_vfw.memory_vfw:
+          properties:
+            name: memory
+        abstract_vsn.disk.device.read.requests.rate_vsn:
+          properties:
+            name: disk.device.read.requests.rate
+        abstract_vfw.disk.device.allocation_vfw:
+          properties:
+            name: disk.device.allocation
+        abstract_vsn.network.outgoing.packets.rate_vsn_vsn_int_private2_port_0:
+          properties:
+            name: network.outgoing.packets.rate
+        abstract_vfw.disk.root.size_vfw:
+          properties:
+            name: disk.root.size
+        abstract_vpg.network.incoming.packets_vpg_vpg_int_private1_port_0:
+          properties:
+            name: network.incoming.packets
+        abstract_vpg.network.outpoing.packets_vpg_vpg_onap_private_port_0:
+          properties:
+            name: network.outpoing.packets
+        abstract_vpg.memory.usage_vpg:
+          properties:
+            name: memory.usage
+        abstract_vfw.disk.capacity_vfw:
+          properties:
+            name: disk.capacity
+        abstract_vfw.disk.allocation_vfw:
+          properties:
+            name: disk.allocation
+        abstract_vpg.disk.iops_vpg:
+          properties:
+            name: disk.iops
+        abstract_vpg.disk.device.capacity_vpg:
+          properties:
+            name: disk.device.capacity
+        abstract_vsn.scalable_vsn:
+          properties:
+            max_instances: 1
+            min_instances: 1
+        abstract_vsn.network.incoming.packets.rate_vsn_vsn_int_private2_port_0:
+          properties:
+            name: network.incoming.packets.rate
+        abstract_vpg.disk.write.requests.rate_vpg:
+          properties:
+            name: disk.write.requests.rate
+        abstract_vsn.disk.read.bytes_vsn:
+          properties:
+            name: disk.read.bytes
+        abstract_vsn.network.incoming.bytes.rate_vsn_vsn_onap_private_port_0:
+          properties:
+            name: network.incoming.bytes.rate
+        abstract_vfw.disk.device.iops_vfw:
+          properties:
+            name: disk.device.iops
+        abstract_vsn.disk.device.write.requests_vsn:
+          properties:
+            name: disk.device.write.requests
+        abstract_vfw.disk.write.requests_vfw:
+          properties:
+            name: disk.write.requests
+        abstract_vpg.network.outgoing.bytes_vpg_vpg_int_private1_port_0:
+          properties:
+            name: network.outgoing.bytes
+        abstract_vsn.disk.device.allocation_vsn:
+          properties:
+            name: disk.device.allocation
+        abstract_vpg.disk.read.bytes_vpg:
+          properties:
+            name: disk.read.bytes
+        abstract_vsn.disk.ephemeral.size_vsn:
+          properties:
+            name: disk.ephemeral.size
+        abstract_vsn.cpu_vsn:
+          properties:
+            name: cpu
+        abstract_vpg.network.outgoing.packets.rate_vpg_vpg_onap_private_port_0:
+          properties:
+            name: network.outgoing.packets.rate
+        abstract_vpg.network.incoming.packets.rate_vpg_vpg_int_private1_port_0:
+          properties:
+            name: network.incoming.packets.rate
+        abstract_vsn.disk.write.bytes_vsn:
+          properties:
+            name: disk.write.bytes
+        abstract_vfw.network.incoming.packets.rate_vfw_vfw_int_private2_port_0:
+          properties:
+            name: network.incoming.packets.rate
+        abstract_vpg.disk.device.read.bytes_vpg:
+          properties:
+            name: disk.device.read.bytes
+        int_private1_network.end_point:
+          properties:
+            protocol: tcp
+            initiator: source
+            network_name: PRIVATE
+            secure: false
+        abstract_vfw.network.incoming.bytes.rate_vfw_vfw_int_private2_port_0:
+          properties:
+            name: network.incoming.bytes.rate
+        abstract_vfw.network.outgoing.bytes_vfw_vfw_onap_private_port_0:
+          properties:
+            name: network.outgoing.bytes
+        abstract_vpg.disk.capacity_vpg:
+          properties:
+            name: disk.capacity
+        abstract_vfw.network.outgoing.packets.rate_vfw_vfw_onap_private_port_0:
+          properties:
+            name: network.outgoing.packets.rate
+        abstract_vpg.disk.device.read.bytes.rate_vpg:
+          properties:
+            name: disk.device.read.bytes.rate
+        abstract_vfw.network.outgoing.bytes.rate_vfw_vfw_onap_private_port_0:
+          properties:
+            name: network.outgoing.bytes.rate
+        abstract_vfw.disk.usage_vfw:
+          properties:
+            name: disk.usage
+        abstract_vsn.disk.device.latency_vsn:
+          properties:
+            name: disk.device.latency
+        abstract_vpg.scalable_vpg:
+          properties:
+            max_instances: 1
+            min_instances: 1
+        abstract_vsn.instance_vsn:
+          properties:
+            name: instance
+        abstract_vpg.disk.device.allocation_vpg:
+          properties:
+            name: disk.device.allocation
+        abstract_vsn.disk.write.requests_vsn:
+          properties:
+            name: disk.write.requests
+        abstract_vfw.disk.write.bytes_vfw:
+          properties:
+            name: disk.write.bytes
+        abstract_vsn.disk.device.read.bytes.rate_vsn:
+          properties:
+            name: disk.device.read.bytes.rate
+        abstract_vsn.vcpus_vsn:
+          properties:
+            name: vcpus
+        abstract_vfw.disk.device.write.bytes_vfw:
+          properties:
+            name: disk.device.write.bytes
+        abstract_vsn.network.outgoing.bytes.rate_vsn_vsn_onap_private_port_0:
+          properties:
+            name: network.outgoing.bytes.rate
+        abstract_vfw.network.incoming.packets.rate_vfw_vfw_onap_private_port_0:
+          properties:
+            name: network.incoming.packets.rate
+        abstract_vsn.cpu.delta_vsn:
+          properties:
+            name: cpu.delta
+        abstract_vfw.memory.resident_vfw:
+          properties:
+            name: memory.resident
+        abstract_vpg.disk.device.iops_vpg:
+          properties:
+            name: disk.device.iops
+        abstract_vsn.cpu_util_vsn:
+          properties:
+            name: cpu_util
+        abstract_vpg.network.incoming.packets.rate_vpg_vpg_onap_private_port_0:
+          properties:
+            name: network.incoming.packets.rate
+        abstract_vpg.network.outgoing.packets.rate_vpg_vpg_int_private1_port_0:
+          properties:
+            name: network.outgoing.packets.rate
+        abstract_vpg.disk.latency_vpg:
+          properties:
+            name: disk.latency
+        abstract_vsn.port_mirroring_vsn_vsn_onap_private_port_0:
+          properties:
+            connection_point:
+              network_role:
+                get_input: port_vsn_onap_private_port_0_network_role
+              nfc_naming_code: vsn
+        abstract_vpg.instance_vpg:
+          properties:
+            name: instance
+        abstract_vfw.network.incoming.bytes_vfw_vfw_onap_private_port_0:
+          properties:
+            name: network.incoming.bytes
+        abstract_vpg.port_mirroring_vpg_vpg_onap_private_port_0:
+          properties:
+            connection_point:
+              network_role:
+                get_input: port_vpg_onap_private_port_0_network_role
+              nfc_naming_code: vpg
+        abstract_vfw.network.outgoing.bytes.rate_vfw_vfw_int_private2_port_0:
+          properties:
+            name: network.outgoing.bytes.rate
+        abstract_vfw.network.outgoing.packets.rate_vfw_vfw_int_private2_port_0:
+          properties:
+            name: network.outgoing.packets.rate
+        abstract_vfw.port_mirroring_vfw_vfw_onap_private_port_0:
+          properties:
+            connection_point:
+              network_role:
+                get_input: port_vfw_onap_private_port_0_network_role
+              nfc_naming_code: vfw
+        abstract_vfw.network.incoming.bytes.rate_vfw_vfw_onap_private_port_0:
+          properties:
+            name: network.incoming.bytes.rate
+        abstract_vpg.network.incoming.packets_vpg_vpg_onap_private_port_0:
+          properties:
+            name: network.incoming.packets
+        abstract_vsn.disk.allocation_vsn:
+          properties:
+            name: disk.allocation
+        abstract_vsn.disk.capacity_vsn:
+          properties:
+            name: disk.capacity
+        abstract_vpg.network.incoming.bytes_vpg_vpg_int_private1_port_0:
+          properties:
+            name: network.incoming.bytes
+        abstract_vpg.disk.allocation_vpg:
+          properties:
+            name: disk.allocation
+        abstract_vsn.disk.device.capacity_vsn:
+          properties:
+            name: disk.device.capacity
+        abstract_vfw.disk.device.read.requests.rate_vfw:
+          properties:
+            name: disk.device.read.requests.rate
+        abstract_vsn.disk.root.size_vsn:
+          properties:
+            name: disk.root.size
+        abstract_vsn.disk.usage_vsn:
+          properties:
+            name: disk.usage
+        abstract_vsn.disk.write.bytes.rate_vsn:
+          properties:
+            name: disk.write.bytes.rate
+        abstract_vsn.network.outgoing.bytes_vsn_vsn_int_private2_port_0:
+          properties:
+            name: network.outgoing.bytes
+        abstract_vsn.endpoint_vsn:
+          properties:
+            secure: true
+        abstract_vpg.disk.read.bytes.rate_vpg:
+          properties:
+            name: disk.read.bytes.rate
+        abstract_vpg.disk.device.read.requests_vpg:
+          properties:
+            name: disk.device.read.requests
+        abstract_vsn.network.outgoing.bytes_vsn_vsn_onap_private_port_0:
+          properties:
+            name: network.outgoing.bytes
+        abstract_vfw.disk.ephemeral.size_vfw:
+          properties:
+            name: disk.ephemeral.size
+        abstract_vpg.network.incoming.bytes.rate_vpg_vpg_onap_private_port_0:
+          properties:
+            name: network.incoming.bytes.rate
+        abstract_vpg.network.incoming.bytes.rate_vpg_vpg_int_private1_port_0:
+          properties:
+            name: network.incoming.bytes.rate
+        abstract_vpg.disk.read.requests_vpg:
+          properties:
+            name: disk.read.requests
+        abstract_vfw.network.incoming.packets_vfw_vfw_onap_private_port_0:
+          properties:
+            name: network.incoming.packets
+        abstract_vsn.disk.device.write.bytes.rate_vsn:
+          properties:
+            name: disk.device.write.bytes.rate
+        abstract_vpg.network.incoming.bytes_vpg_vpg_onap_private_port_0:
+          properties:
+            name: network.incoming.bytes
+        abstract_vpg.disk.device.write.bytes_vpg:
+          properties:
+            name: disk.device.write.bytes
+        abstract_vpg.network.outgoing.bytes.rate_vpg_vpg_int_private1_port_0:
+          properties:
+            name: network.outgoing.bytes.rate
+        abstract_vsn.memory.usage_vsn:
+          properties:
+            name: memory.usage
+        abstract_vsn.network.outgoing.bytes.rate_vsn_vsn_int_private2_port_0:
+          properties:
+            name: network.outgoing.bytes.rate
+        abstract_vsn.network.incoming.packets_vsn_vsn_int_private2_port_0:
+          properties:
+            name: network.incoming.packets
+        abstract_vsn.disk.device.iops_vsn:
+          properties:
+            name: disk.device.iops
+        abstract_vfw.network.incoming.packets_vfw_vfw_int_private1_port_0:
+          properties:
+            name: network.incoming.packets
+        abstract_vpg.disk.device.write.bytes.rate_vpg:
+          properties:
+            name: disk.device.write.bytes.rate
+        abstract_vsn.disk.device.read.bytes_vsn:
+          properties:
+            name: disk.device.read.bytes
+        abstract_vfw.disk.latency_vfw:
+          properties:
+            name: disk.latency
+        abstract_vsn.disk.read.requests_vsn:
+          properties:
+            name: disk.read.requests
+        abstract_vpg.endpoint_vpg:
+          properties:
+            secure: true
+        abstract_vsn.network.incoming.bytes.rate_vsn_vsn_int_private2_port_0:
+          properties:
+            name: network.incoming.bytes.rate
+        abstract_vsn.disk.device.read.requests_vsn:
+          properties:
+            name: disk.device.read.requests
+        abstract_vsn.memory_vsn:
+          properties:
+            name: memory
+        abstract_vfw.disk.device.read.bytes.rate_vfw:
+          properties:
+            name: disk.device.read.bytes.rate
+        abstract_vfw.disk.device.read.bytes_vfw:
+          properties:
+            name: disk.device.read.bytes
+        abstract_vfw.network.outgoing.bytes.rate_vfw_vfw_int_private1_port_0:
+          properties:
+            name: network.outgoing.bytes.rate
+        abstract_vsn.network.incoming.packets.rate_vsn_vsn_onap_private_port_0:
+          properties:
+            name: network.incoming.packets.rate
+        abstract_vfw.network.outgoing.packets.rate_vfw_vfw_int_private1_port_0:
+          properties:
+            name: network.outgoing.packets.rate
+        abstract_vfw.disk.read.bytes_vfw:
+          properties:
+            name: disk.read.bytes
+        abstract_vfw.disk.read.bytes.rate_vfw:
+          properties:
+            name: disk.read.bytes.rate
+        abstract_vfw.endpoint_vfw:
+          properties:
+            secure: true
+        abstract_vfw.disk.device.write.requests_vfw:
+          properties:
+            name: disk.device.write.requests
+        int_private2_network.end_point:
+          properties:
+            protocol: tcp
+            initiator: source
+            network_name: PRIVATE
+            secure: false
+        abstract_vpg.cpu_util_vpg:
+          properties:
+            name: cpu_util
+        abstract_vfw.network.outgoing.bytes_vfw_vfw_int_private2_port_0:
+          properties:
+            name: network.outgoing.bytes
+        abstract_vpg.vcpus_vpg:
+          properties:
+            name: vcpus
+        abstract_vpg.cpu_vpg:
+          properties:
+            name: cpu
+        abstract_vsn.network.incoming.packets_vsn_vsn_onap_private_port_0:
+          properties:
+            name: network.incoming.packets
+        abstract_vpg.network.outpoing.packets_vpg_vpg_int_private1_port_0:
+          properties:
+            name: network.outpoing.packets
+        abstract_vfw.disk.write.requests.rate_vfw:
+          properties:
+            name: disk.write.requests.rate
+        abstract_vpg.disk.root.size_vpg:
+          properties:
+            name: disk.root.size
+        abstract_vsn.disk.write.requests.rate_vsn:
+          properties:
+            name: disk.write.requests.rate
+        abstract_vpg.disk.device.usage_vpg:
+          properties:
+            name: disk.device.usage
+        abstract_vpg.disk.device.write.requests.rate_vpg:
+          properties:
+            name: disk.device.write.requests.rate
+        abstract_vfw.disk.device.capacity_vfw:
+          properties:
+            name: disk.device.capacity
+        abstract_vsn.network.outgoing.packets.rate_vsn_vsn_onap_private_port_0:
+          properties:
+            name: network.outgoing.packets.rate
+        abstract_vfw.network.incoming.packets.rate_vfw_vfw_int_private1_port_0:
+          properties:
+            name: network.incoming.packets.rate
+        abstract_vfw.network.incoming.bytes.rate_vfw_vfw_int_private1_port_0:
+          properties:
+            name: network.incoming.bytes.rate
+        abstract_vfw.cpu_util_vfw:
+          properties:
+            name: cpu_util
+        abstract_vfw.cpu.delta_vfw:
+          properties:
+            name: cpu.delta
+        abstract_vfw.vcpus_vfw:
+          properties:
+            name: vcpus
+        abstract_vsn.disk.iops_vsn:
+          properties:
+            name: disk.iops
+        abstract_vfw.disk.iops_vfw:
+          properties:
+            name: disk.iops
+        abstract_vfw.disk.write.bytes.rate_vfw:
+          properties:
+            name: disk.write.bytes.rate
+        abstract_vfw.scalable_vfw:
+          properties:
+            max_instances: 1
+            min_instances: 1
+        abstract_vpg.memory_vpg:
+          properties:
+            name: memory
+        abstract_vpg.disk.ephemeral.size_vpg:
+          properties:
+            name: disk.ephemeral.size
+        abstract_vfw.memory.usage_vfw:
+          properties:
+            name: memory.usage
+        abstract_vpg.disk.device.read.requests.rate_vpg:
+          properties:
+            name: disk.device.read.requests.rate
+        abstract_vpg.disk.device.write.requests_vpg:
+          properties:
+            name: disk.device.write.requests
+        abstract_vpg.disk.device.latency_vpg:
+          properties:
+            name: disk.device.latency
+        abstract_vfw.disk.device.usage_vfw:
+          properties:
+            name: disk.device.usage
+        abstract_vfw.network.incoming.packets_vfw_vfw_int_private2_port_0:
+          properties:
+            name: network.incoming.packets
+        abstract_vfw.disk.device.write.bytes.rate_vfw:
+          properties:
+            name: disk.device.write.bytes.rate
+        abstract_vpg.cpu.delta_vpg:
+          properties:
+            name: cpu.delta
+        abstract_vsn.network.outpoing.packets_vsn_vsn_onap_private_port_0:
+          properties:
+            name: network.outpoing.packets
+        abstract_vfw.instance_vfw:
+          properties:
+            name: instance
+        abstract_vsn.disk.latency_vsn:
+          properties:
+            name: disk.latency
+        abstract_vsn.network.incoming.bytes_vsn_vsn_onap_private_port_0:
+          properties:
+            name: network.incoming.bytes
+        abstract_vpg.disk.write.bytes.rate_vpg:
+          properties:
+            name: disk.write.bytes.rate
+        abstract_vfw.network.outgoing.bytes_vfw_vfw_int_private1_port_0:
+          properties:
+            name: network.outgoing.bytes
+        abstract_vpg.network.outgoing.bytes_vpg_vpg_onap_private_port_0:
+          properties:
+            name: network.outgoing.bytes
+        abstract_vsn.network.incoming.bytes_vsn_vsn_int_private2_port_0:
+          properties:
+            name: network.incoming.bytes
+        abstract_vfw.disk.device.write.requests.rate_vfw:
+          properties:
+            name: disk.device.write.requests.rate
+        abstract_vpg.network.outgoing.bytes.rate_vpg_vpg_onap_private_port_0:
+          properties:
+            name: network.outgoing.bytes.rate
+        abstract_vpg.disk.write.requests_vpg:
+          properties:
+            name: disk.write.requests
+        abstract_vsn.disk.read.bytes.rate_vsn:
+          properties:
+            name: disk.read.bytes.rate
+        abstract_vsn.disk.device.usage_vsn:
+          properties:
+            name: disk.device.usage
+        abstract_vsn.network.outpoing.packets_vsn_vsn_int_private2_port_0:
+          properties:
+            name: network.outpoing.packets
+  groups:
+    vfwcds_vf0..VfwcdsVf..vsn..module-1:
+      type: org.openecomp.groups.VfModule
+      metadata:
+        vfModuleModelName: VfwcdsVf..vsn..module-1
+        vfModuleModelInvariantUUID: f4b9d91b-75b7-4d14-98e5-907d8034fc4c
+        vfModuleModelUUID: fda666d1-d0d0-47c4-82cf-d02ee041a021
+        vfModuleModelVersion: '1'
+        vfModuleModelCustomizationUUID: 34040775-31da-4034-9387-e2bb3fab236c
+      properties:
+        min_vf_module_instances: 0
+        vf_module_label: vsn
+        vf_module_type: Expansion
+        isBase: false
+        initial_count: 0
+        volume_group: false
+    vfwcds_vf0..VfwcdsVf..vpg..module-2:
+      type: org.openecomp.groups.VfModule
+      metadata:
+        vfModuleModelName: VfwcdsVf..vpg..module-2
+        vfModuleModelInvariantUUID: 048e1738-4cc7-49d4-99a4-fb2d75e7a8db
+        vfModuleModelUUID: cfd79d7d-e63a-46ab-a765-b6753c781f32
+        vfModuleModelVersion: '1'
+        vfModuleModelCustomizationUUID: d134bf7f-af50-4ea2-aa9c-1220497a6ec7
+      properties:
+        min_vf_module_instances: 0
+        vf_module_label: vpg
+        vf_module_type: Expansion
+        isBase: false
+        initial_count: 0
+        volume_group: false
+    vfwcds_vf0..VfwcdsVf..vfw..module-3:
+      type: org.openecomp.groups.VfModule
+      metadata:
+        vfModuleModelName: VfwcdsVf..vfw..module-3
+        vfModuleModelInvariantUUID: 09d24ca5-b3ef-4f82-a3ca-532e565929ed
+        vfModuleModelUUID: adf1eae4-0bb1-456e-8162-3cbc0554349f
+        vfModuleModelVersion: '1'
+        vfModuleModelCustomizationUUID: 2d9a63ad-d364-471f-a780-29140f3a2d62
+      properties:
+        min_vf_module_instances: 0
+        vf_module_label: vfw
+        vf_module_type: Expansion
+        isBase: false
+        initial_count: 0
+        volume_group: false
+    vfwcds_vf0..VfwcdsVf..base_template..module-0:
+      type: org.openecomp.groups.VfModule
+      metadata:
+        vfModuleModelName: VfwcdsVf..base_template..module-0
+        vfModuleModelInvariantUUID: 1b1c6c52-b506-4a37-9b83-8fddab20a0e5
+        vfModuleModelUUID: 49dc98c5-2e56-4d37-a8bb-5f814b772a42
+        vfModuleModelVersion: '1'
+        vfModuleModelCustomizationUUID: 4533702f-7d3f-4205-a5d4-d1b213ab8f2e
+      properties:
+        min_vf_module_instances: 1
+        vf_module_label: base_template
+        max_vf_module_instances: 1
+        vf_module_type: Base
+        isBase: true
+        initial_count: 1
+        volume_group: false
+  substitution_mappings:
+    node_type: org.openecomp.service.VfwcdsService
+    capabilities:
+      vfwcds_vf0.abstract_vsn.instance_vsn:
+      - vfwcds_VF 0
+      - abstract_vsn.instance_vsn
+      vfwcds_vf0.abstract_vsn.disk.device.read.bytes_vsn:
+      - vfwcds_VF 0
+      - abstract_vsn.disk.device.read.bytes_vsn
+      vfwcds_vf0.abstract_vpg.memory.usage_vpg:
+      - vfwcds_VF 0
+      - abstract_vpg.memory.usage_vpg
+      vfwcds_vf0.abstract_vsn.network.outpoing.packets_vsn_vsn_onap_private_port_0:
+      - vfwcds_VF 0
+      - abstract_vsn.network.outpoing.packets_vsn_vsn_onap_private_port_0
+      vfwcds_vf0.abstract_vfw.attachment_vfw_vfw_int_private2_port_0:
+      - vfwcds_VF 0
+      - abstract_vfw.attachment_vfw_vfw_int_private2_port_0
+      vfwcds_vf0.abstract_vsn.host_vsn:
+      - vfwcds_VF 0
+      - abstract_vsn.host_vsn
+      vfwcds_vf0.abstract_vsn.network.outgoing.packets.rate_vsn_vsn_int_private2_port_0:
+      - vfwcds_VF 0
+      - abstract_vsn.network.outgoing.packets.rate_vsn_vsn_int_private2_port_0
+      vfwcds_vf0.abstract_vfw.cpu.delta_vfw:
+      - vfwcds_VF 0
+      - abstract_vfw.cpu.delta_vfw
+      vfwcds_vf0.abstract_vfw.network.incoming.packets_vfw_vfw_int_private2_port_0:
+      - vfwcds_VF 0
+      - abstract_vfw.network.incoming.packets_vfw_vfw_int_private2_port_0
+      vfwcds_vf0.abstract_vfw.forwarder_vfw_vfw_onap_private_port_0:
+      - vfwcds_VF 0
+      - abstract_vfw.forwarder_vfw_vfw_onap_private_port_0
+      vfwcds_vf0.abstract_vsn.disk.device.usage_vsn:
+      - vfwcds_VF 0
+      - abstract_vsn.disk.device.usage_vsn
+      vfwcds_vf0.abstract_vfw.feature_vfw_vfw_onap_private_port_0:
+      - vfwcds_VF 0
+      - abstract_vfw.feature_vfw_vfw_onap_private_port_0
+      vfwcds_vf0.abstract_vfw.feature_vfw_vfw_int_private1_port_0:
+      - vfwcds_VF 0
+      - abstract_vfw.feature_vfw_vfw_int_private1_port_0
+      vfwcds_vf0.abstract_vpg.port_mirroring_vpg_vpg_onap_private_port_0:
+      - vfwcds_VF 0
+      - abstract_vpg.port_mirroring_vpg_vpg_onap_private_port_0
+      vfwcds_vf0.abstract_vfw.disk.device.read.bytes_vfw:
+      - vfwcds_VF 0
+      - abstract_vfw.disk.device.read.bytes_vfw
+      vfwcds_vf0.abstract_vpg.network.incoming.packets_vpg_vpg_onap_private_port_0:
+      - vfwcds_VF 0
+      - abstract_vpg.network.incoming.packets_vpg_vpg_onap_private_port_0
+      vfwcds_vf0.abstract_vfw.forwarder_vfw_vfw_int_private1_port_0:
+      - vfwcds_VF 0
+      - abstract_vfw.forwarder_vfw_vfw_int_private1_port_0
+      vfwcds_vf0.abstract_vfw.disk.latency_vfw:
+      - vfwcds_VF 0
+      - abstract_vfw.disk.latency_vfw
+      vfwcds_vf0.abstract_vpg.memory.resident_vpg:
+      - vfwcds_VF 0
+      - abstract_vpg.memory.resident_vpg
+      vfwcds_vf0.abstract_vfw.os_vfw:
+      - vfwcds_VF 0
+      - abstract_vfw.os_vfw
+      vfwcds_vf0.abstract_vpg.instance_vpg:
+      - vfwcds_VF 0
+      - abstract_vpg.instance_vpg
+      vfwcds_vf0.abstract_vfw.disk.read.bytes_vfw:
+      - vfwcds_VF 0
+      - abstract_vfw.disk.read.bytes_vfw
+      vfwcds_vf0.abstract_vfw.feature_vfw:
+      - vfwcds_VF 0
+      - abstract_vfw.feature_vfw
+      vfwcds_vf0.abstract_vfw.disk.device.read.requests_vfw:
+      - vfwcds_VF 0
+      - abstract_vfw.disk.device.read.requests_vfw
+      vfwcds_vf0.int_private2_network.link:
+      - vfwcds_VF 0
+      - int_private2_network.link
+      vfwcds_vf0.abstract_vpg.disk.device.latency_vpg:
+      - vfwcds_VF 0
+      - abstract_vpg.disk.device.latency_vpg
+      vfwcds_vf0.abstract_vpg.network.outgoing.bytes.rate_vpg_vpg_int_private1_port_0:
+      - vfwcds_VF 0
+      - abstract_vpg.network.outgoing.bytes.rate_vpg_vpg_int_private1_port_0
+      vfwcds_vf0.abstract_vsn.forwarder_vsn_vsn_int_private2_port_0:
+      - vfwcds_VF 0
+      - abstract_vsn.forwarder_vsn_vsn_int_private2_port_0
+      vfwcds_vf0.abstract_vfw.binding_vfw_vfw_int_private1_port_0:
+      - vfwcds_VF 0
+      - abstract_vfw.binding_vfw_vfw_int_private1_port_0
+      vfwcds_vf0.abstract_vfw.network.incoming.packets.rate_vfw_vfw_onap_private_port_0:
+      - vfwcds_VF 0
+      - abstract_vfw.network.incoming.packets.rate_vfw_vfw_onap_private_port_0
+      vfwcds_vf0.abstract_vpg.disk.root.size_vpg:
+      - vfwcds_VF 0
+      - abstract_vpg.disk.root.size_vpg
+      vfwcds_vf0.abstract_vfw.memory.resident_vfw:
+      - vfwcds_VF 0
+      - abstract_vfw.memory.resident_vfw
+      vfwcds_vf0.abstract_vpg.forwarder_vpg_vpg_int_private1_port_0:
+      - vfwcds_VF 0
+      - abstract_vpg.forwarder_vpg_vpg_int_private1_port_0
+      vfwcds_vf0.abstract_vsn.vcpus_vsn:
+      - vfwcds_VF 0
+      - abstract_vsn.vcpus_vsn
+      vfwcds_vf0.abstract_vpg.disk.device.read.bytes.rate_vpg:
+      - vfwcds_VF 0
+      - abstract_vpg.disk.device.read.bytes.rate_vpg
+      vfwcds_vf0.abstract_vfw.disk.device.write.bytes.rate_vfw:
+      - vfwcds_VF 0
+      - abstract_vfw.disk.device.write.bytes.rate_vfw
+      vfwcds_vf0.abstract_vpg.vcpus_vpg:
+      - vfwcds_VF 0
+      - abstract_vpg.vcpus_vpg
+      vfwcds_vf0.abstract_vpg.disk.device.write.requests.rate_vpg:
+      - vfwcds_VF 0
+      - abstract_vpg.disk.device.write.requests.rate_vpg
+      vfwcds_vf0.abstract_vsn.disk.device.latency_vsn:
+      - vfwcds_VF 0
+      - abstract_vsn.disk.device.latency_vsn
+      vfwcds_vf0.abstract_vfw.disk.root.size_vfw:
+      - vfwcds_VF 0
+      - abstract_vfw.disk.root.size_vfw
+      vfwcds_vf0.abstract_vfw.disk.device.capacity_vfw:
+      - vfwcds_VF 0
+      - abstract_vfw.disk.device.capacity_vfw
+      vfwcds_vf0.abstract_vsn.disk.device.read.bytes.rate_vsn:
+      - vfwcds_VF 0
+      - abstract_vsn.disk.device.read.bytes.rate_vsn
+      vfwcds_vf0.abstract_vsn.disk.write.requests.rate_vsn:
+      - vfwcds_VF 0
+      - abstract_vsn.disk.write.requests.rate_vsn
+      vfwcds_vf0.abstract_vsn.cpu.delta_vsn:
+      - vfwcds_VF 0
+      - abstract_vsn.cpu.delta_vsn
+      vfwcds_vf0.abstract_vpg.disk.capacity_vpg:
+      - vfwcds_VF 0
+      - abstract_vpg.disk.capacity_vpg
+      vfwcds_vf0.abstract_vpg.network.outgoing.bytes.rate_vpg_vpg_onap_private_port_0:
+      - vfwcds_VF 0
+      - abstract_vpg.network.outgoing.bytes.rate_vpg_vpg_onap_private_port_0
+      vfwcds_vf0.abstract_vsn.os_vsn:
+      - vfwcds_VF 0
+      - abstract_vsn.os_vsn
+      vfwcds_vf0.abstract_vfw.binding_vfw_vfw_onap_private_port_0:
+      - vfwcds_VF 0
+      - abstract_vfw.binding_vfw_vfw_onap_private_port_0
+      vfwcds_vf0.abstract_vsn.disk.root.size_vsn:
+      - vfwcds_VF 0
+      - abstract_vsn.disk.root.size_vsn
+      vfwcds_vf0.abstract_vsn.network.outgoing.bytes_vsn_vsn_onap_private_port_0:
+      - vfwcds_VF 0
+      - abstract_vsn.network.outgoing.bytes_vsn_vsn_onap_private_port_0
+      vfwcds_vf0.abstract_vfw.network.incoming.packets.rate_vfw_vfw_int_private1_port_0:
+      - vfwcds_VF 0
+      - abstract_vfw.network.incoming.packets.rate_vfw_vfw_int_private1_port_0
+      vfwcds_vf0.abstract_vfw.network.outpoing.packets_vfw_vfw_int_private2_port_0:
+      - vfwcds_VF 0
+      - abstract_vfw.network.outpoing.packets_vfw_vfw_int_private2_port_0
+      vfwcds_vf0.abstract_vfw.scalable_vfw:
+      - vfwcds_VF 0
+      - abstract_vfw.scalable_vfw
+      vfwcds_vf0.abstract_vpg.network.incoming.bytes_vpg_vpg_int_private1_port_0:
+      - vfwcds_VF 0
+      - abstract_vpg.network.incoming.bytes_vpg_vpg_int_private1_port_0
+      vfwcds_vf0.abstract_vsn.feature_vsn_vsn_onap_private_port_0:
+      - vfwcds_VF 0
+      - abstract_vsn.feature_vsn_vsn_onap_private_port_0
+      vfwcds_vf0.abstract_vsn.disk.device.capacity_vsn:
+      - vfwcds_VF 0
+      - abstract_vsn.disk.device.capacity_vsn
+      vfwcds_vf0.abstract_vsn.binding_vsn_vsn_onap_private_port_0:
+      - vfwcds_VF 0
+      - abstract_vsn.binding_vsn_vsn_onap_private_port_0
+      vfwcds_vf0.abstract_vfw.binding_vfw:
+      - vfwcds_VF 0
+      - abstract_vfw.binding_vfw
+      vfwcds_vf0.abstract_vpg.os_vpg:
+      - vfwcds_VF 0
+      - abstract_vpg.os_vpg
+      vfwcds_vf0.abstract_vpg.disk.device.write.bytes.rate_vpg:
+      - vfwcds_VF 0
+      - abstract_vpg.disk.device.write.bytes.rate_vpg
+      vfwcds_vf0.abstract_vsn.cpu_util_vsn:
+      - vfwcds_VF 0
+      - abstract_vsn.cpu_util_vsn
+      vfwcds_vf0.abstract_vpg.disk.write.bytes.rate_vpg:
+      - vfwcds_VF 0
+      - abstract_vpg.disk.write.bytes.rate_vpg
+      vfwcds_vf0.abstract_vsn.disk.device.allocation_vsn:
+      - vfwcds_VF 0
+      - abstract_vsn.disk.device.allocation_vsn
+      vfwcds_vf0.abstract_vfw.network.outgoing.packets.rate_vfw_vfw_int_private1_port_0:
+      - vfwcds_VF 0
+      - abstract_vfw.network.outgoing.packets.rate_vfw_vfw_int_private1_port_0
+      vfwcds_vf0.abstract_vsn.network.outgoing.bytes.rate_vsn_vsn_onap_private_port_0:
+      - vfwcds_VF 0
+      - abstract_vsn.network.outgoing.bytes.rate_vsn_vsn_onap_private_port_0
+      vfwcds_vf0.abstract_vpg.network.outpoing.packets_vpg_vpg_int_private1_port_0:
+      - vfwcds_VF 0
+      - abstract_vpg.network.outpoing.packets_vpg_vpg_int_private1_port_0
+      vfwcds_vf0.abstract_vpg.disk.read.bytes.rate_vpg:
+      - vfwcds_VF 0
+      - abstract_vpg.disk.read.bytes.rate_vpg
+      vfwcds_vf0.int_private1_network.link:
+      - vfwcds_VF 0
+      - int_private1_network.link
+      vfwcds_vf0.abstract_vfw.disk.device.iops_vfw:
+      - vfwcds_VF 0
+      - abstract_vfw.disk.device.iops_vfw
+      vfwcds_vf0.abstract_vsn.network.outgoing.bytes.rate_vsn_vsn_int_private2_port_0:
+      - vfwcds_VF 0
+      - abstract_vsn.network.outgoing.bytes.rate_vsn_vsn_int_private2_port_0
+      vfwcds_vf0.abstract_vsn.disk.device.write.requests.rate_vsn:
+      - vfwcds_VF 0
+      - abstract_vsn.disk.device.write.requests.rate_vsn
+      vfwcds_vf0.abstract_vpg.disk.allocation_vpg:
+      - vfwcds_VF 0
+      - abstract_vpg.disk.allocation_vpg
+      vfwcds_vf0.abstract_vsn.binding_vsn_vsn_int_private2_port_0:
+      - vfwcds_VF 0
+      - abstract_vsn.binding_vsn_vsn_int_private2_port_0
+      vfwcds_vf0.abstract_vfw.network.outgoing.bytes.rate_vfw_vfw_int_private1_port_0:
+      - vfwcds_VF 0
+      - abstract_vfw.network.outgoing.bytes.rate_vfw_vfw_int_private1_port_0
+      vfwcds_vf0.abstract_vfw.cpu_util_vfw:
+      - vfwcds_VF 0
+      - abstract_vfw.cpu_util_vfw
+      vfwcds_vf0.abstract_vfw.network.outpoing.packets_vfw_vfw_int_private1_port_0:
+      - vfwcds_VF 0
+      - abstract_vfw.network.outpoing.packets_vfw_vfw_int_private1_port_0
+      vfwcds_vf0.abstract_vsn.endpoint_vsn:
+      - vfwcds_VF 0
+      - abstract_vsn.endpoint_vsn
+      vfwcds_vf0.abstract_vfw.network.outgoing.bytes_vfw_vfw_int_private2_port_0:
+      - vfwcds_VF 0
+      - abstract_vfw.network.outgoing.bytes_vfw_vfw_int_private2_port_0
+      vfwcds_vf0.abstract_vsn.disk.device.write.requests_vsn:
+      - vfwcds_VF 0
+      - abstract_vsn.disk.device.write.requests_vsn
+      vfwcds_vf0.abstract_vpg.network.incoming.packets.rate_vpg_vpg_onap_private_port_0:
+      - vfwcds_VF 0
+      - abstract_vpg.network.incoming.packets.rate_vpg_vpg_onap_private_port_0
+      vfwcds_vf0.abstract_vsn.network.incoming.packets.rate_vsn_vsn_onap_private_port_0:
+      - vfwcds_VF 0
+      - abstract_vsn.network.incoming.packets.rate_vsn_vsn_onap_private_port_0
+      vfwcds_vf0.abstract_vpg.network.incoming.bytes_vpg_vpg_onap_private_port_0:
+      - vfwcds_VF 0
+      - abstract_vpg.network.incoming.bytes_vpg_vpg_onap_private_port_0
+      vfwcds_vf0.abstract_vfw.network.incoming.bytes_vfw_vfw_onap_private_port_0:
+      - vfwcds_VF 0
+      - abstract_vfw.network.incoming.bytes_vfw_vfw_onap_private_port_0
+      vfwcds_vf0.abstract_vsn.forwarder_vsn_vsn_onap_private_port_0:
+      - vfwcds_VF 0
+      - abstract_vsn.forwarder_vsn_vsn_onap_private_port_0
+      vfwcds_vf0.abstract_vsn.disk.device.iops_vsn:
+      - vfwcds_VF 0
+      - abstract_vsn.disk.device.iops_vsn
+      vfwcds_vf0.abstract_vfw.disk.read.requests_vfw:
+      - vfwcds_VF 0
+      - abstract_vfw.disk.read.requests_vfw
+      vfwcds_vf0.abstract_vpg.network.incoming.packets_vpg_vpg_int_private1_port_0:
+      - vfwcds_VF 0
+      - abstract_vpg.network.incoming.packets_vpg_vpg_int_private1_port_0
+      vfwcds_vf0.abstract_vpg.feature_vpg:
+      - vfwcds_VF 0
+      - abstract_vpg.feature_vpg
+      vfwcds_vf0.abstract_vsn.disk.capacity_vsn:
+      - vfwcds_VF 0
+      - abstract_vsn.disk.capacity_vsn
+      vfwcds_vf0.abstract_vfw.disk.read.bytes.rate_vfw:
+      - vfwcds_VF 0
+      - abstract_vfw.disk.read.bytes.rate_vfw
+      vfwcds_vf0.abstract_vsn.network.incoming.packets.rate_vsn_vsn_int_private2_port_0:
+      - vfwcds_VF 0
+      - abstract_vsn.network.incoming.packets.rate_vsn_vsn_int_private2_port_0
+      vfwcds_vf0.abstract_vsn.scalable_vsn:
+      - vfwcds_VF 0
+      - abstract_vsn.scalable_vsn
+      vfwcds_vf0.abstract_vpg.binding_vpg_vpg_int_private1_port_0:
+      - vfwcds_VF 0
+      - abstract_vpg.binding_vpg_vpg_int_private1_port_0
+      vfwcds_vf0.abstract_vpg.disk.device.read.bytes_vpg:
+      - vfwcds_VF 0
+      - abstract_vpg.disk.device.read.bytes_vpg
+      vfwcds_vf0.abstract_vpg.feature_vpg_vpg_int_private1_port_0:
+      - vfwcds_VF 0
+      - abstract_vpg.feature_vpg_vpg_int_private1_port_0
+      vfwcds_vf0.abstract_vpg.disk.device.write.bytes_vpg:
+      - vfwcds_VF 0
+      - abstract_vpg.disk.device.write.bytes_vpg
+      vfwcds_vf0.abstract_vpg.attachment_vpg_vpg_int_private1_port_0:
+      - vfwcds_VF 0
+      - abstract_vpg.attachment_vpg_vpg_int_private1_port_0
+      vfwcds_vf0.abstract_vsn.disk.device.write.bytes_vsn:
+      - vfwcds_VF 0
+      - abstract_vsn.disk.device.write.bytes_vsn
+      vfwcds_vf0.abstract_vpg.disk.device.read.requests_vpg:
+      - vfwcds_VF 0
+      - abstract_vpg.disk.device.read.requests_vpg
+      vfwcds_vf0.abstract_vsn.feature_vsn_vsn_int_private2_port_0:
+      - vfwcds_VF 0
+      - abstract_vsn.feature_vsn_vsn_int_private2_port_0
+      vfwcds_vf0.abstract_vsn.feature_vsn:
+      - vfwcds_VF 0
+      - abstract_vsn.feature_vsn
+      vfwcds_vf0.abstract_vsn.disk.usage_vsn:
+      - vfwcds_VF 0
+      - abstract_vsn.disk.usage_vsn
+      vfwcds_vf0.abstract_vfw.network.outgoing.bytes_vfw_vfw_onap_private_port_0:
+      - vfwcds_VF 0
+      - abstract_vfw.network.outgoing.bytes_vfw_vfw_onap_private_port_0
+      vfwcds_vf0.abstract_vpg.network.outgoing.packets.rate_vpg_vpg_onap_private_port_0:
+      - vfwcds_VF 0
+      - abstract_vpg.network.outgoing.packets.rate_vpg_vpg_onap_private_port_0
+      vfwcds_vf0.abstract_vfw.disk.device.usage_vfw:
+      - vfwcds_VF 0
+      - abstract_vfw.disk.device.usage_vfw
+      vfwcds_vf0.int_private2_network.feature:
+      - vfwcds_VF 0
+      - int_private2_network.feature
+      vfwcds_vf0.abstract_vfw.network.incoming.bytes.rate_vfw_vfw_int_private2_port_0:
+      - vfwcds_VF 0
+      - abstract_vfw.network.incoming.bytes.rate_vfw_vfw_int_private2_port_0
+      vfwcds_vf0.abstract_vfw.network.incoming.bytes_vfw_vfw_int_private2_port_0:
+      - vfwcds_VF 0
+      - abstract_vfw.network.incoming.bytes_vfw_vfw_int_private2_port_0
+      vfwcds_vf0.abstract_vpg.host_vpg:
+      - vfwcds_VF 0
+      - abstract_vpg.host_vpg
+      vfwcds_vf0.abstract_vfw.disk.device.read.requests.rate_vfw:
+      - vfwcds_VF 0
+      - abstract_vfw.disk.device.read.requests.rate_vfw
+      vfwcds_vf0.abstract_vfw.network.incoming.bytes.rate_vfw_vfw_onap_private_port_0:
+      - vfwcds_VF 0
+      - abstract_vfw.network.incoming.bytes.rate_vfw_vfw_onap_private_port_0
+      vfwcds_vf0.abstract_vsn.disk.iops_vsn:
+      - vfwcds_VF 0
+      - abstract_vsn.disk.iops_vsn
+      vfwcds_vf0.abstract_vfw.disk.write.bytes_vfw:
+      - vfwcds_VF 0
+      - abstract_vfw.disk.write.bytes_vfw
+      vfwcds_vf0.abstract_vfw.attachment_vfw_vfw_int_private1_port_0:
+      - vfwcds_VF 0
+      - abstract_vfw.attachment_vfw_vfw_int_private1_port_0
+      vfwcds_vf0.abstract_vfw.network.incoming.packets_vfw_vfw_int_private1_port_0:
+      - vfwcds_VF 0
+      - abstract_vfw.network.incoming.packets_vfw_vfw_int_private1_port_0
+      vfwcds_vf0.abstract_vfw.cpu_vfw:
+      - vfwcds_VF 0
+      - abstract_vfw.cpu_vfw
+      vfwcds_vf0.abstract_vpg.disk.device.read.requests.rate_vpg:
+      - vfwcds_VF 0
+      - abstract_vpg.disk.device.read.requests.rate_vpg
+      vfwcds_vf0.int_private1_network.feature:
+      - vfwcds_VF 0
+      - int_private1_network.feature
+      vfwcds_vf0.abstract_vpg.disk.iops_vpg:
+      - vfwcds_VF 0
+      - abstract_vpg.disk.iops_vpg
+      vfwcds_vf0.abstract_vfw.disk.device.latency_vfw:
+      - vfwcds_VF 0
+      - abstract_vfw.disk.device.latency_vfw
+      vfwcds_vf0.abstract_vpg.disk.latency_vpg:
+      - vfwcds_VF 0
+      - abstract_vpg.disk.latency_vpg
+      vfwcds_vf0.abstract_vfw.feature_vfw_vfw_int_private2_port_0:
+      - vfwcds_VF 0
+      - abstract_vfw.feature_vfw_vfw_int_private2_port_0
+      vfwcds_vf0.abstract_vfw.forwarder_vfw_vfw_int_private2_port_0:
+      - vfwcds_VF 0
+      - abstract_vfw.forwarder_vfw_vfw_int_private2_port_0
+      vfwcds_vf0.abstract_vfw.instance_vfw:
+      - vfwcds_VF 0
+      - abstract_vfw.instance_vfw
+      vfwcds_vf0.abstract_vfw.disk.capacity_vfw:
+      - vfwcds_VF 0
+      - abstract_vfw.disk.capacity_vfw
+      vfwcds_vf0.abstract_vpg.network.incoming.bytes.rate_vpg_vpg_int_private1_port_0:
+      - vfwcds_VF 0
+      - abstract_vpg.network.incoming.bytes.rate_vpg_vpg_int_private1_port_0
+      vfwcds_vf0.abstract_vpg.disk.device.write.requests_vpg:
+      - vfwcds_VF 0
+      - abstract_vpg.disk.device.write.requests_vpg
+      vfwcds_vf0.abstract_vsn.network.outgoing.packets.rate_vsn_vsn_onap_private_port_0:
+      - vfwcds_VF 0
+      - abstract_vsn.network.outgoing.packets.rate_vsn_vsn_onap_private_port_0
+      vfwcds_vf0.abstract_vfw.disk.write.bytes.rate_vfw:
+      - vfwcds_VF 0
+      - abstract_vfw.disk.write.bytes.rate_vfw
+      vfwcds_vf0.abstract_vfw.network.incoming.packets_vfw_vfw_onap_private_port_0:
+      - vfwcds_VF 0
+      - abstract_vfw.network.incoming.packets_vfw_vfw_onap_private_port_0
+      vfwcds_vf0.abstract_vsn.disk.read.bytes.rate_vsn:
+      - vfwcds_VF 0
+      - abstract_vsn.disk.read.bytes.rate_vsn
+      vfwcds_vf0.abstract_vsn.memory.resident_vsn:
+      - vfwcds_VF 0
+      - abstract_vsn.memory.resident_vsn
+      vfwcds_vf0.abstract_vpg.disk.write.requests_vpg:
+      - vfwcds_VF 0
+      - abstract_vpg.disk.write.requests_vpg
+      vfwcds_vf0.int_private1_network.end_point:
+      - vfwcds_VF 0
+      - int_private1_network.end_point
+      vfwcds_vf0.abstract_vfw.memory_vfw:
+      - vfwcds_VF 0
+      - abstract_vfw.memory_vfw
+      vfwcds_vf0.abstract_vfw.attachment_vfw_vfw_onap_private_port_0:
+      - vfwcds_VF 0
+      - abstract_vfw.attachment_vfw_vfw_onap_private_port_0
+      vfwcds_vf0.abstract_vpg.disk.write.bytes_vpg:
+      - vfwcds_VF 0
+      - abstract_vpg.disk.write.bytes_vpg
+      vfwcds_vf0.abstract_vpg.cpu_vpg:
+      - vfwcds_VF 0
+      - abstract_vpg.cpu_vpg
+      vfwcds_vf0.abstract_vpg.network.incoming.bytes.rate_vpg_vpg_onap_private_port_0:
+      - vfwcds_VF 0
+      - abstract_vpg.network.incoming.bytes.rate_vpg_vpg_onap_private_port_0
+      vfwcds_vf0.abstract_vfw.network.outgoing.bytes_vfw_vfw_int_private1_port_0:
+      - vfwcds_VF 0
+      - abstract_vfw.network.outgoing.bytes_vfw_vfw_int_private1_port_0
+      vfwcds_vf0.abstract_vfw.memory.usage_vfw:
+      - vfwcds_VF 0
+      - abstract_vfw.memory.usage_vfw
+      vfwcds_vf0.abstract_vpg.attachment_vpg_vpg_onap_private_port_0:
+      - vfwcds_VF 0
+      - abstract_vpg.attachment_vpg_vpg_onap_private_port_0
+      vfwcds_vf0.abstract_vsn.disk.read.bytes_vsn:
+      - vfwcds_VF 0
+      - abstract_vsn.disk.read.bytes_vsn
+      vfwcds_vf0.abstract_vsn.disk.write.requests_vsn:
+      - vfwcds_VF 0
+      - abstract_vsn.disk.write.requests_vsn
+      vfwcds_vf0.int_private2_network.end_point:
+      - vfwcds_VF 0
+      - int_private2_network.end_point
+      vfwcds_vf0.abstract_vsn.disk.device.read.requests_vsn:
+      - vfwcds_VF 0
+      - abstract_vsn.disk.device.read.requests_vsn
+      vfwcds_vf0.abstract_vfw.endpoint_vfw:
+      - vfwcds_VF 0
+      - abstract_vfw.endpoint_vfw
+      vfwcds_vf0.abstract_vpg.network.outgoing.bytes_vpg_vpg_onap_private_port_0:
+      - vfwcds_VF 0
+      - abstract_vpg.network.outgoing.bytes_vpg_vpg_onap_private_port_0
+      vfwcds_vf0.abstract_vpg.network.incoming.packets.rate_vpg_vpg_int_private1_port_0:
+      - vfwcds_VF 0
+      - abstract_vpg.network.incoming.packets.rate_vpg_vpg_int_private1_port_0
+      vfwcds_vf0.abstract_vpg.network.outgoing.bytes_vpg_vpg_int_private1_port_0:
+      - vfwcds_VF 0
+      - abstract_vpg.network.outgoing.bytes_vpg_vpg_int_private1_port_0
+      vfwcds_vf0.abstract_vsn.network.outpoing.packets_vsn_vsn_int_private2_port_0:
+      - vfwcds_VF 0
+      - abstract_vsn.network.outpoing.packets_vsn_vsn_int_private2_port_0
+      vfwcds_vf0.abstract_vpg.binding_vpg:
+      - vfwcds_VF 0
+      - abstract_vpg.binding_vpg
+      vfwcds_vf0.abstract_vpg.disk.usage_vpg:
+      - vfwcds_VF 0
+      - abstract_vpg.disk.usage_vpg
+      vfwcds_vf0.abstract_vfw.disk.write.requests.rate_vfw:
+      - vfwcds_VF 0
+      - abstract_vfw.disk.write.requests.rate_vfw
+      vfwcds_vf0.abstract_vsn.binding_vsn:
+      - vfwcds_VF 0
+      - abstract_vsn.binding_vsn
+      vfwcds_vf0.abstract_vpg.disk.write.requests.rate_vpg:
+      - vfwcds_VF 0
+      - abstract_vpg.disk.write.requests.rate_vpg
+      vfwcds_vf0.abstract_vsn.disk.latency_vsn:
+      - vfwcds_VF 0
+      - abstract_vsn.disk.latency_vsn
+      vfwcds_vf0.abstract_vpg.memory_vpg:
+      - vfwcds_VF 0
+      - abstract_vpg.memory_vpg
+      vfwcds_vf0.abstract_vsn.network.outgoing.bytes_vsn_vsn_int_private2_port_0:
+      - vfwcds_VF 0
+      - abstract_vsn.network.outgoing.bytes_vsn_vsn_int_private2_port_0
+      vfwcds_vf0.abstract_vfw.network.outpoing.packets_vfw_vfw_onap_private_port_0:
+      - vfwcds_VF 0
+      - abstract_vfw.network.outpoing.packets_vfw_vfw_onap_private_port_0
+      vfwcds_vf0.abstract_vfw.disk.device.read.bytes.rate_vfw:
+      - vfwcds_VF 0
+      - abstract_vfw.disk.device.read.bytes.rate_vfw
+      vfwcds_vf0.abstract_vsn.disk.ephemeral.size_vsn:
+      - vfwcds_VF 0
+      - abstract_vsn.disk.ephemeral.size_vsn
+      vfwcds_vf0.abstract_vfw.binding_vfw_vfw_int_private2_port_0:
+      - vfwcds_VF 0
+      - abstract_vfw.binding_vfw_vfw_int_private2_port_0
+      vfwcds_vf0.abstract_vpg.feature_vpg_vpg_onap_private_port_0:
+      - vfwcds_VF 0
+      - abstract_vpg.feature_vpg_vpg_onap_private_port_0
+      vfwcds_vf0.abstract_vfw.network.outgoing.bytes.rate_vfw_vfw_onap_private_port_0:
+      - vfwcds_VF 0
+      - abstract_vfw.network.outgoing.bytes.rate_vfw_vfw_onap_private_port_0
+      vfwcds_vf0.abstract_vpg.binding_vpg_vpg_onap_private_port_0:
+      - vfwcds_VF 0
+      - abstract_vpg.binding_vpg_vpg_onap_private_port_0
+      vfwcds_vf0.abstract_vfw.disk.device.allocation_vfw:
+      - vfwcds_VF 0
+      - abstract_vfw.disk.device.allocation_vfw
+      vfwcds_vf0.abstract_vpg.scalable_vpg:
+      - vfwcds_VF 0
+      - abstract_vpg.scalable_vpg
+      vfwcds_vf0.abstract_vsn.attachment_vsn_vsn_int_private2_port_0:
+      - vfwcds_VF 0
+      - abstract_vsn.attachment_vsn_vsn_int_private2_port_0
+      vfwcds_vf0.abstract_vpg.network.outpoing.packets_vpg_vpg_onap_private_port_0:
+      - vfwcds_VF 0
+      - abstract_vpg.network.outpoing.packets_vpg_vpg_onap_private_port_0
+      vfwcds_vf0.abstract_vsn.memory.usage_vsn:
+      - vfwcds_VF 0
+      - abstract_vsn.memory.usage_vsn
+      vfwcds_vf0.abstract_vsn.network.incoming.bytes.rate_vsn_vsn_onap_private_port_0:
+      - vfwcds_VF 0
+      - abstract_vsn.network.incoming.bytes.rate_vsn_vsn_onap_private_port_0
+      vfwcds_vf0.abstract_vsn.memory_vsn:
+      - vfwcds_VF 0
+      - abstract_vsn.memory_vsn
+      vfwcds_vf0.abstract_vpg.disk.device.iops_vpg:
+      - vfwcds_VF 0
+      - abstract_vpg.disk.device.iops_vpg
+      vfwcds_vf0.int_private1_network.attachment:
+      - vfwcds_VF 0
+      - int_private1_network.attachment
+      vfwcds_vf0.abstract_vfw.disk.ephemeral.size_vfw:
+      - vfwcds_VF 0
+      - abstract_vfw.disk.ephemeral.size_vfw
+      vfwcds_vf0.abstract_vsn.network.incoming.bytes_vsn_vsn_int_private2_port_0:
+      - vfwcds_VF 0
+      - abstract_vsn.network.incoming.bytes_vsn_vsn_int_private2_port_0
+      vfwcds_vf0.abstract_vsn.attachment_vsn_vsn_onap_private_port_0:
+      - vfwcds_VF 0
+      - abstract_vsn.attachment_vsn_vsn_onap_private_port_0
+      vfwcds_vf0.abstract_vfw.disk.device.write.requests.rate_vfw:
+      - vfwcds_VF 0
+      - abstract_vfw.disk.device.write.requests.rate_vfw
+      vfwcds_vf0.abstract_vsn.disk.allocation_vsn:
+      - vfwcds_VF 0
+      - abstract_vsn.disk.allocation_vsn
+      vfwcds_vf0.abstract_vfw.network.incoming.bytes_vfw_vfw_int_private1_port_0:
+      - vfwcds_VF 0
+      - abstract_vfw.network.incoming.bytes_vfw_vfw_int_private1_port_0
+      vfwcds_vf0.abstract_vfw.network.outgoing.packets.rate_vfw_vfw_int_private2_port_0:
+      - vfwcds_VF 0
+      - abstract_vfw.network.outgoing.packets.rate_vfw_vfw_int_private2_port_0
+      vfwcds_vf0.abstract_vsn.network.incoming.bytes_vsn_vsn_onap_private_port_0:
+      - vfwcds_VF 0
+      - abstract_vsn.network.incoming.bytes_vsn_vsn_onap_private_port_0
+      vfwcds_vf0.abstract_vpg.cpu_util_vpg:
+      - vfwcds_VF 0
+      - abstract_vpg.cpu_util_vpg
+      vfwcds_vf0.abstract_vpg.disk.device.usage_vpg:
+      - vfwcds_VF 0
+      - abstract_vpg.disk.device.usage_vpg
+      vfwcds_vf0.abstract_vfw.disk.usage_vfw:
+      - vfwcds_VF 0
+      - abstract_vfw.disk.usage_vfw
+      vfwcds_vf0.abstract_vsn.disk.device.write.bytes.rate_vsn:
+      - vfwcds_VF 0
+      - abstract_vsn.disk.device.write.bytes.rate_vsn
+      vfwcds_vf0.abstract_vpg.network.outgoing.packets.rate_vpg_vpg_int_private1_port_0:
+      - vfwcds_VF 0
+      - abstract_vpg.network.outgoing.packets.rate_vpg_vpg_int_private1_port_0
+      vfwcds_vf0.abstract_vfw.disk.allocation_vfw:
+      - vfwcds_VF 0
+      - abstract_vfw.disk.allocation_vfw
+      vfwcds_vf0.abstract_vfw.network.incoming.packets.rate_vfw_vfw_int_private2_port_0:
+      - vfwcds_VF 0
+      - abstract_vfw.network.incoming.packets.rate_vfw_vfw_int_private2_port_0
+      vfwcds_vf0.abstract_vfw.network.incoming.bytes.rate_vfw_vfw_int_private1_port_0:
+      - vfwcds_VF 0
+      - abstract_vfw.network.incoming.bytes.rate_vfw_vfw_int_private1_port_0
+      vfwcds_vf0.abstract_vsn.disk.read.requests_vsn:
+      - vfwcds_VF 0
+      - abstract_vsn.disk.read.requests_vsn
+      vfwcds_vf0.abstract_vsn.network.incoming.bytes.rate_vsn_vsn_int_private2_port_0:
+      - vfwcds_VF 0
+      - abstract_vsn.network.incoming.bytes.rate_vsn_vsn_int_private2_port_0
+      vfwcds_vf0.abstract_vfw.host_vfw:
+      - vfwcds_VF 0
+      - abstract_vfw.host_vfw
+      vfwcds_vf0.abstract_vsn.network.incoming.packets_vsn_vsn_int_private2_port_0:
+      - vfwcds_VF 0
+      - abstract_vsn.network.incoming.packets_vsn_vsn_int_private2_port_0
+      vfwcds_vf0.abstract_vpg.disk.read.requests_vpg:
+      - vfwcds_VF 0
+      - abstract_vpg.disk.read.requests_vpg
+      vfwcds_vf0.abstract_vsn.disk.device.read.requests.rate_vsn:
+      - vfwcds_VF 0
+      - abstract_vsn.disk.device.read.requests.rate_vsn
+      vfwcds_vf0.abstract_vfw.port_mirroring_vfw_vfw_onap_private_port_0:
+      - vfwcds_VF 0
+      - abstract_vfw.port_mirroring_vfw_vfw_onap_private_port_0
+      vfwcds_vf0.abstract_vfw.disk.device.write.bytes_vfw:
+      - vfwcds_VF 0
+      - abstract_vfw.disk.device.write.bytes_vfw
+      vfwcds_vf0.int_private2_network.attachment:
+      - vfwcds_VF 0
+      - int_private2_network.attachment
+      vfwcds_vf0.abstract_vfw.network.outgoing.packets.rate_vfw_vfw_onap_private_port_0:
+      - vfwcds_VF 0
+      - abstract_vfw.network.outgoing.packets.rate_vfw_vfw_onap_private_port_0
+      vfwcds_vf0.abstract_vfw.vcpus_vfw:
+      - vfwcds_VF 0
+      - abstract_vfw.vcpus_vfw
+      vfwcds_vf0.abstract_vpg.disk.read.bytes_vpg:
+      - vfwcds_VF 0
+      - abstract_vpg.disk.read.bytes_vpg
+      vfwcds_vf0.abstract_vpg.disk.ephemeral.size_vpg:
+      - vfwcds_VF 0
+      - abstract_vpg.disk.ephemeral.size_vpg
+      vfwcds_vf0.abstract_vsn.network.incoming.packets_vsn_vsn_onap_private_port_0:
+      - vfwcds_VF 0
+      - abstract_vsn.network.incoming.packets_vsn_vsn_onap_private_port_0
+      vfwcds_vf0.abstract_vpg.endpoint_vpg:
+      - vfwcds_VF 0
+      - abstract_vpg.endpoint_vpg
+      vfwcds_vf0.abstract_vpg.forwarder_vpg_vpg_onap_private_port_0:
+      - vfwcds_VF 0
+      - abstract_vpg.forwarder_vpg_vpg_onap_private_port_0
+      vfwcds_vf0.abstract_vfw.disk.iops_vfw:
+      - vfwcds_VF 0
+      - abstract_vfw.disk.iops_vfw
+      vfwcds_vf0.abstract_vpg.cpu.delta_vpg:
+      - vfwcds_VF 0
+      - abstract_vpg.cpu.delta_vpg
+      vfwcds_vf0.abstract_vpg.disk.device.capacity_vpg:
+      - vfwcds_VF 0
+      - abstract_vpg.disk.device.capacity_vpg
+      vfwcds_vf0.abstract_vfw.network.outgoing.bytes.rate_vfw_vfw_int_private2_port_0:
+      - vfwcds_VF 0
+      - abstract_vfw.network.outgoing.bytes.rate_vfw_vfw_int_private2_port_0
+      vfwcds_vf0.abstract_vsn.cpu_vsn:
+      - vfwcds_VF 0
+      - abstract_vsn.cpu_vsn
+      vfwcds_vf0.abstract_vpg.disk.device.allocation_vpg:
+      - vfwcds_VF 0
+      - abstract_vpg.disk.device.allocation_vpg
+      vfwcds_vf0.abstract_vsn.disk.write.bytes_vsn:
+      - vfwcds_VF 0
+      - abstract_vsn.disk.write.bytes_vsn
+      vfwcds_vf0.abstract_vsn.disk.write.bytes.rate_vsn:
+      - vfwcds_VF 0
+      - abstract_vsn.disk.write.bytes.rate_vsn
+      vfwcds_vf0.abstract_vfw.disk.device.write.requests_vfw:
+      - vfwcds_VF 0
+      - abstract_vfw.disk.device.write.requests_vfw
+      vfwcds_vf0.abstract_vsn.port_mirroring_vsn_vsn_onap_private_port_0:
+      - vfwcds_VF 0
+      - abstract_vsn.port_mirroring_vsn_vsn_onap_private_port_0
+      vfwcds_vf0.abstract_vfw.disk.write.requests_vfw:
+      - vfwcds_VF 0
+      - abstract_vfw.disk.write.requests_vfw
+    requirements:
+      vfwcds_vf0.abstract_vpg.dependency_vpg:
+      - vfwcds_VF 0
+      - abstract_vpg.dependency_vpg
+      vfwcds_vf0.abstract_vpg.link_vpg_vpg_onap_private_port_0:
+      - vfwcds_VF 0
+      - abstract_vpg.link_vpg_vpg_onap_private_port_0
+      vfwcds_vf0.abstract_vsn.local_storage_vsn:
+      - vfwcds_VF 0
+      - abstract_vsn.local_storage_vsn
+      vfwcds_vf0.abstract_vfw.dependency_vfw:
+      - vfwcds_VF 0
+      - abstract_vfw.dependency_vfw
+      vfwcds_vf0.abstract_vfw.local_storage_vfw:
+      - vfwcds_VF 0
+      - abstract_vfw.local_storage_vfw
+      vfwcds_vf0.int_private2_network.dependency:
+      - vfwcds_VF 0
+      - int_private2_network.dependency
+      vfwcds_vf0.int_private1_network.dependency:
+      - vfwcds_VF 0
+      - int_private1_network.dependency
+      vfwcds_vf0.abstract_vfw.dependency_vfw_vfw_int_private1_port_0:
+      - vfwcds_VF 0
+      - abstract_vfw.dependency_vfw_vfw_int_private1_port_0
+      vfwcds_vf0.abstract_vpg.dependency_vpg_vpg_int_private1_port_0:
+      - vfwcds_VF 0
+      - abstract_vpg.dependency_vpg_vpg_int_private1_port_0
+      vfwcds_vf0.abstract_vfw.dependency_vfw_vfw_int_private2_port_0:
+      - vfwcds_VF 0
+      - abstract_vfw.dependency_vfw_vfw_int_private2_port_0
+      vfwcds_vf0.abstract_vpg.dependency_vpg_vpg_onap_private_port_0:
+      - vfwcds_VF 0
+      - abstract_vpg.dependency_vpg_vpg_onap_private_port_0
+      vfwcds_vf0.abstract_vsn.link_vsn_vsn_onap_private_port_0:
+      - vfwcds_VF 0
+      - abstract_vsn.link_vsn_vsn_onap_private_port_0
+      vfwcds_vf0.abstract_vpg.link_vpg_vpg_int_private1_port_0:
+      - vfwcds_VF 0
+      - abstract_vpg.link_vpg_vpg_int_private1_port_0
+      vfwcds_vf0.abstract_vfw.link_vfw_vfw_int_private1_port_0:
+      - vfwcds_VF 0
+      - abstract_vfw.link_vfw_vfw_int_private1_port_0
+      vfwcds_vf0.abstract_vpg.local_storage_vpg:
+      - vfwcds_VF 0
+      - abstract_vpg.local_storage_vpg
+      vfwcds_vf0.abstract_vfw.link_vfw_vfw_int_private2_port_0:
+      - vfwcds_VF 0
+      - abstract_vfw.link_vfw_vfw_int_private2_port_0
+      vfwcds_vf0.abstract_vsn.dependency_vsn_vsn_int_private2_port_0:
+      - vfwcds_VF 0
+      - abstract_vsn.dependency_vsn_vsn_int_private2_port_0
+      vfwcds_vf0.abstract_vsn.link_vsn_vsn_int_private2_port_0:
+      - vfwcds_VF 0
+      - abstract_vsn.link_vsn_vsn_int_private2_port_0
+      vfwcds_vf0.abstract_vsn.dependency_vsn:
+      - vfwcds_VF 0
+      - abstract_vsn.dependency_vsn
+      vfwcds_vf0.abstract_vfw.link_vfw_vfw_onap_private_port_0:
+      - vfwcds_VF 0
+      - abstract_vfw.link_vfw_vfw_onap_private_port_0
+      vfwcds_vf0.abstract_vfw.dependency_vfw_vfw_onap_private_port_0:
+      - vfwcds_VF 0
+      - abstract_vfw.dependency_vfw_vfw_onap_private_port_0
+      vfwcds_vf0.abstract_vsn.dependency_vsn_vsn_onap_private_port_0:
+      - vfwcds_VF 0
+      - abstract_vsn.dependency_vsn_vsn_onap_private_port_0

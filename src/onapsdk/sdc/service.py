@@ -2,21 +2,23 @@
 # -*- coding: utf-8 -*-
 # SPDX-License-Identifier: Apache-2.0
 """Service module."""
-from collections import namedtuple
-from dataclasses import dataclass
-from difflib import SequenceMatcher
+import base64
+import pathlib as Path
+import re
+import string
+import time
+from dataclasses import dataclass, field
+from enum import Enum
 from io import BytesIO, TextIOWrapper
 from os import makedirs
-import time
-import re
-from typing import Dict, Iterable, List, Callable, Union, Any, BinaryIO
+from typing import Dict, List, Callable, Union, Any, BinaryIO
 from zipfile import ZipFile, BadZipFile
-import base64
-from requests import Response
 
 import oyaml as yaml
+from requests import Response
 
 import onapsdk.constants as const
+from onapsdk.sdc.properties import NestedInput, Property
 from onapsdk.sdc.sdc_resource import SdcResource
 from onapsdk.utils.configuration import (components_needing_distribution,
                                          tosca_path)
@@ -38,7 +40,7 @@ class VfModule:
 class NodeTemplate:
     """Node template dataclass.
 
-    Base class for Vnf and Network classes.
+    Base class for Vnf, Pnf and Network classes.
     """
 
     name: str
@@ -48,38 +50,54 @@ class NodeTemplate:
     capabilities: dict
 
 
+
 @dataclass
 class Vnf(NodeTemplate):
     """Vnf dataclass."""
 
-    vf_module: VfModule = None
+    vf_modules: List[VfModule] = field(default_factory=list)
 
-    def associate_vf_module(self, vf_modules: Iterable[VfModule]) -> None:
-        """Iterate through Service vf modules and found the valid one.
+    @property
+    def tosca_groups_parsed_name(self) -> str:
+        """Property used to associate vf modules.
 
-        This is experimental! To be honest we are not sure if it works
-            correctly, it should be clarified with ONAP community.
+        It's created using the vnf name by with all
+            characters before first `_` lowercase, then
+            from all letters and numbers after first `_` are concatenated.
 
-        Args:
-            vf_modules (Iterable[VfModule]): Service vf modules
+        Returns:
+            str: String used to associate vf modules from tosca template
 
         """
-        AssociateMatch = namedtuple("AssociateMatch", ["ratio", "object"])
-        best_match: AssociateMatch = AssociateMatch(0.0, None)
-        for vf_module in vf_modules:  # type: VfModule
-            current_ratio: float = SequenceMatcher(None,
-                                                   self.name.lower(),
-                                                   vf_module.name.lower()).ratio()
-            if current_ratio > best_match.ratio:
-                best_match = AssociateMatch(current_ratio, vf_module)
-        self.vf_module = best_match.object
+        prefix, suffix = self.name.split("_", 1)
+        return "_".join([prefix.lower(),
+                         "".join(filter(lambda x: x in [*string.ascii_letters,
+                                                        *string.digits], suffix)).lower()])
+
+
+@dataclass
+class Pnf(NodeTemplate):
+    """Pnf dataclass."""
 
 
 class Network(NodeTemplate):  # pylint: disable=too-few-public-methods
     """Network dataclass."""
 
 
-class Service(SdcResource):  # pylint: disable=too-many-instance-attributes
+class ServiceInstantiationType(Enum):
+    """Service instantiation type enum class.
+
+    Service can be instantiated using `A-la-carte` or `Macro` flow.
+    It has to be determined during design time. That class stores these
+    two values to set during initialization.
+
+    """
+
+    A_LA_CARTE = "A-la-carte"
+    MACRO = "Macro"
+
+
+class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too-many-public-methods
     """
     ONAP Service Object used for SDC operations.
 
@@ -100,49 +118,61 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes
     """
 
     SERVICE_PATH = "services"
-    headers = headers_sdc_creator(SdcResource.headers)
 
-    def __init__(self, name: str = None, sdc_values: Dict[str, str] = None,
-                 resources: List[SdcResource] = None):
+    def __init__(self, name: str = None, version: str = None, sdc_values: Dict[str, str] = None,  # pylint: disable=too-many-arguments
+                 resources: List[SdcResource] = None, properties: List[Property] = None,
+                 inputs: List[Union[Property, NestedInput]] = None,
+                 instantiation_type: ServiceInstantiationType = \
+                     ServiceInstantiationType.A_LA_CARTE):
         """
         Initialize service object.
 
         Args:
             name (str, optional): the name of the service
+            version (str, optional): the version of the service
             sdc_values (Dict[str, str], optional): dictionary of values
                 returned by SDC
             resources (List[SdcResource], optional): list of SDC resources
+            properties (List[Property], optional): list of properties to add to service.
+                None by default.
+            inputs (List[Union[Property, NestedInput]], optional): list of inputs
+                to declare for service. It can be both Property or NestedInput object.
+                None by default.
+            instantiation_type (ServiceInstantiationType, optional): service instantiation
+                type. ServiceInstantiationType.A_LA_CARTE by default
 
         """
-        super().__init__(sdc_values=sdc_values)
+        super().__init__(sdc_values=sdc_values, version=version, properties=properties,
+                         inputs=inputs)
         self.name: str = name or "ONAP-test-Service"
         self.distribution_status = None
         if sdc_values:
             self.distribution_status = sdc_values['distributionStatus']
         self.resources = resources or []
+        self.instantiation_type: ServiceInstantiationType = instantiation_type
         self._distribution_id: str = None
         self._distributed: bool = False
         self._resource_type: str = "services"
         self._tosca_model: bytes = None
         self._tosca_template: str = None
         self._vnfs: list = None
+        self._pnfs: list = None
         self._networks: list = None
         self._vf_modules: list = None
-        self._time_wait: int = 10
 
     def onboard(self) -> None:
         """Onboard the Service in SDC."""
         # first Lines are equivalent for all onboard functions but it's more
         # readable
         if not self.status:
+            # equivalent step as in onboard-function in sdc_resource
             self.create()
             time.sleep(self._time_wait)
             self.onboard()
         elif self.status == const.DRAFT:
-            if not self.resources:
-                raise ValueError("No resources were given")
-            for resource in self.resources:
-                self.add_resource(resource)
+            if not any([self.resources, self._properties_to_add]):
+                raise ValueError("No resources nor properties were given")
+            self.declare_resources_and_properties()
             self.checkin()
             time.sleep(self._time_wait)
             self.onboard()
@@ -249,9 +279,41 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes
                         properties=values["properties"],
                         capabilities=values.get("capabilities", {})
                     )
-                    vnf.associate_vf_module(self.vf_modules)
+                    # vnf.associate_vf_module(self.vf_modules)
                     self._vnfs.append(vnf)
+            self.associate_vf_modules()
         return self._vnfs
+
+    @property
+    def pnfs(self) -> List[Pnf]:
+        """Service Pnfs.
+
+        Load PNFs from service's tosca file
+
+        Raises:
+            AttributeError: Service has no TOSCA template
+
+        Returns:
+            List[Pnf]: Pnf objects list
+
+        """
+        if not self.tosca_template:
+            raise AttributeError("Service has no TOSCA template")
+        if self._pnfs is None:
+            self._pnfs = []
+            for node_template_name, values in \
+                self.tosca_template.get("topology_template", {}).get(
+                        "node_templates", {}).items():
+                if re.match("org.openecomp.resource.pnf.*", values["type"]):
+                    pnf: Pnf = Pnf(
+                        name=node_template_name,
+                        node_template_type=values["type"],
+                        metadata=values["metadata"],
+                        properties=values["properties"],
+                        capabilities=values.get("capabilities", {})
+                    )
+                    self._pnfs.append(pnf)
+        return self._pnfs
 
     @property
     def networks(self) -> List[Network]:
@@ -306,9 +368,67 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes
                 ))
         return self._vf_modules
 
+
+    @property
+    def deployment_artifacts_url(self) -> str:
+        """Deployment artifacts url.
+
+        Returns:
+            str: SdcResource Deployment artifacts url
+
+        """
+        return (f"{self._base_create_url()}/services/"
+                f"{self.unique_identifier}/filteredDataByParams?include=deploymentArtifacts")
+
+    @property
+    def add_deployment_artifacts_url(self) -> str:
+        """Add deployment artifacts url.
+
+        Returns:
+            str: Url used to add deployment artifacts
+
+        """
+        return (f"{self._base_create_url()}/services/"
+                f"{self.unique_identifier}/artifacts")
+
+    @property
+    def properties_url(self) -> str:
+        """Properties url.
+
+        Returns:
+            str: SdcResource properties url
+
+        """
+        return (f"{self._base_create_url()}/services/"
+                f"{self.unique_identifier}/filteredDataByParams?include=properties")
+
+    @property
+    def resource_inputs_url(self) -> str:
+        """Service inputs url.
+
+        Returns:
+            str: Service inputs url
+
+        """
+        return (f"{self._base_create_url()}/services/"
+                f"{self.unique_identifier}")
+
+    @property
+    def set_input_default_value_url(self) -> str:
+        """Url to set input default value.
+
+        Returns:
+            str: SDC API url used to set input default value
+
+        """
+        return (f"{self._base_create_url()}/services/"
+                f"{self.unique_identifier}/update/inputs")
+
     def create(self) -> None:
         """Create the Service in SDC if not already existing."""
-        self._create("service_create.json.j2", name=self.name)
+        self._create("service_create.json.j2",
+                     name=self.name,
+                     instantiation_type=self.instantiation_type.value)
 
     def add_resource(self, resource: SdcResource) -> None:
         """
@@ -344,6 +464,19 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes
             return None
         self._logger.error("Service is not in Draft mode")
         return None
+
+    def declare_resources_and_properties(self) -> None:
+        """Delcare resources and properties.
+
+        It declares also inputs.
+
+        """
+        for resource in self.resources:
+            self.add_resource(resource)
+        for property_to_add in self._properties_to_add:
+            self.add_property(property_to_add)
+        for input_to_add in self._inputs_to_add:
+            self.declare_input(input_to_add)
 
     def checkin(self) -> None:
         """Checkin Service."""
@@ -584,31 +717,32 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes
         """Give back the end of SDC path."""
         return cls.SERVICE_PATH
 
-    def get_vnf_unique_id(self, vnf_name: str) -> str:
+    def get_nf_unique_id(self, nf_name: str) -> str:
         """
-        Get vnf uniqueID.
+        Get nf (network function) uniqueID.
 
-        Get vnf uniqueID from service vnf in sdc.
+        Get nf uniqueID from service nf in sdc.
 
         Args:
-            vnf_name (str): the vnf from which we extract the unique ID
+            nf_name (str): the nf from which we extract the unique ID
 
         Returns:
-            the vnf unique ID
+            the nf unique ID
 
         Raises:
-            AttributeError: Couldn't find VNF
+            AttributeError: Couldn't find NF
 
         """
         url = f"{self._base_create_url()}/services/{self.unique_identifier}"
         request_return = self.send_message_json('GET',
-                                                'Get vnf unique ID',
+                                                'Get nf unique ID',
                                                 url)
         if request_return:
-            for instance in filter(lambda x: x["name"] == vnf_name,
+            for instance in filter(lambda x: x["componentName"] == nf_name,
                                    request_return["componentInstances"]):
                 return instance["uniqueId"]
-        raise AttributeError("Couldn't find VNF")
+        raise AttributeError("Couldn't find NF")
+
 
     def add_artifact_to_vf(self, vnf_name: str, artifact_type: str,
                            artifact_name: str, artifact: BinaryIO = None):
@@ -624,14 +758,14 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes
             artifact (str): binary data to upload
 
         """
-        missing_identifier = self.get_vnf_unique_id(vnf_name)
+        missing_identifier = self.get_nf_unique_id(vnf_name)
         url = (f"{self._base_create_url()}/services/{self.unique_identifier}/"
                f"resourceInstance/{missing_identifier}/artifacts")
         template = jinja_env().get_template("add_artifact_to_vf.json.j2")
         data = template.render(artifact_name=artifact_name,
-                               artifact_label=f"sdk{artifact_name}",
+                               artifact_label=f"sdk{Path.PurePosixPath(artifact_name).stem}",
                                artifact_type=artifact_type,
-                               b64_artifact=base64.b64encode(artifact))
+                               b64_artifact=base64.b64encode(artifact).decode('utf-8'))
         headers = headers_sdc_artifact_upload(base_header=self.headers,
                                               data=data)
         try:
@@ -645,3 +779,69 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes
             self._logger.error(("an error occured during file upload for an Artifact"
                                 "to VNF %s"), vnf_name)
             raise ValueError("Couldn't upload the artifact")
+
+    def get_component_properties_url(self, component: "Component") -> str:
+        """Url to get component's properties.
+
+        This method is here because component can have different url when
+            it's a component of another SDC resource type, eg. for service and
+            for VF components have different urls.
+            Also for VL origin type components properties url is different than
+            for the other types.
+
+        Args:
+            component (Component): Component object to prepare url for
+
+        Returns:
+            str: Component's properties url
+
+        """
+        if component.origin_type == "VL":
+            return super().get_component_properties_url(component)
+        return (f"{self.resource_inputs_url}/"
+                f"componentInstances/{component.unique_id}/{component.actual_component_uid}/inputs")
+
+    def get_component_properties_value_set_url(self, component: "Component") -> str:
+        """Url to set component property value.
+
+        This method is here because component can have different url when
+            it's a component of another SDC resource type, eg. for service and
+            for VF components have different urls.
+            Also for VL origin type components properties url is different than
+            for the other types.
+
+        Args:
+            component (Component): Component object to prepare url for
+
+        Returns:
+            str: Component's properties url
+
+        """
+        if component.origin_type == "VL":
+            return super().get_component_properties_value_set_url(component)
+        return (f"{self.resource_inputs_url}/"
+                f"resourceInstance/{component.unique_id}/inputs")
+
+    def associate_vf_modules(self) -> None:
+        """Associate vf modules to vnfs.
+
+        This is experimental! To be honest we are not sure if it works
+            correctly, it should be clarified with ONAP community.
+
+        Sometimes vnf has one vf module, but it can have assosicated
+            more than one. There can be also more than one vnf in
+            TOSCA template and it't difficult to determine which
+            vnf should be associated with which vf module. Usually
+            their name are similar, but not always.
+
+        """
+        if len(self.vnfs) == 0:
+            return
+        if len(self.vnfs) == 1:
+            self.vnfs[0].vf_modules = self.vf_modules[:]
+        else:
+            for vnf in self.vnfs:
+                vnf.vf_modules = list(filter(\
+                    lambda vf_module: vf_module.name.startswith(
+                        vnf.tosca_groups_parsed_name),  # pylint: disable=cell-var-from-loop
+                    self.vf_modules))

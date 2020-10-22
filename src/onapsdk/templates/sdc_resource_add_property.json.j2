@@ -1,0 +1,17 @@
+{
+    "{{ property.name }}":{
+        "schema":{
+            "property":{
+                "type":""
+            }
+        },
+        "name": "{{ property.name }}",
+        {% if property.description %}
+        "description": "{{ property.description }}",
+        {% endif %}
+        {% if property.value %}
+        "value": "{{ property.value }}",
+        {% endif %}
+        "type": "{{ property.property_type }}"
+    }
+}
