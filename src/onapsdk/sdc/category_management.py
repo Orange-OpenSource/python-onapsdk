@@ -150,7 +150,7 @@ class BaseCategory(SDC, ABC):  # pylint: disable=too-many-instance-attributes
         Copy relevant properties from object.
 
         Args:
-            obj (SdcResource): the object to "copy"
+            obj (BaseCategory): the object to "copy"
 
         """
         self.name = obj.name

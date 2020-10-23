@@ -18,6 +18,7 @@ import oyaml as yaml
 from requests import Response
 
 import onapsdk.constants as const
+from onapsdk.sdc.category_management import ServiceCategory
 from onapsdk.sdc.properties import NestedInput, Property
 from onapsdk.sdc.sdc_resource import SdcResource
 from onapsdk.utils.configuration import (components_needing_distribution,
@@ -123,7 +124,8 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
                  resources: List[SdcResource] = None, properties: List[Property] = None,
                  inputs: List[Union[Property, NestedInput]] = None,
                  instantiation_type: ServiceInstantiationType = \
-                     ServiceInstantiationType.A_LA_CARTE):
+                     ServiceInstantiationType.A_LA_CARTE,
+                 category: str = None):
         """
         Initialize service object.
 
@@ -140,14 +142,17 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
                 None by default.
             instantiation_type (ServiceInstantiationType, optional): service instantiation
                 type. ServiceInstantiationType.A_LA_CARTE by default
+            category (str, optional): service category name
 
         """
         super().__init__(sdc_values=sdc_values, version=version, properties=properties,
-                         inputs=inputs)
+                         inputs=inputs, category=category)
         self.name: str = name or "ONAP-test-Service"
         self.distribution_status = None
+        self.category_name: str = category
         if sdc_values:
             self.distribution_status = sdc_values['distributionStatus']
+            self.category_name = sdc_values["category"]
         self.resources = resources or []
         self.instantiation_type: ServiceInstantiationType = instantiation_type
         self._distribution_id: str = None
@@ -428,7 +433,8 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
         """Create the Service in SDC if not already existing."""
         self._create("service_create.json.j2",
                      name=self.name,
-                     instantiation_type=self.instantiation_type.value)
+                     instantiation_type=self.instantiation_type.value,
+                     category=self.category)
 
     def add_resource(self, resource: SdcResource) -> None:
         """
@@ -628,6 +634,9 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
             obj (Service): the object to "copy"
 
         """
+        super()._specific_copy(obj)
+        self.category_name = obj.category_name
+
     def _verify_distribute_to_sdc(self, desired_status: str,
                                   desired_action: str, **kwargs) -> None:
         self._verify_action_to_sdc(desired_status, desired_action,
@@ -845,3 +854,16 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
                     lambda vf_module: vf_module.name.startswith(
                         vnf.tosca_groups_parsed_name),  # pylint: disable=cell-var-from-loop
                     self.vf_modules))
+
+    def get_category_for_new_resource(self) -> ServiceCategory:
+        """Get category for service not created in SDC yet.
+
+        If no category values are provided default category is going to be used.
+
+        Returns:
+            ServiceCategory: Category of the new service
+
+        """
+        if not self._category_name:
+            return ServiceCategory.get(name="Network Service")
+        return ServiceCategory.get(name=self._category_name)
