@@ -14,7 +14,7 @@ import urllib3
 from urllib3.util.retry import Retry
 import simplejson.errors
 
-from onapsdk.onap_sdk_errors import RequestError
+from onapsdk.exceptions import RequestError
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
