@@ -14,6 +14,7 @@ import urllib3
 from urllib3.util.retry import Retry
 import simplejson.errors
 
+from onapsdk.onap_sdk_errors import RequestError
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -70,10 +71,14 @@ class OnapService(ABC):
                 requests can be used here.
 
         Raises:
-            exception (Exception): raise the Exception given in args (if given)
+            RequestException: ambiguous error. TODO: replace by RequestError
+            HTTPError: returned an error code. TODO: replace with ApiError
+            RequestError: if other exceptions weren't caught or didn't raise
+            exception (SdkException, optional):
+                will be raised instead of RequestError
 
         Returns:
-            the request response if OK or None if an error occured
+            the request response if OK
 
         """
         cert = kwargs.pop('cert', None)
@@ -111,16 +116,13 @@ class OnapService(ABC):
         except requests.RequestException as err:
             cls._logger.error("[%s][%s] Failed to perform: %s", cls.server,
                               action, err)
-        # We are passing here only if we catched an error
+
         cls._logger.error("[%s][%s] sent header: %s", cls.server, action,
                           headers)
         cls._logger.error("[%s][%s] url used: %s", cls.server, action, url)
         cls._logger.error("[%s][%s] data sent: %s", cls.server, action, data)
-        # if specific exception predefined
-        # for the given service, raise it
-        if exception:
-            raise exception
-        return None
+
+        raise exception if exception else RequestError
 
     @classmethod
     def send_message_json(cls, method: str, action: str, url: str,
@@ -138,10 +140,13 @@ class OnapService(ABC):
                 requests can be used here.
 
         Raises:
-            exception (Exception): raise the Exception given in args (if given)
+            JSONDecodeError: if JSON coudn't be decoded
+            RequestError: if other exceptions weren't caught or didn't raise
+            exception (SdkException, optional):
+                will be raised instead of RequestError
 
         Returns:
-            the response body in dict format if OK or {}
+            the response body in dict format if OK
 
         """
         exception = kwargs.get('exception', None)
@@ -158,9 +163,8 @@ class OnapService(ABC):
             cls._logger.error("[%s][%s] url used: %s", cls.server, action, url)
             cls._logger.error("[%s][%s] data sent: %s", cls.server, action,
                               data)
-            if exception:
-                raise exception
-        return {}
+
+        raise exception if exception else RequestError
 
     @staticmethod
     def __requests_retry_session(retries: int = 10,
