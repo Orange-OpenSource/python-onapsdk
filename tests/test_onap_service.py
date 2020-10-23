@@ -7,10 +7,28 @@ import pytest
 from jinja2 import Environment
 from requests import Response, Timeout, Session
 import simplejson.errors
+from onapsdk.exceptions import (
+    SDKException, RequestError, APIError, ResourceNotFound, InvalidResponse
+)
 
 from onapsdk.onap_service import OnapService
 from onapsdk.sdc.vendor import Vendor
-from onapsdk.exceptions import RequestError
+
+def http_codes():
+    return [
+        400,  # Bad Request
+        401,  # Unauthorized
+        403,  # Forbidden
+        405,  # Method Not Allowed
+        408,  # Request Timeout
+        415,  # Unsupported Media Type
+        429,  # Too Many Requests
+        500,  # Internal Server Error
+        501,  # Not Implemented
+        502,  # Bad Gateway
+        503,  # Service Unavailable
+        504   # Gateway Timeout 
+        ] 
 
 def test_init():
     """Test initialization."""
@@ -34,78 +52,8 @@ def test_set_proxy():
     assert OnapService.proxy == None
 
 @mock.patch.object(Session, 'request')
-def test_send_message_error_400_request_exception(mock_request):
-    """Should raise RequestError (generic exception) if issues on request."""
-    svc = OnapService()
-    mocked_response = Response()
-    mocked_response.status_code = 400
-    mock_request.return_value = mocked_response
-
-    with pytest.raises(RequestError):
-        svc.send_message("GET", 'test get', 'http://my.url/')
-
-    expect_headers = {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-    }
-    mock_request.assert_called_once_with('GET', 'http://my.url/',
-                                         headers=expect_headers, verify=False,
-                                         proxies=None)
-
-@mock.patch.object(Session, 'request')
-def test_send_message_error_400_exception(mock_request):
-    """Should raise Exception given if issues on request."""
-    with pytest.raises(KeyError):
-        svc = OnapService()
-        mocked_response = Response()
-        mocked_response.status_code = 400
-        mock_request.return_value = mocked_response
-        expect_headers = {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-        }
-        response = svc.send_message("GET", 'test get', 'http://my.url/',
-                                    exception=KeyError)
-        mock_request.assert_called_once_with('GET', 'http://my.url/',
-                                             headers=expect_headers,
-                                             verify=False, proxies=None)
-
-@mock.patch.object(Session, 'request')
-def test_send_message_error_timeout_request_exception(mock_request):
-    """Should raise RequestError (generic one) given if issues on request."""
-    svc = OnapService()
-    mock_request.side_effect = Timeout()
-    
-    with pytest.raises(RequestError):
-        svc.send_message("GET", 'test get', 'http://my.url/')
-
-    expect_headers = {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-        }
-    mock_request.assert_called_once_with('GET', 'http://my.url/',
-                                         headers=expect_headers, verify=False,
-                                         proxies=None)
-
-@mock.patch.object(Session, 'request')
-def test_send_message_error_timeout_exception(mock_request):
-    """Should raise Exception given if issues on request."""
-    with pytest.raises(KeyError):
-        svc = OnapService()
-        mock_request.side_effect = Timeout()
-        response = svc.send_message("GET", 'test get', 'http://my.url/',
-                                    exception=KeyError)
-        expect_headers = {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-        }
-        mock_request.assert_called_once_with('GET', 'http://my.url/',
-                                             headers=expect_headers,
-                                             verify=False, proxies=None)
-
-@mock.patch.object(Session, 'request')
-def test_send_message_OK(mock_request):
-    """Should give response of request if OK."""
+def test_send_message_200(mock_request):
+    """Returns response if OK."""
     svc = OnapService()
     mocked_response = Response()
     mocked_response.status_code = 200
@@ -121,8 +69,8 @@ def test_send_message_OK(mock_request):
     assert response == mocked_response
 
 @mock.patch.object(Session, 'request')
-def test_send_message_specific_headers_OK(mock_request):
-    """Should give response of request if OK."""
+def test_send_message_custom_header_200(mock_request):
+    """Returns response if returns OK with a custom header."""
     svc = OnapService()
     mocked_response = Response()
     mocked_response.status_code = 200
@@ -130,7 +78,7 @@ def test_send_message_specific_headers_OK(mock_request):
     expect_headers = {
         "Content-Type": "application/json",
         "Accept": "application/json",
-        "Once": "Upon a time"
+        "Custom": "Header"
     }
     response = svc.send_message("GET", 'test get', 'http://my.url/',
                                 headers=expect_headers)
@@ -139,62 +87,67 @@ def test_send_message_specific_headers_OK(mock_request):
                                          proxies=None)
     assert response == mocked_response
 
-@mock.patch.object(OnapService, 'send_message')
-def test_send_message_json_request_exception(mock_send):
+@mock.patch.object(Session, 'request')
+def test_send_message_404(mock_request):
+    """Should raise ResourceNotFound if status code 404."""
+    svc = OnapService()
+
+    mocked_response = Response()
+    mocked_response.status_code = 404
     
+    mock_request.return_value = mocked_response
+
+    with pytest.raises(ResourceNotFound) as exc:
+        svc.send_message("GET", 'test get', 'http://my.url/')
+    assert exc.type is ResourceNotFound
+
+    mock_request.assert_called_once()
+
+@mock.patch.object(Session, 'request')
+@pytest.mark.parametrize("code", http_codes())
+def test_send_message_api_error(mock_request, code):
+    """Raise APIError if status code is between 400 and 599, and not 404."""
+    svc = OnapService()
+    mocked_response = Response()
+    mocked_response.status_code = code
+    mock_request.return_value = mocked_response
+
+    with pytest.raises(APIError) as exc:
+        svc.send_message("GET", 'test get', 'http://my.url/')
+    assert exc.type is APIError
+
+    mock_request.assert_called_once()
+
+@mock.patch.object(OnapService, 'send_message')
+def test_send_message_json_invalid_response(mock_send):
     svc = OnapService()
 
     mocked_response = Response()
+    mocked_response._content = b'{yolo}'
+    mocked_response.encoding = "UTF-8"
     mocked_response.status_code = 200
-    mocked_response.data = '<!doctype html>'
 
     mock_send.return_value = mocked_response
 
-    with pytest.raises(RequestError):
+    with pytest.raises(InvalidResponse) as exc:
         svc.send_message_json("GET", 'test get', 'http://my.url/')
+    assert exc.type is InvalidResponse
 
-    mock_send.assert_called_once_with("GET", 'test get', 'http://my.url/')
-
-@mock.patch.object(OnapService, 'send_message')
-def test_send_message_json_bad_send_exception(mock_send):
-    with pytest.raises(Timeout):
-        svc = OnapService()
-        mock_send.side_effect = Timeout
-        response = svc.send_message_json("GET", 'test get', 'http://my.url/', exception=Timeout)
-        mock_send.assert_called_once_with("GET", 'test get', 'http://my.url/', exception=Timeout)
+    mock_send.assert_called_once()
 
 @mock.patch.object(OnapService, 'send_message')
-def test_send_message_json_bad_json_no_exception(mock_send):
+def test_send_message_connection_failed(mock_send):
     svc = OnapService()
+
     mocked_response = Response()
-    mocked_response._content = b'yolo'
+    mocked_response._content = b'{yolo}'
     mocked_response.encoding = "UTF-8"
     mocked_response.status_code = 200
-    mock_send.return_value = mocked_response
-    response = svc.send_message_json("GET", 'test get', 'http://my.url/')
-    mock_send.assert_called_once_with("GET", 'test get', 'http://my.url/')
-    assert response == {}
 
-@mock.patch.object(OnapService, 'send_message')
-def test_send_message_json_bad_json_no_exception(mock_send):
-    with pytest.raises(Timeout):
-        svc = OnapService()
-        mocked_response = Response()
-        mocked_response._content = b'yolo'
-        mocked_response.encoding = "UTF-8"
-        mocked_response.status_code = 200
-        mock_send.return_value = mocked_response
-        response = svc.send_message_json("GET", 'test get', 'http://my.url/', exception=Timeout)
-        mock_send.assert_called_once_with("GET", 'test get', 'http://my.url/', exception=Timeout)
-
-@mock.patch.object(OnapService, 'send_message')
-def test_send_message_json_OK(mock_send):
-    svc = OnapService()
-    mocked_response = Response()
-    mocked_response._content = b'{"yolo": "yala"}'
-    mocked_response.encoding = "UTF-8"
-    mocked_response.status_code = 200
     mock_send.return_value = mocked_response
-    response = svc.send_message_json("GET", 'test get', 'http://my.url/')
-    mock_send.assert_called_once_with("GET", 'test get', 'http://my.url/')
-    assert response['yolo'] == 'yala'
+
+    with pytest.raises(InvalidResponse) as exc:
+        svc.send_message_json("GET", 'test get', 'http://my.url/')
+    assert exc.type is InvalidResponse
+
+    mock_send.assert_called_once()

@@ -15,7 +15,7 @@ class ConnectionFailed(RequestError):
     """Unable to connect."""
 
 
-class ApiError(RequestError):
+class APIError(RequestError):
     """API error occured."""
 
 
@@ -23,7 +23,7 @@ class InvalidResponse(RequestError):
     """Unable to decode response."""
 
 
-class ResourceNotFound(ApiError):
+class ResourceNotFound(APIError):
     """Requested resource does not exist."""
 
 
@@ -38,7 +38,6 @@ class StatusError(SDKException):
 class ParameterError(SDKException):
     """Parameter does not satisfy requirements."""
 
-
 class PackageError(ParameterError):
     """Files uploading went wrong."""
 
@@ -47,7 +46,7 @@ class ModuleError(SDKException):
     """Unable to import module."""
 
 
-class ValidationException(SDKException):
+class ValidationError(SDKException):
     """Data validation failed."""
 
 
