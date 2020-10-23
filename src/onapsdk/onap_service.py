@@ -14,7 +14,7 @@ import urllib3
 from urllib3.util.retry import Retry
 import simplejson.errors
 
-from onapsdk.onap_sdk_errors import RequestError
+from onapsdk.exceptions import RequestError
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -74,7 +74,7 @@ class OnapService(ABC):
             RequestException: ambiguous error. TODO: replace by RequestError
             HTTPError: returned an error code. TODO: replace with ApiError
             RequestError: if other exceptions weren't caught or didn't raise
-            exception (SdkException, optional):
+            exception (SDKException, optional):
                 will be raised instead of RequestError
 
         Returns:
@@ -142,7 +142,7 @@ class OnapService(ABC):
         Raises:
             JSONDecodeError: if JSON coudn't be decoded
             RequestError: if other exceptions weren't caught or didn't raise
-            exception (SdkException, optional):
+            exception (SDKException, optional):
                 will be raised instead of RequestError
 
         Returns:
