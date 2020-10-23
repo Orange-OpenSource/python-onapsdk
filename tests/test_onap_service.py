@@ -10,7 +10,7 @@ import simplejson.errors
 
 from onapsdk.onap_service import OnapService
 from onapsdk.sdc.vendor import Vendor
-from onapsdk.exceptions import RequestError
+from onapsdk.onap_sdk_errors import RequestError
 
 def test_init():
     """Test initialization."""
