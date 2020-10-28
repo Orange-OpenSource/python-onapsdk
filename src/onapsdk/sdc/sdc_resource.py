@@ -116,8 +116,9 @@ class SdcResource(SdcOnboardable, ABC):  # pylint: disable=too-many-instance-att
                                        resource["name"], self._sdc_path())
                     self.unique_identifier = resource["uniqueId"]
                     self._category_name = resource["categories"][0]["name"]
-                    self._subcategory_name = resource["categories"][0].get("subcategories",
-                                                                           [{}])[0].get("name")
+                    subcategories = resource["categories"][0].get("subcategories", [{}])
+                    self._subcategory_name = None if subcategories is None else \
+                        subcategories[0].get("name")
 
     def _generate_action_subpath(self, action: str) -> str:
         """
