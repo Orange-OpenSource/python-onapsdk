@@ -530,28 +530,30 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
     @classmethod
     def instantiate_macro(cls,  # pylint: disable=too-many-arguments
                           sdc_service: "SdcService",
-                          cloud_region: "CloudRegion",
-                          tenant: "Tenant",
                           customer: "Customer",
                           owning_entity: "OwningEntity",
                           project: "Project",
                           line_of_business: "LineOfBusiness",
                           platform: "Platform",
+                          aai_service: "AaiService" = None,
+                          cloud_region: "CloudRegion" = None,
+                          tenant: "Tenant" = None,
                           service_instance_name: str = None,
                           vnf_parameters: Iterable["VnfParameters"] = None
-                         ) -> "ServiceInstantiation":
+                          ) -> "ServiceInstantiation":
         """Instantiate service using SO macro request.
 
         Args:
             sdc_service (SdcService): Service to instantiate
-            cloud_region (CloudRegion): Cloud region to use in instantiation request
-            tenant (Tenant): Tenant to use in instantiation request
             customer (Customer): Customer to use in instantiation request
             owning_entity (OwningEntity): Owning entity to use in instantiation request
             project (Project): Project to use in instantiation request
             line_of_business_object (LineOfBusiness): LineOfBusiness to use
                 in instantiation request
             platform_object (Platform): Platform to use in instantiation request
+            aai_service (AaiService): Service object from aai sdc
+            cloud_region (CloudRegion): Cloud region to use in instantiation request
+            tenant (Tenant): Tenant to use in instantiation request
             service_instance_name (str, optional): Service instance name. Defaults to None.
             vnf_parameters: (Iterable[VnfParameters]): Parameters which are
                 going to be used for vnfs instantiation. Defaults to None.
@@ -567,6 +569,7 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
             raise ValueError("Service is not distributed")
         if service_instance_name is None:
             service_instance_name = f"Python_ONAP_SDK_service_instance_{str(uuid4())}"
+
         response: dict = cls.send_message_json(
             "POST",
             f"Instantiate {sdc_service.name} service macro",
@@ -580,6 +583,7 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
                 customer=customer,
                 owning_entity=owning_entity,
                 project=project,
+                aai_service=aai_service,
                 line_of_business=line_of_business,
                 platform=platform,
                 service_instance_name=service_instance_name,

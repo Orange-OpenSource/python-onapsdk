@@ -13,11 +13,11 @@
 		},
 		"requestParameters": {
 			"testApi": "GR_API"
-		},
+		}{% if service_instance.service_subscription.sdc_service.vnfs %},
         "cloudConfiguration": {
             "cloudOwner": "{{ service_instance.service_subscription.cloud_region.cloud_owner }}",
             "lcpCloudRegionId": "{{ service_instance.service_subscription.cloud_region.cloud_region_id }}",
             "tenantId": "{{ service_instance.service_subscription.tenant.tenant_id }}"
-        }
+        }{% endif %}
 	}
 }
