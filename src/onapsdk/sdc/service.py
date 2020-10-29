@@ -424,6 +424,20 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
         return (f"{self._base_create_url()}/services/"
                 f"{self.unique_identifier}/update/inputs")
 
+    @property
+    def origin_type(self) -> str:
+        """Service origin type.
+
+        Value needed for composition. It's used for adding SDC resource
+            as an another SDC resource component.
+            For Service that value has to be set to "ServiceProxy".
+
+        Returns:
+            str: Service resource origin type
+
+        """
+        return "ServiceProxy"
+
     def create(self) -> None:
         """Create the Service in SDC if not already existing."""
         self._create("service_create.json.j2",
@@ -446,20 +460,20 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
             template = jinja_env().get_template(
                 "add_resource_to_service.json.j2")
             data = template.render(resource=resource,
-                                   resource_type=type(resource).__name__)
+                                   resource_type=resource.origin_type.upper())
             result = self.send_message("POST",
                                        "Add {} to service".format(
-                                           type(resource).__name__),
+                                           resource.origin_type),
                                        url,
                                        data=data)
             if result:
                 self._logger.info("Resource %s %s has been added on serice %s",
-                                  type(resource).__name__, resource.name,
+                                  resource.origin_type, resource.name,
                                   self.name)
                 return result
             self._logger.error(("an error occured during adding resource %s %s"
                                 " on service %s in SDC"),
-                               type(resource).__name__, resource.name,
+                               resource.origin_type, resource.name,
                                self.name)
             return None
         self._logger.error("Service is not in Draft mode")

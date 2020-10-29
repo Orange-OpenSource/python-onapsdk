@@ -1092,3 +1092,7 @@ def test_declare_resources_and_properties(mock_declare_input, mock_add_property,
     mock_add_resource.assert_called_once()
     mock_add_property.assert_called_once()
     mock_declare_input.assert_called_once()
+
+def test_service_origin_type():
+    service = Service(name="test")
+    assert service.origin_type == "ServiceProxy"
