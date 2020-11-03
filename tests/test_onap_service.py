@@ -139,6 +139,23 @@ def test_send_message_connection_failed(mock_request):
 # --------------
 
 @mock.patch.object(OnapService, 'send_message')
+def test_send_message_json_OK(mock_send):
+    """JSON is received and successfully decoded."""
+    svc = OnapService()
+
+    mocked_response = Response()
+    mocked_response._content = b'{"yolo": "yala"}'
+    mocked_response.encoding = "UTF-8"
+    mocked_response.status_code = 200
+
+    mock_send.return_value = mocked_response
+
+    response = svc.send_message_json("GET", 'test get', 'http://my.url/')
+
+    mock_send.assert_called_once_with("GET", 'test get', 'http://my.url/')
+    assert response['yolo'] == 'yala'
+
+@mock.patch.object(OnapService, 'send_message')
 def test_send_message_json_invalid_response(mock_send):
     """Raises InvalidResponse if response is not JSON."""
     svc = OnapService()
