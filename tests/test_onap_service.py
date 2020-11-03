@@ -5,10 +5,13 @@ from unittest import mock
 
 import pytest
 from jinja2 import Environment
-from requests import Response, Timeout, Session
+from requests import Response, Session
+
+from requests import Timeout, ConnectionError
 import simplejson.errors
 from onapsdk.exceptions import (
-    SDKException, RequestError, APIError, ResourceNotFound, InvalidResponse
+    SDKException, RequestError, APIError, ResourceNotFound, InvalidResponse,
+    ConnectionFailed
 )
 
 from onapsdk.onap_service import OnapService
@@ -50,6 +53,8 @@ def test_set_proxy():
     assert OnapService.proxy == {'the', 'proxy'}
     Vendor.set_proxy(None)
     assert OnapService.proxy == None
+
+# ------------------
 
 @mock.patch.object(Session, 'request')
 def test_send_message_200(mock_request):
@@ -118,6 +123,21 @@ def test_send_message_api_error(mock_request, code):
 
     mock_request.assert_called_once()
 
+@mock.patch.object(Session, 'request')
+def test_send_message_connection_failed(mock_request):
+    """Should raise ResourceNotFound if status code 404."""
+    svc = OnapService()
+
+    mock_request.side_effect = ConnectionError
+
+    with pytest.raises(ConnectionFailed) as exc:
+        svc.send_message("GET", 'test get', 'http://my.url/')
+    assert exc.type is ConnectionFailed
+
+    mock_request.assert_called_once()
+
+# --------------
+
 @mock.patch.object(OnapService, 'send_message')
 def test_send_message_json_invalid_response(mock_send):
     svc = OnapService()
@@ -135,19 +155,4 @@ def test_send_message_json_invalid_response(mock_send):
 
     mock_send.assert_called_once()
 
-@mock.patch.object(OnapService, 'send_message')
-def test_send_message_connection_failed(mock_send):
-    svc = OnapService()
-
-    mocked_response = Response()
-    mocked_response._content = b'{yolo}'
-    mocked_response.encoding = "UTF-8"
-    mocked_response.status_code = 200
-
-    mock_send.return_value = mocked_response
-
-    with pytest.raises(InvalidResponse) as exc:
-        svc.send_message_json("GET", 'test get', 'http://my.url/')
-    assert exc.type is InvalidResponse
-
-    mock_send.assert_called_once()
+# -----------------------------------------------
