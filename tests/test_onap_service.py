@@ -57,7 +57,7 @@ def test_set_proxy():
 # ------------------
 
 @mock.patch.object(Session, 'request')
-def test_send_message_200(mock_request):
+def test_send_message_OK(mock_request):
     """Returns response if OK."""
     svc = OnapService()
     mocked_response = Response()
@@ -74,7 +74,7 @@ def test_send_message_200(mock_request):
     assert response == mocked_response
 
 @mock.patch.object(Session, 'request')
-def test_send_message_custom_header_200(mock_request):
+def test_send_message_custom_header_OK(mock_request):
     """Returns response if returns OK with a custom header."""
     svc = OnapService()
     mocked_response = Response()
@@ -93,7 +93,7 @@ def test_send_message_custom_header_200(mock_request):
     assert response == mocked_response
 
 @mock.patch.object(Session, 'request')
-def test_send_message_404(mock_request):
+def test_send_message_resource_not_found(mock_request):
     """Should raise ResourceNotFound if status code 404."""
     svc = OnapService()
 
@@ -140,6 +140,7 @@ def test_send_message_connection_failed(mock_request):
 
 @mock.patch.object(OnapService, 'send_message')
 def test_send_message_json_invalid_response(mock_send):
+    """Raises InvalidResponse if response is not JSON."""
     svc = OnapService()
 
     mocked_response = Response()
@@ -155,4 +156,41 @@ def test_send_message_json_invalid_response(mock_send):
 
     mock_send.assert_called_once()
 
-# -----------------------------------------------
+@mock.patch.object(OnapService, 'send_message')
+def test_send_message_json_connection_failed(mock_send):
+    """ConnectionFailed from send_message is handled."""
+    svc = OnapService()
+
+    mock_send.side_effect = ConnectionFailed
+
+    with pytest.raises(ConnectionFailed) as exc:
+        svc.send_message_json("GET", 'test get', 'http://my.url/')
+    assert exc.type is ConnectionFailed
+
+    mock_send.assert_called_once()
+
+@mock.patch.object(OnapService, 'send_message')
+def test_send_message_json_api_error(mock_send):
+    """APIError (error codes) from send_message is handled."""
+    svc = OnapService()
+
+    mock_send.side_effect = APIError
+
+    with pytest.raises(APIError) as exc:
+        svc.send_message_json("GET", 'test get', 'http://my.url/')
+    assert exc.type is APIError
+
+    mock_send.assert_called_once()
+
+@mock.patch.object(OnapService, 'send_message')
+def test_send_message_json_resource_not_found(mock_send):
+    """ResourceNotFound exception from send_message is handled."""
+    svc = OnapService()
+
+    mock_send.side_effect = ResourceNotFound
+
+    with pytest.raises(ResourceNotFound) as exc:
+        svc.send_message_json("GET", 'test get', 'http://my.url/')
+    assert exc.type is ResourceNotFound
+
+    mock_send.assert_called_once()

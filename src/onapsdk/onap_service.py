@@ -193,7 +193,7 @@ class OnapService(ABC):
             raise exc
 
         except RequestError as exc:
-            cls._logger.error("[%s][%s] request raised an amgiguous exception",
+            cls._logger.error("[%s][%s] request raised an ambiguous exception",
                               cls.server, action)
             raise exc
 
