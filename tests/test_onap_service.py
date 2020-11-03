@@ -6,9 +6,12 @@ from unittest import mock
 import pytest
 from jinja2 import Environment
 from requests import Response, Session
-
-from requests import Timeout, ConnectionError
 import simplejson.errors
+
+from requests import (
+    Timeout, ConnectionError, RequestException
+)
+
 from onapsdk.exceptions import (
     SDKException, RequestError, APIError, ResourceNotFound, InvalidResponse,
     ConnectionFailed
@@ -136,6 +139,19 @@ def test_send_message_connection_failed(mock_request):
 
     mock_request.assert_called_once()
 
+@mock.patch.object(Session, 'request')
+def test_send_message_request_error(mock_request):
+    """Should raise RequestError for an amiguous request exception."""
+    svc = OnapService()
+
+    mock_request.side_effect = RequestException
+
+    with pytest.raises(RequestError) as exc:
+        svc.send_message("GET", 'test get', 'http://my.url/')
+    assert exc.type is RequestError
+
+    mock_request.assert_called_once()
+
 # --------------
 
 @mock.patch.object(OnapService, 'send_message')
@@ -209,5 +225,18 @@ def test_send_message_json_resource_not_found(mock_send):
     with pytest.raises(ResourceNotFound) as exc:
         svc.send_message_json("GET", 'test get', 'http://my.url/')
     assert exc.type is ResourceNotFound
+
+    mock_send.assert_called_once()
+
+@mock.patch.object(OnapService, 'send_message')
+def test_send_message_json_request_error(mock_send):
+    """RequestError exception from send_message is handled."""
+    svc = OnapService()
+
+    mock_send.side_effect = RequestError
+
+    with pytest.raises(RequestError) as exc:
+        svc.send_message_json("GET", 'test get', 'http://my.url/')
+    assert exc.type is RequestError
 
     mock_send.assert_called_once()

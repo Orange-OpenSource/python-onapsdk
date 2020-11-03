@@ -9,11 +9,14 @@ from abc import ABC
 
 import logging
 import requests
-from requests.adapters import HTTPAdapter
-from requests import HTTPError, ConnectionError # pylint: disable=redefined-builtin
 import urllib3
 from urllib3.util.retry import Retry
 import simplejson.errors
+
+from requests.adapters import HTTPAdapter
+from requests import (  # pylint: disable=redefined-builtin
+    HTTPError, RequestException, ConnectionError
+)
 
 from onapsdk.exceptions import (
     RequestError, APIError, ResourceNotFound, InvalidResponse,
@@ -130,6 +133,11 @@ class OnapService(ABC):
                               action, cause)
 
             raise ConnectionFailed from cause
+
+        except RequestException as cause:
+            cls._logger.error("[%s][%s] request failed for an unknown reason",
+                              cls.server, action)
+            raise RequestError from cause
 
         cls._logger.error("[%s][%s] Unexpected behaviour occured", cls.server,
                           action)
