@@ -2,7 +2,11 @@
     "requestDetails": {
         "requestInfo": {
             "suppressRollback": false,
+            {% if aai_service %}
+            "productFamilyId":"{{ aai_service.service_id }}",
+            {% else %}
             "productFamilyId": "1234",
+            {% endif %}
             "requestorId": "demo",
             "instanceName": "{{ service_instance_name }}",
             "source": "VID"
@@ -14,11 +18,13 @@
 			"modelName": "{{ sdc_service.name }}",
             "modelVersion": "1.0"
         },
+        {% if sdc_service.vnfs %}
         "cloudConfiguration": {
             "tenantId": "{{ tenant.tenant_id }}",
             "cloudOwner": "{{ cloud_region.cloud_owner }}",
             "lcpCloudRegionId": "{{ cloud_region.cloud_region_id }}"
         },
+        {% endif %}
         "subscriberInfo": {
             "globalSubscriberId": "{{ customer.global_customer_id }}"
         },
@@ -33,6 +39,36 @@
                         "instanceParams": [],
                         "instanceName": "{{ service_instance_name }}",
                         "resources": {
+                            {% if sdc_service.pnfs %}
+                            "pnfs":[
+                                {% for sdc_component in sdc_service.components  %}
+                                {% if sdc_component.origin_type == 'PNF' %}
+                                {
+                                    "modelInfo":{
+                                        "modelCustomizationName":"{{ sdc_component.name }}",
+                                        "modelCustomizationId":"{{ sdc_component.customization_uuid }}",
+                                        "modelInvariantId":"{{ sdc_service.unique_uuid }}",
+                                        "modelVersionId":"{{ sdc_service.identifier }}",
+                                        "modelName":"{{ sdc_service.name }}",
+                                        "modelType":"pnf",
+                                        "modelVersion":"1.0"
+                                    },
+                                    "platform":{
+                                        "platformName":"{{ platform.name }}"
+                                    },
+                                    "lineOfBusiness":{
+                                        "lineOfBusinessName":"{{ line_of_business.name }}"
+                                    },
+                                    "productFamilyId":"{{ aai_service.service_id }}",
+                                    "instanceParams":[],
+                                    "instanceName":"{{ service_instance_name }}"
+                                }{% if not loop.last %},{% endif %}
+                                {% endif %}
+                                {% endfor %}
+                            ]
+                                {% if sdc_service.vnfs %},{% endif %}
+                            {% endif %}
+                            {% if sdc_service.vnfs %}
                             "vnfs": [
                                 {% for vnf in sdc_service.vnfs %}
                                 {
@@ -61,7 +97,7 @@
                                         {
                                             {% for vnf_parameter in vnf_parameters %}
                                             {% if vnf_parameter.name == vnf.metadata["name"] %}
-                                            {% for parameter in vnf_parameter.vnf_parameters %}  
+                                            {% for parameter in vnf_parameter.vnf_parameters %}
                                             "{{ parameter.name }}": "{{ parameter.value }}"{% if not loop.last %},{% endif %}
                                             {% endfor %}
                                             {% endif %}
@@ -87,7 +123,7 @@
                                                     {% set item = mylist|length-2 %}
                                                     {% for vf_module_parameter in vnf_parameter.vfmodule_parameters %}
                                                     {% if vf_module_parameter.name == mylist[item] %}
-                                                    {% for parameter in vf_module_parameter.vfmodule_parameters %}  
+                                                    {% for parameter in vf_module_parameter.vfmodule_parameters %}
                                                     "{{ parameter.name }}": "{{ parameter.value }}"{% if not loop.last %},{% endif %}
                                                     {% endfor %}
                                                     {% endif %}
@@ -102,6 +138,7 @@
                                 }{% if not loop.last %},{% endif %}
                                 {% endfor %}
                             ]
+                            {% endif %}
                         },
                         "modelInfo": {
                             "modelVersion": "1.0",

@@ -1116,3 +1116,7 @@ def test_service_category(mock_resource_category, mock_created):
     mock_created.return_value = True
     _ = service.category
     mock_resource_category.assert_called_once_with(name="test")
+
+def test_service_origin_type():
+    service = Service(name="test")
+    assert service.origin_type == "ServiceProxy"

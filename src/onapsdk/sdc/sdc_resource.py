@@ -429,6 +429,19 @@ class SdcResource(SdcOnboardable, ABC):  # pylint: disable=too-many-instance-att
                 f"{self.unique_identifier}/update/inputs")
 
     @property
+    def origin_type(self) -> str:
+        """Resource origin type.
+
+        Value needed for composition. It's used for adding SDC resource
+            as an another SDC resource component.
+
+        Returns:
+            str: SDC resource origin type
+
+        """
+        return type(self).__name__
+
+    @property
     def properties(self) -> Iterator[Property]:
         """SDC resource properties.
 
