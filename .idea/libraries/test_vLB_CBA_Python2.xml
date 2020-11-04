@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="test_vLB_CBA_Python">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/integration_tests/test_files/test_vLB_CBA_Python.zip!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

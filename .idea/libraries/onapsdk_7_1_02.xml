@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="onapsdk-7.1.0">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/.tox/dist/onapsdk-7.1.0.zip!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

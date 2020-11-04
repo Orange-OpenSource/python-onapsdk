@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="ubuntu16">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/integration_tests/ubuntu16.zip!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
