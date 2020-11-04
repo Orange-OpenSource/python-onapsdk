@@ -474,7 +474,8 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
                               customer: "Customer",
                               owning_entity: "OwningEntity",
                               project: "Project",
-                              service_instance_name: str = None) -> "ServiceInstantiation":
+                              service_instance_name: str = None,
+                              enable_multicloud: bool = False) -> "ServiceInstantiation":
         """Instantiate service using SO a'la carte request.
 
         Args:
@@ -485,6 +486,8 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
             owning_entity (OwningEntity): Owning entity to use in instantiation request
             project (Project): Project to use in instantiation request
             service_instance_name (str, optional): Service instance name. Defaults to None.
+            enable_multicloud (bool, optional): Determines if Multicloud should be enabled
+                for instantiation request. Defaults to False.
 
         Raises:
             ValueError: Instantiation request returns HTTP error code.
@@ -510,7 +513,8 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
                 customer=customer,
                 owning_entity=owning_entity,
                 service_instance_name=service_instance_name,
-                project=project
+                project=project,
+                enable_multicloud=enable_multicloud
             ),
             headers=headers_so_creator(OnapService.headers),
             exception=ValueError
@@ -539,7 +543,8 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
                           cloud_region: "CloudRegion" = None,
                           tenant: "Tenant" = None,
                           service_instance_name: str = None,
-                          vnf_parameters: Iterable["VnfParameters"] = None
+                          vnf_parameters: Iterable["VnfParameters"] = None,
+                          enable_multicloud: bool = False
                           ) -> "ServiceInstantiation":
         """Instantiate service using SO macro request.
 
@@ -557,6 +562,8 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
             service_instance_name (str, optional): Service instance name. Defaults to None.
             vnf_parameters: (Iterable[VnfParameters]): Parameters which are
                 going to be used for vnfs instantiation. Defaults to None.
+            enable_multicloud (bool, optional): Determines if Multicloud should be enabled
+                for instantiation request. Defaults to False.
 
         Raises:
             ValueError: Instantiation request returns HTTP error code.
@@ -587,7 +594,8 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
                 line_of_business=line_of_business,
                 platform=platform,
                 service_instance_name=service_instance_name,
-                vnf_parameters=vnf_parameters
+                vnf_parameters=vnf_parameters,
+                enable_multicloud=enable_multicloud
             ),
             headers=headers_so_creator(OnapService.headers),
             exception=ValueError

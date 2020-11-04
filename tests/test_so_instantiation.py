@@ -1,3 +1,4 @@
+import json
 from unittest import mock
 
 import pytest
@@ -439,3 +440,63 @@ def test_instantiation_wait_for_finish():
             mock_finished.side_effect = [False, False, True]
             mock_completed.return_value = True
             assert instantiation.wait_for_finish()
+
+@mock.patch.object(ServiceInstantiation, "send_message_json")
+def test_service_instantiation_multicloud(mock_send_message_json):
+
+    mock_sdc_service = mock.MagicMock()
+    mock_sdc_service.distributed = True
+    _ = ServiceInstantiation.\
+            instantiate_ala_carte(sdc_service=mock_sdc_service,
+                                  cloud_region=mock.MagicMock(),
+                                  tenant=mock.MagicMock(),
+                                  customer=mock.MagicMock(),
+                                  owning_entity=mock.MagicMock(),
+                                  project=mock.MagicMock())
+    _, kwargs = mock_send_message_json.call_args
+    data = json.loads(kwargs["data"])
+    assert data["requestDetails"]["requestParameters"]["userParams"] == []
+    mock_send_message_json.reset_mock()
+
+    _ = ServiceInstantiation.\
+            instantiate_ala_carte(sdc_service=mock_sdc_service,
+                                  cloud_region=mock.MagicMock(),
+                                  tenant=mock.MagicMock(),
+                                  customer=mock.MagicMock(),
+                                  owning_entity=mock.MagicMock(),
+                                  project=mock.MagicMock(),
+                                  enable_multicloud=True)
+    _, kwargs = mock_send_message_json.call_args
+    data = json.loads(kwargs["data"])
+    assert data["requestDetails"]["requestParameters"]["userParams"] == [{"name": "orchestrator", "value": "multicloud"}]
+    mock_send_message_json.reset_mock()
+
+    _ = ServiceInstantiation.\
+            instantiate_macro(sdc_service=mock_sdc_service,
+                              cloud_region=mock.MagicMock(),
+                              tenant=mock.MagicMock(),
+                              customer=mock.MagicMock(),
+                              owning_entity=mock.MagicMock(),
+                              project=mock.MagicMock(),
+                              line_of_business=mock.MagicMock(),
+                              platform=mock.MagicMock(),
+                              service_instance_name="test")
+    _, kwargs = mock_send_message_json.call_args
+    data = json.loads(kwargs["data"])
+    assert not any(filter(lambda x: x == {"name": "orchestrator", "value": "multicloud"}, data["requestDetails"]["requestParameters"]["userParams"]))
+    mock_send_message_json.reset_mock()
+
+    _ = ServiceInstantiation.\
+            instantiate_macro(sdc_service=mock_sdc_service,
+                              cloud_region=mock.MagicMock(),
+                              tenant=mock.MagicMock(),
+                              customer=mock.MagicMock(),
+                              owning_entity=mock.MagicMock(),
+                              project=mock.MagicMock(),
+                              line_of_business=mock.MagicMock(),
+                              platform=mock.MagicMock(),
+                              service_instance_name="test",
+                              enable_multicloud=True)
+    _, kwargs = mock_send_message_json.call_args
+    data = json.loads(kwargs["data"])
+    assert any(filter(lambda x: x == {"name": "orchestrator", "value": "multicloud"}, data["requestDetails"]["requestParameters"]["userParams"]))
