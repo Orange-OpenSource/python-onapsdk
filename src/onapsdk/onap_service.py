@@ -123,25 +123,31 @@ class OnapService(ABC):
             cls._logger.error("[%s][%s] API returned and error: %s",
                               cls.server, action, headers)
 
+            msg = f'Code: {response.status_code}. Info: {response.text}.'
+            
             if response.status_code == 404:
-                raise ResourceNotFound from cause
+                exc = ResourceNotFound(msg)
+            else:
+                exc = APIError(msg)
 
-            raise APIError from cause
+            raise exc from cause
 
-        except ConnectionError as cause:
+        except ConnectionError as cause:           
             cls._logger.error("[%s][%s] Failed to connect: %s", cls.server,
                               action, cause)
 
-            raise ConnectionFailed from cause
+            msg = f"Can't connect to {url}."                 
+            raise ConnectionFailed(msg) from cause
 
         except RequestException as cause:
-            cls._logger.error("[%s][%s] request failed for an unknown reason",
-                              cls.server, action)
-            raise RequestError from cause
+            cls._logger.error("[%s][%s] Request failed: %s",
+                              cls.server, action, cause)
 
-        cls._logger.error("[%s][%s] Unexpected behaviour occured", cls.server,
-                          action)
-        raise exception if exception else RequestError
+        if not exception:
+            msg = f"Ambiguous error while requesting {url}."
+            raise RequestError(msg)
+
+        raise exception
 
     @classmethod
     def send_message_json(cls, method: str, action: str, url: str,
@@ -201,15 +207,14 @@ class OnapService(ABC):
             raise exc
 
         except RequestError as exc:
-            cls._logger.error("[%s][%s] request raised an ambiguous exception",
-                              cls.server, action)
-            raise exc
+            cls._logger.error("[%s][%s] request failed: %s",
+                              cls.server, action, exc)
 
+        if not exception:
+            msg = f"Ambiguous error while requesting {url}."
+            raise RequestError(msg)
 
-        cls._logger.error("[%s][%s] Unexpected behaviour occured", cls.server,
-                          action)
-
-        raise exception if exception else RequestError
+        raise exception
 
     @staticmethod
     def __requests_retry_session(retries: int = 10,

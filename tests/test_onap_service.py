@@ -34,7 +34,10 @@ def http_codes():
         502,  # Bad Gateway
         503,  # Service Unavailable
         504   # Gateway Timeout 
-        ] 
+        ]
+
+class TestException(Exception):
+    """Test exception."""
 
 def test_init():
     """Test initialization."""
@@ -152,7 +155,20 @@ def test_send_message_request_error(mock_request):
 
     mock_request.assert_called_once()
 
-# --------------
+
+@mock.patch.object(Session, 'request')
+def test_send_message_custom_error(mock_request):
+    """Should raise RequestError for an amiguous request exception."""
+    svc = OnapService()
+
+    mock_request.side_effect = RequestException
+
+    with pytest.raises(TestException) as exc:
+        svc.send_message("GET", 'test get', 'http://my.url/',
+                         exception=TestException)
+    assert exc.type is TestException
+
+    mock_request.assert_called_once()
 
 @mock.patch.object(OnapService, 'send_message')
 def test_send_message_json_OK(mock_send):
@@ -238,5 +254,20 @@ def test_send_message_json_request_error(mock_send):
     with pytest.raises(RequestError) as exc:
         svc.send_message_json("GET", 'test get', 'http://my.url/')
     assert exc.type is RequestError
+
+    mock_send.assert_called_once()
+
+
+@mock.patch.object(OnapService, 'send_message')
+def test_send_message_json_custom_error(mock_send):
+    """RequestError exception from send_message is handled."""
+    svc = OnapService()
+
+    mock_send.side_effect = RequestError
+
+    with pytest.raises(TestException) as exc:
+        svc.send_message_json("GET", 'test get', 'http://my.url/', 
+                              exception=TestException)
+    assert exc.type is TestException
 
     mock_send.assert_called_once()
