@@ -135,13 +135,12 @@ class OnapService(ABC):
             raise ConnectionFailed from cause
 
         except RequestException as cause:
-            cls._logger.error("[%s][%s] request failed for an unknown reason",
-                              cls.server, action)
-            raise RequestError from cause
+            cls._logger.error("[%s][%s] Request failed: %s",
+                              cls.server, action, cause)
 
-        cls._logger.error("[%s][%s] Unexpected behaviour occured", cls.server,
-                          action)
-        raise exception if exception else RequestError
+        if not exception:
+            exception = RequestError
+        raise exception
 
     @classmethod
     def send_message_json(cls, method: str, action: str, url: str,
@@ -201,15 +200,12 @@ class OnapService(ABC):
             raise exc
 
         except RequestError as exc:
-            cls._logger.error("[%s][%s] request raised an ambiguous exception",
-                              cls.server, action)
-            raise exc
+            cls._logger.error("[%s][%s] request failed: %s",
+                              cls.server, action, exc)
 
-
-        cls._logger.error("[%s][%s] Unexpected behaviour occured", cls.server,
-                          action)
-
-        raise exception if exception else RequestError
+        if not exception:
+            exception = RequestError
+        raise exception
 
     @staticmethod
     def __requests_retry_session(retries: int = 10,
