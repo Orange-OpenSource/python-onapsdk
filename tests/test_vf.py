@@ -9,6 +9,7 @@ from pathlib import Path
 import pytest
 
 import onapsdk.constants as const
+from onapsdk.sdc.category_management import ResourceCategory
 from onapsdk.sdc.properties import Property
 from onapsdk.sdc.sdc_resource import SdcResource
 from onapsdk.sdc.vf import Vf
@@ -28,8 +29,8 @@ def test_get_all_no_vf(mock_send):
 def test_get_all_some_vfs(mock_send):
     """Returns a list of vf."""
     mock_send.return_value = [
-        {'resourceType': 'VF', 'name': 'one', 'uuid': '1234', 'invariantUUID': '5678', 'version': '1.0', 'lifecycleState': 'CERTIFIED'},
-        {'resourceType': 'VF', 'name': 'two', 'uuid': '1235', 'invariantUUID': '5679', 'version': '1.0', 'lifecycleState': 'NOT_CERTIFIED_CHECKOUT'}]
+        {'resourceType': 'VF', 'name': 'one', 'uuid': '1234', 'invariantUUID': '5678', 'version': '1.0', 'lifecycleState': 'CERTIFIED', 'category': 'Generic', "subCategory": "Abstract"},
+        {'resourceType': 'VF', 'name': 'two', 'uuid': '1235', 'invariantUUID': '5679', 'version': '1.0', 'lifecycleState': 'NOT_CERTIFIED_CHECKOUT', 'category': 'Generic', "subCategory": "Abstract"}]
     all_vfs = Vf.get_all()
     assert len(all_vfs) == 2
     vf_1 = all_vfs[0]
@@ -150,7 +151,8 @@ def test_create_no_vsp(mock_send, mock_exists):
 
 @mock.patch.object(Vf, 'exists')
 @mock.patch.object(Vf, 'send_message_json')
-def test_create_already_exists(mock_send, mock_exists):
+@mock.patch.object(Vf, "category", new_callable=mock.PropertyMock)
+def test_create_already_exists(mock_category, mock_send, mock_exists):
     """Do nothing if already created in SDC."""
     vf = Vf()
     vsp = Vsp()
@@ -162,7 +164,8 @@ def test_create_already_exists(mock_send, mock_exists):
 
 @mock.patch.object(Vf, 'exists')
 @mock.patch.object(Vf, 'send_message_json')
-def test_create_issue_in_creation(mock_send, mock_exists):
+@mock.patch.object(Vf, "category", new_callable=mock.PropertyMock)
+def test_create_issue_in_creation(mock_category, mock_send, mock_exists):
     """Do nothing if not created but issue during creation."""
     vf = Vf()
     vsp = Vsp()
@@ -171,9 +174,21 @@ def test_create_issue_in_creation(mock_send, mock_exists):
     vsp.create_csar = MagicMock(return_value=True)
     vsp.vendor = vendor
     vf.vsp = vsp
-    expected_data = '{\n    "artifacts": {},\n    "attributes": [],\n    "capabilities": {},\n    "categories":[\n        {\n            "name": "Generic",\n            "normalizedName": "generic",\n            "uniqueId": "resourceNewCategory.generic",\n            "icons": null,\n            "subcategories":[\n                {\n                    "name": "Abstract",\n                    "normalizedName": "abstract",\n                    "uniqueId": "resourceNewCategory.generic.abstract",\n                    "icons":[\n                        "objectStorage",\n                        "compute"\n                    ],\n                    "groupings": null,\n                    "ownerId": null,\n                    "empty": false\n                }\n            ],\n            "ownerId": null,\n            "empty": false\n        }\n    ],\n    "componentInstances": [],\n    "componentInstancesAttributes": {},\n    "componentInstancesProperties": {},\n    "componentType": "RESOURCE",\n    "contactId": "cs0008",\n    "csarUUID": "None",\n    "csarVersion": "1.0",\n    "deploymentArtifacts": {},\n    "description": "VF",\n    "icon": "defaulticon",\n    "name": "ONAP-test-VF",\n    "properties": [],\n    "groups": [],\n    "requirements": {},\n    "resourceType": "VF",\n    "tags": ["ONAP-test-VF"],\n    "toscaArtifacts": {},\n    "vendorName": "Generic-Vendor",\n    "vendorRelease": "1.0"\n}'
+    expected_data = '{\n    "artifacts": {},\n    "attributes": [],\n    "capabilities": {},\n      "categories": [\n    {\n      "normalizedName": "generic",\n      "name": "Generic",\n      "uniqueId": "resourceNewCategory.generic",\n      "subcategories": [{"empty": false, "groupings": null, "icons": ["objectStorage", "compute"], "name": "Abstract", "normalizedName": "abstract", "ownerId": null, "type": null, "uniqueId": "resourceNewCategory.generic.abstract", "version": null}],\n      "version": null,\n      "ownerId": null,\n      "empty": false,\n      "type": null,\n      "icons": null\n    }\n  ],\n    "componentInstances": [],\n    "componentInstancesAttributes": {},\n    "componentInstancesProperties": {},\n    "componentType": "RESOURCE",\n    "contactId": "cs0008",\n    "csarUUID": "None",\n    "csarVersion": "1.0",\n    "deploymentArtifacts": {},\n    "description": "VF",\n    "icon": "defaulticon",\n    "name": "ONAP-test-VF",\n    "properties": [],\n    "groups": [],\n    "requirements": {},\n    "resourceType": "VF",\n    "tags": ["ONAP-test-VF"],\n    "toscaArtifacts": {},\n    "vendorName": "Generic-Vendor",\n    "vendorRelease": "1.0"\n}'
     mock_exists.return_value = False
     mock_send.return_value = {}
+    rc = ResourceCategory(
+        name="Generic"
+    )
+    rc.normalized_name="generic"
+    rc.unique_id="resourceNewCategory.generic"
+    rc.subcategories=[{"empty": False, "groupings": None, "icons": ["objectStorage", "compute"], "name": "Abstract", "normalizedName": "abstract", "ownerId": None, "type": None, "uniqueId": "resourceNewCategory.generic.abstract", "version": None}]
+    rc.version=None
+    rc.owner_id=None
+    rc.empty=False
+    rc.type=None
+    rc.icons=None
+    mock_category.return_value = rc
     vf.create()
     mock_send.assert_called_once_with("POST", "create Vf", 'https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/rest/v1/catalog/resources', data=expected_data)
     assert not vf.created()
@@ -181,7 +196,8 @@ def test_create_issue_in_creation(mock_send, mock_exists):
 
 @mock.patch.object(Vf, 'exists')
 @mock.patch.object(Vf, 'send_message_json')
-def test_create_OK(mock_send, mock_exists):
+@mock.patch.object(Vf, "category", new_callable=mock.PropertyMock)
+def test_create_OK(mock_category, mock_send, mock_exists):
     """Create and update object."""
     vf = Vf()
     vsp = Vsp()
@@ -190,9 +206,21 @@ def test_create_OK(mock_send, mock_exists):
     vf.vsp = vsp
     vsp.vendor = vendor
     vsp._csar_uuid = "1234"
-    expected_data = '{\n    "artifacts": {},\n    "attributes": [],\n    "capabilities": {},\n    "categories":[\n        {\n            "name": "Generic",\n            "normalizedName": "generic",\n            "uniqueId": "resourceNewCategory.generic",\n            "icons": null,\n            "subcategories":[\n                {\n                    "name": "Abstract",\n                    "normalizedName": "abstract",\n                    "uniqueId": "resourceNewCategory.generic.abstract",\n                    "icons":[\n                        "objectStorage",\n                        "compute"\n                    ],\n                    "groupings": null,\n                    "ownerId": null,\n                    "empty": false\n                }\n            ],\n            "ownerId": null,\n            "empty": false\n        }\n    ],\n    "componentInstances": [],\n    "componentInstancesAttributes": {},\n    "componentInstancesProperties": {},\n    "componentType": "RESOURCE",\n    "contactId": "cs0008",\n    "csarUUID": "1234",\n    "csarVersion": "1.0",\n    "deploymentArtifacts": {},\n    "description": "VF",\n    "icon": "defaulticon",\n    "name": "ONAP-test-VF",\n    "properties": [],\n    "groups": [],\n    "requirements": {},\n    "resourceType": "VF",\n    "tags": ["ONAP-test-VF"],\n    "toscaArtifacts": {},\n    "vendorName": "Generic-Vendor",\n    "vendorRelease": "1.0"\n}'
+    expected_data = '{\n    "artifacts": {},\n    "attributes": [],\n    "capabilities": {},\n      "categories": [\n    {\n      "normalizedName": "generic",\n      "name": "Generic",\n      "uniqueId": "resourceNewCategory.generic",\n      "subcategories": [{"empty": false, "groupings": null, "icons": ["objectStorage", "compute"], "name": "Abstract", "normalizedName": "abstract", "ownerId": null, "type": null, "uniqueId": "resourceNewCategory.generic.abstract", "version": null}],\n      "version": null,\n      "ownerId": null,\n      "empty": false,\n      "type": null,\n      "icons": null\n    }\n  ],\n    "componentInstances": [],\n    "componentInstancesAttributes": {},\n    "componentInstancesProperties": {},\n    "componentType": "RESOURCE",\n    "contactId": "cs0008",\n    "csarUUID": "1234",\n    "csarVersion": "1.0",\n    "deploymentArtifacts": {},\n    "description": "VF",\n    "icon": "defaulticon",\n    "name": "ONAP-test-VF",\n    "properties": [],\n    "groups": [],\n    "requirements": {},\n    "resourceType": "VF",\n    "tags": ["ONAP-test-VF"],\n    "toscaArtifacts": {},\n    "vendorName": "Generic-Vendor",\n    "vendorRelease": "1.0"\n}'
     mock_exists.return_value = False
     mock_send.return_value = {'resourceType': 'VF', 'name': 'one', 'uuid': '1234', 'invariantUUID': '5678', 'version': '1.0', 'uniqueId': '91011', 'lifecycleState': 'NOT_CERTIFIED_CHECKOUT'}
+    rc = ResourceCategory(
+        name="Generic"
+    )
+    rc.normalized_name="generic"
+    rc.unique_id="resourceNewCategory.generic"
+    rc.subcategories=[{"empty": False, "groupings": None, "icons": ["objectStorage", "compute"], "name": "Abstract", "normalizedName": "abstract", "ownerId": None, "type": None, "uniqueId": "resourceNewCategory.generic.abstract", "version": None}]
+    rc.version=None
+    rc.owner_id=None
+    rc.empty=False
+    rc.type=None
+    rc.icons=None
+    mock_category.return_value = rc
     vf.create()
     mock_send.assert_called_once_with("POST", "create Vf", 'https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/rest/v1/catalog/resources', data=expected_data)
     assert vf.created()
@@ -366,3 +394,21 @@ def test_add_artifact_to_vf(mock_send_message, mock_load):
     assert url == ("https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/rest/v1/catalog/resources/"
                     f"{vf.unique_identifier}/artifacts")
 
+
+@mock.patch.object(Vf, "created")
+@mock.patch.object(ResourceCategory, "get")
+def test_vf_category(mock_resource_category, mock_created):
+    mock_created.return_value = False
+    vf = Vf(name="test")
+    _ = vf.category
+    mock_resource_category.assert_called_once_with(name="Generic", subcategory="Abstract")
+    mock_resource_category.reset_mock()
+
+    vf = Vf(name="test", category="test", subcategory="test")
+    _ = vf.category
+    mock_resource_category.assert_called_once_with(name="test", subcategory="test")
+    mock_resource_category.reset_mock()
+
+    mock_created.return_value = True
+    _ = vf.category
+    mock_resource_category.assert_called_once_with(name="test", subcategory="test")

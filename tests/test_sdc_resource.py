@@ -175,9 +175,11 @@ def test__deep_load_response_OK(mock_send, mock_created):
     vf.identifier = "5689"
     vf._version = "4567"
     vf._status = const.CHECKED_IN
-    mock_send.return_value = {'resources': [{'uuid': '5689', 'name': 'test', 'uniqueId': '71011'}]}
+    mock_send.return_value = {'resources': [{'uuid': '5689', 'name': 'test', 'uniqueId': '71011', 'categories': [{'name': 'test', 'subcategories': [{'name': 'test_subcategory'}]}]}]}
     vf.deep_load()
     assert vf.unique_identifier == "71011"
+    assert vf._category_name == "test"
+    assert vf._subcategory_name == "test_subcategory"
     mock_send.assert_called_once_with('GET', 'Deep Load Vf',
                                       "{}/sdc1/feProxy/rest/v1/screen?excludeTypes=VFCMT&excludeTypes=Configuration".format(vf.base_front_url),
                                       headers=headers_sdc_creator(vf.headers))
@@ -205,9 +207,11 @@ def test__deep_load_response_OK_under_cert(mock_send, mock_created):
     vf.identifier = "5689"
     vf._version = "4567"
     vf._status = const.UNDER_CERTIFICATION
-    mock_send.return_value = {'resources': [{'uuid': '5689', 'name': 'test', 'uniqueId': '71011'}]}
+    mock_send.return_value = {'resources': [{'uuid': '5689', 'name': 'test', 'uniqueId': '71011', 'categories': [{'name': 'test', 'subcategories': [{'name': 'test_subcategory'}]}]}]}
     vf.deep_load()
     assert vf.unique_identifier == "71011"
+    assert vf._category_name == "test"
+    assert vf._subcategory_name == "test_subcategory"
     mock_send.assert_called_once_with('GET', 'Deep Load Vf',
                                       "{}/sdc1/feProxy/rest/v1/screen?excludeTypes=VFCMT&excludeTypes=Configuration".format(vf.base_front_url),
                                       headers=headers_sdc_tester(vf.headers))

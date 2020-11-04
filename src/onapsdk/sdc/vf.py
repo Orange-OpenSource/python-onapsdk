@@ -28,7 +28,8 @@ class Vf(SdcResource):
 
     def __init__(self, name: str = None, version: str = None, sdc_values: Dict[str, str] = None,  # pylint: disable=too-many-arguments
                  vsp: Vsp = None, properties: List[Property] = None,
-                 inputs: Union[Property, NestedInput] = None):
+                 inputs: Union[Property, NestedInput] = None,
+                 category: str = None, subcategory: str = None):
         """
         Initialize vf object.
 
@@ -38,7 +39,7 @@ class Vf(SdcResource):
 
         """
         super().__init__(sdc_values=sdc_values, version=version, properties=properties,
-                         inputs=inputs)
+                         inputs=inputs, category=category, subcategory=subcategory)
         self.name: str = name or "ONAP-test-VF"
         self.vsp: Vsp = vsp or None
 
@@ -46,7 +47,7 @@ class Vf(SdcResource):
         """Create the Vf in SDC if not already existing."""
         if not self.vsp:
             raise ValueError("No Vsp was given")
-        self._create("vf_create.json.j2", name=self.name, vsp=self.vsp)
+        self._create("vf_create.json.j2", name=self.name, vsp=self.vsp, category=self.category)
 
     def _really_submit(self) -> None:
         """Really submit the SDC Vf in order to enable it."""

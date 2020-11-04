@@ -14,6 +14,7 @@ import pytest
 from typing import BinaryIO
 
 import onapsdk.constants as const
+from onapsdk.sdc.category_management import ServiceCategory
 from onapsdk.sdc.component import Component
 from onapsdk.sdc.properties import ComponentProperty, Property
 from onapsdk.sdc.service import Service, ServiceInstantiationType
@@ -169,7 +170,8 @@ def test_init_with_name(mock_exists):
 def test_init_with_sdc_values(mock_exists):
     """Check init with no names."""
     sdc_values = {'uuid': '12', 'version': '14', 'invariantUUID': '56',
-                  'distributionStatus': 'yes', 'lifecycleState': 'state'}
+                  'distributionStatus': 'yes', 'lifecycleState': 'state',
+                  'category': 'Network Service'}
     svc = Service(sdc_values=sdc_values)
     mock_exists.return_value = True
     assert svc._identifier == "12"
@@ -179,6 +181,7 @@ def test_init_with_sdc_values(mock_exists):
     assert svc.headers["USER_ID"] == "cs0008"
     assert svc.distribution_status == "yes"
     assert svc._distribution_id is None
+    assert svc.category_name == "Network Service"
     assert isinstance(svc._base_url(), str)
 
 @mock.patch.object(Service, 'get_all')
@@ -275,18 +278,21 @@ def test_distribution_id_setter():
     assert svc._distribution_id == "4567"
 
 @mock.patch.object(Service, '_create')
-def test_create(mock_create):
+@mock.patch.object(Service, "category", new_callable=mock.PropertyMock)
+def test_create(mock_category, mock_create):
     svc = Service()
     svc.create()
     mock_create.assert_called_once_with("service_create.json.j2",
                                         name="ONAP-test-Service",
-                                        instantiation_type="A-la-carte")
+                                        instantiation_type="A-la-carte",
+                                        category=svc.category)
     mock_create.reset_mock()
     svc = Service(instantiation_type=ServiceInstantiationType.MACRO)
     svc.create()
     mock_create.assert_called_once_with("service_create.json.j2",
                                         name="ONAP-test-Service",
-                                        instantiation_type="Macro")
+                                        instantiation_type="Macro",
+                                        category=svc.category)
 
 @mock.patch.object(Service, 'exists')
 @mock.patch.object(Service, 'send_message')
@@ -384,13 +390,13 @@ def test_get_tosca_no_result(mock_send):
 def test_get_tosca_bad_csart(requests_mock):
     if path.exists('/tmp/tosca_files'):
         shutil.rmtree('/tmp/tosca_files')
+    svc = Service()
+    svc.identifier = "12"
     with open('tests/data/bad.csar', mode='rb') as file:
         file_content = file.read()
         requests_mock.get(
             'https://sdc.api.be.simpledemo.onap.org:30204/sdc/v1/catalog/services/12/toscaModel',
             content=file_content)
-    svc = Service()
-    svc.identifier = "12"
     svc.get_tosca()
 
 
@@ -1092,6 +1098,24 @@ def test_declare_resources_and_properties(mock_declare_input, mock_add_property,
     mock_add_resource.assert_called_once()
     mock_add_property.assert_called_once()
     mock_declare_input.assert_called_once()
+
+@mock.patch.object(Service, "created")
+@mock.patch.object(ServiceCategory, "get")
+def test_service_category(mock_resource_category, mock_created):
+    mock_created.return_value = False
+    service = Service(name="test")
+    _ = service.category
+    mock_resource_category.assert_called_once_with(name="Network Service")
+    mock_resource_category.reset_mock()
+
+    service = Service(name="test", category="test")
+    _ = service.category
+    mock_resource_category.assert_called_once_with(name="test")
+    mock_resource_category.reset_mock()
+
+    mock_created.return_value = True
+    _ = service.category
+    mock_resource_category.assert_called_once_with(name="test")
 
 def test_service_origin_type():
     service = Service(name="test")
