@@ -20,12 +20,12 @@
         },
 		"requestParameters": {
 			"userParams": [
-				{% if enable_multicloud %}
-				{
+                {% if enable_multicloud %}
+                {
                     "name":"orchestrator",
                     "value":"multicloud"
                 }
-				{% endif %}
+                {% endif %}
 			],
 			"testApi": "GR_API",
 			"subscriptionServiceType": "{{ sdc_service.name }}",
