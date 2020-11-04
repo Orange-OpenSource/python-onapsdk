@@ -5,11 +5,11 @@
 from typing import Any, Dict, List
 from abc import ABC, abstractmethod
 
-from onapsdk.sdc import SDC
+from onapsdk.sdc import SdcOnboardable
 import onapsdk.constants as const
 
 
-class SdcElement(SDC, ABC):
+class SdcElement(SdcOnboardable, ABC):
     """Mother Class of all SDC elements."""
 
     ACTION_TEMPLATE = 'sdc_element_action.json.j2'
