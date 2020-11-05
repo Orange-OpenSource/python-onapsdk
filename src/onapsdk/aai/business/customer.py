@@ -50,10 +50,6 @@ class ServiceSubscription(AaiElement):
             filter_parameter_name (str): Name of parameter to filter
             filter_parameter_value (str): Value of filter parameter
 
-        Raises:
-            ValueError: Service instance with given filter parameters
-                doesn't exist
-
         Returns:
             ServiceInstance: ServiceInstance object
 
@@ -61,8 +57,7 @@ class ServiceSubscription(AaiElement):
         service_instance: dict = self.send_message_json(
             "GET",
             f"Get service instance with {filter_parameter_value} {filter_parameter_name}",
-            f"{self.url}/service-instances?{filter_parameter_name}={filter_parameter_value}",
-            exception=ValueError
+            f"{self.url}/service-instances?{filter_parameter_name}={filter_parameter_value}"
         )["service-instance"][0]
         return ServiceInstance(
             service_subscription=self,
@@ -280,9 +275,6 @@ class ServiceSubscription(AaiElement):
 
         Args:
             service_instance_id (str): ID of the service instance
-
-        Raises:
-            ValueError: service subscription has no related service instance with given ID
 
         Returns:
             ServiceInstance: ServiceInstance object
