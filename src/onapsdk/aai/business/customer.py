@@ -383,9 +383,6 @@ class Customer(AaiElement):
         Args:
             service_type (str): Service type
 
-        Raises:
-            ValueError: No service subscription with given service-type.
-
         Returns:
             ServiceSubscription: Service subscription
 
@@ -395,8 +392,7 @@ class Customer(AaiElement):
             f"Get service subscription with {service_type} service type",
             (f"{self.base_url}{self.api_version}/business/customers/"
              f"customer/{self.global_customer_id}/service-subscriptions"
-             f"?service-type={service_type}"),
-            exception=ValueError
+             f"?service-type={service_type}")
         )
         return ServiceSubscription.create_from_api_response(response["service-subscription"][0],
                                                             self)
