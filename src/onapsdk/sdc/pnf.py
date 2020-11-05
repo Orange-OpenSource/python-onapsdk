@@ -30,7 +30,8 @@ class Pnf(SdcResource):
 
     def __init__(self, name: str = None, version: str = None, vendor: Vendor = None, # pylint: disable=too-many-arguments
                  sdc_values: Dict[str, str] = None, vsp: Vsp = None,
-                 properties: List[Property] = None, inputs: Union[Property, NestedInput] = None):
+                 properties: List[Property] = None, inputs: Union[Property, NestedInput] = None,
+                 category: str = None, subcategory: str = None):
         """
         Initialize pnf object.
 
@@ -40,7 +41,7 @@ class Pnf(SdcResource):
 
         """
         super().__init__(sdc_values=sdc_values, version=version, properties=properties,
-                         inputs=inputs)
+                         inputs=inputs, category=category, subcategory=subcategory)
         self.name: str = name or "ONAP-test-PNF"
         self.vendor: Vendor = vendor
         self.vsp: Vsp = vsp
@@ -49,7 +50,11 @@ class Pnf(SdcResource):
         """Create the PNF in SDC if not already existing."""
         if not self.vsp and not self.vendor:
             raise ValueError("Neither Vsp nor vendor was given")
-        self._create("pnf_create.json.j2", name=self.name, vsp=self.vsp, vendor=self.vendor)
+        self._create("pnf_create.json.j2",
+                     name=self.name,
+                     vsp=self.vsp,
+                     vendor=self.vendor,
+                     category=self.category)
 
     def _really_submit(self) -> None:
         """Really submit the SDC PNF in order to enable it."""

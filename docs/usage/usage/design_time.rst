@@ -195,6 +195,25 @@ Onboard a Service with VL
    service = Service(name="myServiceWithVl", resources=[vl])
    service.onboard()
 
+Onboard a Service with custom category
+--------------------------------------
+
+.. code:: Python
+
+   from onapsdk.sdc.category_management import ServiceCategory
+   from onapsdk.sdc.vf import Vf
+   from onapsdk.sdc.service import Service
+
+   # Let's create a custom category
+   CATEGORY_NAME = "Python ONAP SDK category"
+   ServiceCategory.create(name=CATEGORY_NAME)
+
+   # We assume here that the VF has been already onboarded
+   # Create a service with category we created few lines above
+   vf = Vf(name="myVF")
+   service = Service(name="myService", resources=[vf], category=CATEGORY_NAME)
+   service.onboard()
+
 Onboard an Artifact for an embedded VF
 --------------------------------------
 
