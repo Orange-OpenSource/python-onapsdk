@@ -222,6 +222,7 @@ class ServiceSubscription(AaiElement):
                 yield cr_tenant_data
             else:
                 self._logger.error("Invalid tenant relationship: %s", relationship)
+                # TODO get the requirement: raise or pass
 
     @property
     def cloud_regions(self) -> Iterator["CloudRegion"]:
@@ -241,6 +242,7 @@ class ServiceSubscription(AaiElement):
             except ValueError:
                 self._logger.error("Can't get cloud region %s %s", cloud_region_data[0], \
                                                                    cloud_region_data[1])
+                # TODO get the requirement: raise or pass
 
     @property
     def tenants(self) -> Iterator["Tenant"]:
@@ -257,6 +259,7 @@ class ServiceSubscription(AaiElement):
                 yield cloud_region.get_tenant(cr_data.tenant_id)
             except ValueError:
                 self._logger.error("Can't get %s tenant", cr_data.tenant_id)
+                # TODO get the requirement: raise or pass
 
     @property
     def sdc_service(self) -> "SdcService":
@@ -290,9 +293,6 @@ class ServiceSubscription(AaiElement):
 
         Args:
             service_instance_name (str): Name of the service instance
-
-        Raises:
-            ValueError: service subscription has no related service instance with given name
 
         Returns:
             ServiceInstance: ServiceInstance object
