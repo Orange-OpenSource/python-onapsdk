@@ -101,7 +101,7 @@ class OwningEntity(AaiElement):
             if owning_entity.name == owning_entity_name:
                 return owning_entity
         
-        msg = f'Owning entity {owning_entity_name} does not exist.'
+        msg = f'Owning entity "{owning_entity_name}" does not exist.'
         raise ResourceNotFound(msg)
 
     @classmethod
@@ -112,12 +112,8 @@ class OwningEntity(AaiElement):
             name (str): owning entity name
             owning_entity_id (str): owning entity ID. Defaults to None.
 
-        Raises:
-            ValueError: request response with HTTP error code
-
         Returns:
             OwningEntity: Created OwningEntity object
-
         """
         if not owning_entity_id:
             owning_entity_id = str(uuid4())
@@ -129,7 +125,6 @@ class OwningEntity(AaiElement):
             data=jinja_env().get_template("aai_owning_entity_create.json.j2").render(
                 owning_entity_name=name,
                 owning_entity_id=owning_entity_id
-            ),
-            exception=ValueError
+            )
         )
         return cls.get_by_owning_entity_id(owning_entity_id)
