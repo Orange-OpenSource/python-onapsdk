@@ -540,10 +540,6 @@ class Customer(AaiElement):
 
         Args:
             service (SdcService): SdcService object to subscribe.
-
-        Raises:
-            ValueError: Request response with HTTP error code
-
         """
         try:
             return self.get_service_subscription_by_service_type(service.name)
@@ -560,7 +556,6 @@ class Customer(AaiElement):
             .get_template("customer_service_subscription_create.json.j2")
             .render(
                 service_id=service.unique_uuid,
-            ),
-            exception=ValueError
+            )
         )
         return self.get_service_subscription_by_service_type(service.name)
