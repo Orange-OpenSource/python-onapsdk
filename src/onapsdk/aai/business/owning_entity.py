@@ -4,6 +4,7 @@ from uuid import uuid4
 from typing import Iterator
 
 from onapsdk.utils.jinja import jinja_env
+from onapsdk.exceptions import ResourceNotFound
 
 from ..aai_element import AaiElement
 
@@ -90,16 +91,18 @@ class OwningEntity(AaiElement):
         """Get owning entity resource by it's name.
 
         Raises:
-            ValueError: Owning entity with given name doesn't exist
+            ResourceNotFound: Owning entity requested by a name does not exist.
 
         Returns:
-            OwningEntity: Owning entity with given name
+            OwningEntity: Owning entity requested by a name.
 
         """
         for owning_entity in cls.get_all():
             if owning_entity.name == owning_entity_name:
                 return owning_entity
-        raise ValueError
+        
+        msg = f'Owning entity {owning_entity_name} does not exist.'
+        raise ResourceNotFound(msg)
 
     @classmethod
     def create(cls, name: str, owning_entity_id: str = None) -> "OwningEntity":
