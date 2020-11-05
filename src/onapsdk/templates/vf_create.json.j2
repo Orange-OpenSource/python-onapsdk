@@ -2,30 +2,7 @@
     "artifacts": {},
     "attributes": [],
     "capabilities": {},
-    "categories":[
-        {
-            "name": "Generic",
-            "normalizedName": "generic",
-            "uniqueId": "resourceNewCategory.generic",
-            "icons": null,
-            "subcategories":[
-                {
-                    "name": "Abstract",
-                    "normalizedName": "abstract",
-                    "uniqueId": "resourceNewCategory.generic.abstract",
-                    "icons":[
-                        "objectStorage",
-                        "compute"
-                    ],
-                    "groupings": null,
-                    "ownerId": null,
-                    "empty": false
-                }
-            ],
-            "ownerId": null,
-            "empty": false
-        }
-    ],
+    {% include "sdc_resource_category.json.j2" %},
     "componentInstances": [],
     "componentInstancesAttributes": {},
     "componentInstancesProperties": {},

@@ -1,0 +1,13 @@
+  "categories": [
+    {
+      "normalizedName": "{{ category.normalized_name }}",
+      "name": "{{ category.name }}",
+      "uniqueId": "{{ category.unique_id }}",
+      "subcategories": {% if category.subcategories %}{{ category.subcategories|tojson }}{% else %}null{% endif %},
+      "version": {% if category.version %}"{{ category.version }}"{% else %}null{% endif %},
+      "ownerId": {% if category.owner_id %}"{{ category.owner_id }}"{% else %}null{% endif %},
+      "empty": {{ category.empty|tojson }},
+      "type": {% if category.type %}"{{ category.type }}"{% else %}null{% endif %},
+      "icons": {% if category.icons %}{{ category.icons|tojson }}{% else %}null{% endif %}
+    }
+  ]

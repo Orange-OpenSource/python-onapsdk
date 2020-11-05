@@ -21,18 +21,6 @@
   "ecompGeneratedNaming": true,
   "instantiationType": "{{ instantiation_type }}",
   "environmentContext": "General_Revenue-Bearing",
-  "categories": [
-    {
-      "normalizedName": "network service",
-      "name": "Network Service",
-      "uniqueId": "serviceNewCategory.network service",
-      "subcategories": null,
-      "version": null,
-      "ownerId": null,
-      "empty": false,
-      "type": null,
-      "icons": ["network_l_1-3"]
-    }
-  ],
+  {% include "sdc_resource_category.json.j2" %},
   "icon": "network_l_1-3"
 }

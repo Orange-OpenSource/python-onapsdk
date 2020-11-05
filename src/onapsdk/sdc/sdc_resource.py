@@ -9,7 +9,8 @@ import base64
 import time
 
 import onapsdk.constants as const
-from onapsdk.sdc import SDC
+from onapsdk.sdc import SdcOnboardable
+from onapsdk.sdc.category_management import ResourceCategory, ServiceCategory
 from onapsdk.sdc.component import Component
 from onapsdk.sdc.properties import Input, NestedInput, Property
 from onapsdk.utils.headers_creator import (headers_sdc_creator,
@@ -20,20 +21,20 @@ from onapsdk.utils.jinja import jinja_env
 
 # For an unknown reason, pylint keeps seeing _unique_uuid and
 # _unique_identifier as attributes along with unique_uuid and unique_identifier
-class SdcResource(SDC, ABC):  # pylint: disable=too-many-instance-attributes, too-many-public-methods
+class SdcResource(SdcOnboardable, ABC):  # pylint: disable=too-many-instance-attributes, too-many-public-methods
     """Mother Class of all SDC resources."""
 
     RESOURCE_PATH = 'resources'
     ACTION_TEMPLATE = 'sdc_resource_action.json.j2'
     ACTION_METHOD = 'POST'
-    headers = headers_sdc_creator(SDC.headers)
+    headers = headers_sdc_creator(SdcOnboardable.headers)
 
     def __init__(self, name: str = None, version: str = None, # pylint: disable=too-many-arguments
                  sdc_values: Dict[str, str] = None, properties: List[Property] = None,
-                 inputs: Union[Property, NestedInput] = None):
+                 inputs: Union[Property, NestedInput] = None,
+                 category: str = None, subcategory: str = None):
         """Initialize the object."""
-        super().__init__()
-        self.name: str = name
+        super().__init__(name)
         self.version_filter: str = version
         self._unique_uuid: str = None
         self._unique_identifier: str = None
@@ -41,6 +42,8 @@ class SdcResource(SDC, ABC):  # pylint: disable=too-many-instance-attributes, to
         self._properties_to_add: List[Property] = properties or []
         self._inputs_to_add: Union[Property, NestedInput] = inputs or []
         self._time_wait: int = 10
+        self._category_name: str = category
+        self._subcategory_name: str = subcategory
         if sdc_values:
             self._logger.debug("SDC values given, using them")
             self.identifier = sdc_values['uuid']
@@ -112,6 +115,10 @@ class SdcResource(SDC, ABC):  # pylint: disable=too-many-instance-attributes, to
                     self._logger.debug("Resource %s found in %s list",
                                        resource["name"], self._sdc_path())
                     self.unique_identifier = resource["uniqueId"]
+                    self._category_name = resource["categories"][0]["name"]
+                    subcategories = resource["categories"][0].get("subcategories", [{}])
+                    self._subcategory_name = None if subcategories is None else \
+                        subcategories[0].get("name")
 
     def _generate_action_subpath(self, action: str) -> str:
         """
@@ -276,6 +283,7 @@ class SdcResource(SDC, ABC):  # pylint: disable=too-many-instance-attributes, to
             obj (SdcResource): the object to "copy"
 
         """
+
     def update_informations_from_sdc(self, details: Dict[str, Any]) -> None:
         """
 
@@ -419,6 +427,19 @@ class SdcResource(SDC, ABC):  # pylint: disable=too-many-instance-attributes, to
         """
         return (f"{self._base_create_url()}/resources/"
                 f"{self.unique_identifier}/update/inputs")
+
+    @property
+    def origin_type(self) -> str:
+        """Resource origin type.
+
+        Value needed for composition. It's used for adding SDC resource
+            as an another SDC resource component.
+
+        Returns:
+            str: SDC resource origin type
+
+        """
+        return type(self).__name__
 
     @property
     def properties(self) -> Iterator[Property]:
@@ -593,6 +614,38 @@ class SdcResource(SDC, ABC):  # pylint: disable=too-many-instance-attributes, to
             yield Component.create_from_api_response(api_response=component_instance,
                                                      sdc_resource=sdc_resource,
                                                      parent_sdc_resource=self)
+
+    @property
+    def category(self) -> Union[ResourceCategory, ServiceCategory]:
+        """Sdc resource category.
+
+        Depends on the resource type returns ResourceCategory or ServiceCategory.
+
+        Returns:
+            Uniton[ResourceCategory, ServiceCategory]: resource category
+
+        """
+        if self.created():
+            if not any([self._category_name, self._subcategory_name]):
+                self.deep_load()
+            if all([self._category_name, self._subcategory_name]):
+                return ResourceCategory.get(name=self._category_name,
+                                            subcategory=self._subcategory_name)
+            return ServiceCategory.get(name=self._category_name)
+        return self.get_category_for_new_resource()
+
+    def get_category_for_new_resource(self) -> ResourceCategory:
+        """Get category for resource not created in SDC yet.
+
+        If no category values are provided default category is going to be used.
+
+        Returns:
+            ResourceCategory: Category of the new resource
+
+        """
+        if not all([self._category_name, self._subcategory_name]):
+            return ResourceCategory.get(name="Generic", subcategory="Abstract")
+        return ResourceCategory.get(name=self._category_name, subcategory=self._subcategory_name)
 
     def get_component_properties_url(self, component: "Component") -> str:
         """Url to get component's properties.
