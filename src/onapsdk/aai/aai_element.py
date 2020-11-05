@@ -71,6 +71,9 @@ class AaiElement(OnapService):
         Yields:
             Relationship: resource relationship
 
+        Raises:
+            RelationshipNotFound: if request for relationships returned 404
+
         """
         try:
             for relationship in self.send_message_json("GET",
