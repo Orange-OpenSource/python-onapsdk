@@ -124,7 +124,7 @@ class OnapService(ABC):
                               cls.server, action, headers)
 
             msg = f'Code: {response.status_code}. Info: {response.text}.'
-            
+
             if response.status_code == 404:
                 exc = ResourceNotFound(msg)
             else:
@@ -132,11 +132,11 @@ class OnapService(ABC):
 
             raise exc from cause
 
-        except ConnectionError as cause:           
+        except ConnectionError as cause:
             cls._logger.error("[%s][%s] Failed to connect: %s", cls.server,
                               action, cause)
 
-            msg = f"Can't connect to {url}."                 
+            msg = f"Can't connect to {url}."
             raise ConnectionFailed(msg) from cause
 
         except RequestException as cause:
@@ -196,23 +196,11 @@ class OnapService(ABC):
                               action, cause)
             raise InvalidResponse from cause
 
-        except (APIError, ResourceNotFound) as exc:
-            cls._logger.error("[%s][%s] External API returned an error: %s",
-                              cls.server, action, exc)
-            raise exc
-
-        except ConnectionFailed as exc:
-            cls._logger.error("[%s][%s] Connection can't be established: %s",
-                              cls.server, action, exc)
-            raise exc
-
         except RequestError as exc:
             cls._logger.error("[%s][%s] request failed: %s",
                               cls.server, action, exc)
-
-        if not exception:
-            msg = f"Ambiguous error while requesting {url}."
-            raise RequestError(msg)
+            if not exception:
+                exception = exc
 
         raise exception
 
