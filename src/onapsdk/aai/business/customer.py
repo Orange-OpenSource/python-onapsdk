@@ -439,16 +439,11 @@ class Customer(AaiElement):
 
         Returns:
             Customer: Customer with given global_customer_id
-
-        Raises:
-            ValueError: Customer with given global_customer_id doesn't exist
-
         """
         response: dict = cls.send_message_json(
             "GET",
             f"Get {global_customer_id} customer",
-            f"{cls.base_url}{cls.api_version}/business/customers/customer/{global_customer_id}",
-            exception=ValueError
+            f"{cls.base_url}{cls.api_version}/business/customers/customer/{global_customer_id}"
         )
         return Customer(
             global_customer_id=response["global-customer-id"],
