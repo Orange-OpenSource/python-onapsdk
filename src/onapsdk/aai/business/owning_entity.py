@@ -77,8 +77,7 @@ class OwningEntity(AaiElement):
             "GET",
             "Get A&AI owning entity",
             (f"{cls.base_url}{cls.api_version}/business/owning-entities/"
-             f"owning-entity/{owning_entity_id}"),
-            exception=ValueError
+             f"owning-entity/{owning_entity_id}")
         )
         return cls(
             response.get("owning-entity-name"),
