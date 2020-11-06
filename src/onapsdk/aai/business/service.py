@@ -146,8 +146,8 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
                     self.send_message_json("GET",
                                            (f"Get {self.instance_id} "
                                             f"{related_instance_class.__class__}"),
-                                            f"{self.base_url}{relationship.related_link}"),
-                                            self)
+                                           f"{self.base_url}{relationship.related_link}"),
+                    self)
 
     @property
     def url(self) -> str:

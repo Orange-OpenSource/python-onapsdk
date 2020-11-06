@@ -223,7 +223,6 @@ class ServiceSubscription(AaiElement):
                 yield cr_tenant_data
             else:
                 self._logger.error("Invalid tenant relationship: %s", relationship)
-                # TODO get the requirement: raise or pass
 
     @property
     def cloud_regions(self) -> Iterator["CloudRegion"]:
