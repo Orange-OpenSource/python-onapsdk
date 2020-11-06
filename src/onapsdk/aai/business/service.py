@@ -138,9 +138,8 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
                     self.send_message_json("GET",
                                            (f"Get {self.instance_id} "
                                             f"{related_instance_class.__class__}"),
-                                           f"{self.base_url}{relationship.related_link}",
-                                           exception=ValueError),
-                    self)
+                                            f"{self.base_url}{relationship.related_link}"),
+                                            self)
 
     @property
     def url(self) -> str:
@@ -160,9 +159,6 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
 
         Returns iterator of VnfInstances representing VNF instantiated for that service
 
-        Raises:
-            ValueError: Request sent to get vnf instances returns HTTP error code.
-
         Yields:
             VnfInstance: VnfInstance object
 
@@ -174,9 +170,6 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
         """Network instances associated with service instance.
 
         Returns iterator of NetworkInstance representing network instantiated for that service
-
-        Raises:
-            ValueError: Request sent to get network instances returns HTTP error code.
 
         Yields:
             NetworkInstance: NetworkInstance object
@@ -213,8 +206,7 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
                 Defaults to None.
 
         Raises:
-            AttributeError: Service orchestration status is not "Active"
-            ValueError: Instantiation request error.
+            AttributeError: Service orchestration status is not "Active".
 
         Returns:
             VnfInstantiation: VnfInstantiation request object
@@ -263,7 +255,6 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
 
         Raises:
             AttributeError: Service orchestration status is not "Active"
-            ValueError: Instantiation request error.
 
         Returns:
             NetworkInstantiation: NetworkInstantiation request object
