@@ -542,7 +542,7 @@ class Customer(AaiElement):
         """
         try:
             return self.get_service_subscription_by_service_type(service.name)
-        except ValueError:
+        except ResourceNotFound:
             self._logger.info("Create service subscription for %s customer",
                               self.global_customer_id)
         self.send_message(
