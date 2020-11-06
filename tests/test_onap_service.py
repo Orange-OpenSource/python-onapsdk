@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Test OnapService module."""
 from unittest import mock
+from unittest.mock import ANY
 
 import pytest
 from jinja2 import Environment
@@ -128,6 +129,28 @@ def test_send_message_specific_headers_OK(mock_request):
     }
     response = svc.send_message("GET", 'test get', 'http://my.url/',
                                 headers=expect_headers)
+    mock_request.assert_called_once_with('GET', 'http://my.url/',
+                                         headers=expect_headers, verify=False,
+                                         proxies=None)
+    assert response == mocked_response
+
+@mock.patch.object(OnapService, '_set_basic_auth_if_needed')
+@mock.patch.object(Session, 'request')
+def test_send_message_with_basic_auth(mock_request, mock_set_basic_auth_if_needed):
+    """Should give response of request if OK."""
+    svc = OnapService()
+    mocked_response = Response()
+    mocked_response.status_code = 200
+    basic_auth = {'username': 'user1', "password": "password1"}
+    mock_request.return_value = mocked_response
+    expect_headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Once": "Upon a time"
+    }
+    response = svc.send_message("GET", 'test get', 'http://my.url/',
+                                headers=expect_headers, basic_auth=basic_auth)
+    mock_set_basic_auth_if_needed.assert_called_once_with(basic_auth, ANY)
     mock_request.assert_called_once_with('GET', 'http://my.url/',
                                          headers=expect_headers, verify=False,
                                          proxies=None)
