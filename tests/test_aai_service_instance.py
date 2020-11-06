@@ -6,6 +6,7 @@ from onapsdk.aai.aai_element import AaiElement
 from onapsdk.aai.business import ServiceInstance, VnfInstance
 from onapsdk.so.deletion import ServiceDeletionRequest
 from onapsdk.so.instantiation import NetworkInstantiation, VnfInstantiation
+from onapsdk.exceptions import StatusError
 
 
 RELATIONSHIPS_VNF = {
@@ -176,10 +177,11 @@ def test_service_instance_add_vnf(mock_vnf_instantiation):
     service_instance = ServiceInstance(service_subscription=mock.MagicMock(),
                                        instance_id="test_service_instance_id")
     service_instance.orchestration_status = "Inactive"
-    with pytest.raises(AttributeError):
+    with pytest.raises(StatusError) as exc:
         service_instance.add_vnf(mock.MagicMock(),
                                  mock.MagicMock(),
                                  mock.MagicMock())
+    assert exc.type == StatusError
     service_instance.orchestration_status = "Active"
     service_instance.add_vnf(mock.MagicMock(),
                              mock.MagicMock(),
@@ -192,10 +194,11 @@ def test_service_instance_add_network(mock_network_instantiation):
     service_instance = ServiceInstance(service_subscription=mock.MagicMock(),
                                        instance_id="test_service_instance_id")
     service_instance.orchestration_status = "Inactive"
-    with pytest.raises(AttributeError):
+    with pytest.raises(StatusError) as exc:
         service_instance.add_network(mock.MagicMock(),
                                      mock.MagicMock(),
                                      mock.MagicMock())
+    assert exc.type == StatusError
     service_instance.orchestration_status = "Active"
     service_instance.add_network(mock.MagicMock(),
                                  mock.MagicMock(),
