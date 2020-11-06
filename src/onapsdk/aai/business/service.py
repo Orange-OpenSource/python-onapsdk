@@ -4,7 +4,7 @@ from typing import Iterator, Type, Union
 
 from onapsdk.so.deletion import ServiceDeletionRequest
 from onapsdk.so.instantiation import NetworkInstantiation, VnfInstantiation
-from onapsdk.exceptions import StatusError
+from onapsdk.exceptions import StatusError, ParameterError
 
 from .instance import Instance
 from .network import NetworkInstance
@@ -126,13 +126,20 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
                 to create required object instances
             relationship_related_to_type (str): Has to be "generic-vnf" or "l3-network"
 
+        Raises:
+            ParameterError: relationship_related_to_type does not satisfy the requirements
+
         Yields:
             Iterator[ Union[NetworkInstance, VnfInstance]]: [description]
 
         """
         if not relationship_related_to_type in ["l3-network", "generic-vnf"]:
-            raise ValueError("Invalid \"relationship_related_to_type'\" value, has to be "
-                             "\"l3-network\" or \"generic-vnf\"")
+            msg = (
+                f'Invalid "relationship_related_to_type" value. '
+                f'Provided "{relationship_related_to_type}". '
+                f'Has to be "l3-network" or "generic-vnf".'
+            )
+            raise ParameterError(msg)
         for relationship in self.relationships:
             if relationship.related_to == relationship_related_to_type:
                 yield related_instance_class.create_from_api_response(\
@@ -265,7 +272,7 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
 
         """
         required_status = "Active"
-        
+
         if self.orchestration_status != required_status:
             msg = f'Service orchestration status must be "{required_status}"'
             raise StatusError(msg)
