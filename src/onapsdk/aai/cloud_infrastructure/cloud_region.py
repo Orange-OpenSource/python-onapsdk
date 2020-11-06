@@ -378,15 +378,11 @@ class CloudRegion(AaiElement):  # pylint: disable=too-many-instance-attributes
         Returns:
             Tenant: Tenant object
 
-        Raises:
-            ValueError: Tenant with provided ID doesn't exist
-
         """
         response: dict = self.send_message_json(
             "GET",
             "get tenants",
-            f"{self.url}/tenants/tenant/{tenant_id}",
-            exception=ValueError
+            f"{self.url}/tenants/tenant/{tenant_id}"
         )
         return Tenant(
             cloud_region=self,
