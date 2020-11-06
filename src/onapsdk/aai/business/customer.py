@@ -437,6 +437,7 @@ class Customer(AaiElement):
 
         Returns:
             Customer: Customer with given global_customer_id
+
         """
         response: dict = cls.send_message_json(
             "GET",

@@ -114,6 +114,7 @@ class OwningEntity(AaiElement):
 
         Returns:
             OwningEntity: Created OwningEntity object
+
         """
         if not owning_entity_id:
             owning_entity_id = str(uuid4())
