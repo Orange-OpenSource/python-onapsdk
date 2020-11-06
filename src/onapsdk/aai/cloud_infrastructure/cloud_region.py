@@ -365,8 +365,8 @@ class CloudRegion(AaiElement):  # pylint: disable=too-many-instance-attributes
             f"{self.url}/tenants/tenant/{tenant_id}",
             data=jinja_env()
             .get_template("cloud_region_add_tenant.json.j2")
-            .render(tenant_id=tenant_id, tenant_name=tenant_name, tenant_context=tenant_context),
-            exception=ValueError
+            .render(tenant_id=tenant_id, tenant_name=tenant_name, 
+                    tenant_context=tenant_context)
         )
 
     def get_tenant(self, tenant_id: str) -> "Tenant":
