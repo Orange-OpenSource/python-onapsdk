@@ -100,7 +100,7 @@ class OwningEntity(AaiElement):
         for owning_entity in cls.get_all():
             if owning_entity.name == owning_entity_name:
                 return owning_entity
-        
+
         msg = f'Owning entity "{owning_entity_name}" does not exist.'
         raise ResourceNotFound(msg)
 
