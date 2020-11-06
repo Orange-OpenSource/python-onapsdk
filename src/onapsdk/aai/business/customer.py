@@ -5,6 +5,7 @@ from urllib.parse import urlencode
 
 from onapsdk.sdc.service import Service as SdcService
 from onapsdk.utils.jinja import jinja_env
+from onapsdk.exceptions import ResourceNotFound
 
 from ..aai_element import AaiElement, Relationship
 from ..cloud_infrastructure.cloud_region import CloudRegion
@@ -239,10 +240,9 @@ class ServiceSubscription(AaiElement):
             try:
                 yield CloudRegion.get_by_id(cloud_owner=cloud_region_data[0],
                                             cloud_region_id=cloud_region_data[1])
-            except ValueError:
+            except ResourceNotFound:
                 self._logger.error("Can't get cloud region %s %s", cloud_region_data[0], \
                                                                    cloud_region_data[1])
-                # TODO get the requirement: raise or pass
 
     @property
     def tenants(self) -> Iterator["Tenant"]:
@@ -257,9 +257,8 @@ class ServiceSubscription(AaiElement):
                 cloud_region: CloudRegion = CloudRegion.get_by_id(cr_data.cloud_owner,
                                                                   cr_data.cloud_region_id)
                 yield cloud_region.get_tenant(cr_data.tenant_id)
-            except ValueError:
+            except ResourceNotFound:
                 self._logger.error("Can't get %s tenant", cr_data.tenant_id)
-                # TODO get the requirement: raise or pass
 
     @property
     def sdc_service(self) -> "SdcService":

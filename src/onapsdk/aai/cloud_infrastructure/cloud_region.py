@@ -5,6 +5,7 @@ from urllib.parse import urlencode
 
 from onapsdk.msb.multicloud import Multicloud
 from onapsdk.utils.jinja import jinja_env
+from onapsdk.exceptions import ResourceNotFound
 
 from ..aai_element import AaiElement, Relationship
 from .complex import Complex
@@ -182,7 +183,7 @@ class CloudRegion(AaiElement):  # pylint: disable=too-many-instance-attributes
         cloud-region-id field value.
 
         Raises:
-            ValueError: Cloud region with given id does not exist.
+            ResourceNotFound: Cloud region with given id does not exist.
 
         Returns:
             CloudRegion: CloudRegion object with given cloud-region-id.
@@ -191,7 +192,11 @@ class CloudRegion(AaiElement):  # pylint: disable=too-many-instance-attributes
         try:
             return next(cls.get_all(cloud_owner=cloud_owner, cloud_region_id=cloud_region_id))
         except StopIteration:
-            raise ValueError(f"CloudRegion with {cloud_owner},{cloud_region_id} cloud-id not found")
+            msg = (
+                f'CloudRegion with {cloud_owner}, '
+                f'{cloud_region_id} cloud-id not found. '
+            )
+            raise ResourceNotFound(msg)
 
     @classmethod
     def create(cls,  # pylint: disable=too-many-locals

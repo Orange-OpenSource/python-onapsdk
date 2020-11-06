@@ -9,6 +9,7 @@ from onapsdk.aai.business import Customer, ServiceSubscription, ServiceInstance
 from onapsdk.aai.cloud_infrastructure import CloudRegion, Tenant
 from onapsdk.msb.multicloud import Multicloud
 from onapsdk.sdc.service import Service as SdcService
+from onapsdk.exceptions import ResourceNotFound
 
 
 SIMPLE_CUSTOMER = {
@@ -327,7 +328,7 @@ def test_customer_service_subscription_cloud_region(mock_cloud_region, mock_send
     assert cloud_region.cloud_region_id == "RegionOne"
     assert cloud_region.cloud_type == "openstack"
 
-    mock_cloud_region.side_effect = ValueError
+    mock_cloud_region.side_effect = ResourceNotFound
     with pytest.raises(AttributeError):
         service_subscription.tenant
     mock_cloud_region.side_effect = [CLOUD_REGION, TENANT]
