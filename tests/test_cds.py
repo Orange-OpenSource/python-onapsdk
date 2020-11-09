@@ -218,6 +218,19 @@ def test_data_dictionary_set_save_to_file_load_from_file():
         dd_2 = DataDictionarySet.load_from_file(path)
         assert dd.dd_set == dd_2.dd_set
 
+def test_data_dictionary_load_from_file_file_error():
+
+    with TemporaryDirectory() as tmpdirname, \
+        patch("__main__.open", new_callable=mock_open) as mo, \
+        raises(FileError) as exc:
+
+        path = os.path.join(tmpdirname, "nonexistent_file.zip")
+        mo.side_effect = FileNotFoundError
+
+        DataDictionarySet.load_from_file(path)
+
+    assert exc.type == FileError
+
 
 def test_mapping():
     m1 = Mapping(name="test",

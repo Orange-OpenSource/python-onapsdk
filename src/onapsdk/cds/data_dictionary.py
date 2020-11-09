@@ -4,7 +4,7 @@
 import json
 from logging import getLogger, Logger
 
-from onapsdk.exceptions import ValidationError
+from onapsdk.exceptions import FileError, ValidationError
 
 from .cds_element import CdsElement
 
@@ -85,7 +85,7 @@ class DataDictionary(CdsElement):
 
     def upload(self) -> None:
         """Upload data dictionary using CDS API."""
-        
+
         self.logger.debug("Upload %s data dictionary", self.name)
         self.send_message(
             "POST",
@@ -196,7 +196,7 @@ class DataDictionarySet:
         """
         self.logger.debug("Upload data dictionary")
         for data_dictionary in self.dd_set:  # type DataDictionary
-            data_dictionary.upload()
+            data_dictionary.upload()  # raise a relevant exception
 
     def save_to_file(self, dd_file_path: str) -> None:
         """Save data dictionaries to file.
@@ -215,18 +215,24 @@ class DataDictionarySet:
 
         Args:
             dd_file_path (str): Data dictionaries file path.
-            fix_schema (bool): Determines if schema should be fixed or not
+            fix_schema (bool): Determines if schema should be fixed or not.
 
         Raises:
-            FileNotFoundError: File to load data dictionaries from doesn't exist
+            FileError: File to load data dictionaries from doesn't exist.
 
         Returns:
-            DataDictionarySet: Data dictionary set with data dictionaries from given file
+            DataDictionarySet: Data dictionary set with data dictionaries from given file.
 
         """
         dd_set: DataDictionarySet = DataDictionarySet()
-        with open(dd_file_path, "r") as dd_file:  # type file
-            dd_json: dict = json.loads(dd_file.read())
-            for data_dictionary in dd_json:  # type DataDictionary
-                dd_set.add(DataDictionary(data_dictionary, fix_schema=fix_schema))
-        return dd_set
+
+        try:
+            with open(dd_file_path, "r") as dd_file:  # type file
+                dd_json: dict = json.loads(dd_file.read())
+                for data_dictionary in dd_json:  # type DataDictionary
+                    dd_set.add(DataDictionary(data_dictionary, fix_schema=fix_schema))
+            return dd_set
+        except FileNotFoundError as exc:
+            msg = "File with a set of data dictionaries does not exist."
+            raise FileError(msg) from exc
+
