@@ -84,20 +84,15 @@ class DataDictionary(CdsElement):
         return f"{self._url}/api/v1/dictionary"
 
     def upload(self) -> None:
-        """Upload data dictionary using CDS API.
-
-        Raises:
-            ValueError: CDS API returns error on upload.
-
-        """
+        """Upload data dictionary using CDS API."""
+        
         self.logger.debug("Upload %s data dictionary", self.name)
         self.send_message(
             "POST",
             "Publish CDS data dictionary",
             f"{self.url}",
             auth=self.auth,
-            data=json.dumps(self.data_dictionary_json),
-            exception=ValueError
+            data=json.dumps(self.data_dictionary_json)
         )
 
     def has_valid_schema(self) -> bool:
