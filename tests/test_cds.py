@@ -170,8 +170,11 @@ def test_blueprint_generate_data_dictionary_set():
 @patch.object(CdsElement, "_url", new_callable=PropertyMock)
 def test_data_dictionary(cds_element_url_property_mock):
     cds_element_url_property_mock.return_value = "http://127.0.0.1"
-    with raises(ValueError):
+
+    with raises(ValidationError) as exc:
         DataDictionary({})
+    assert exc.type is ValidationError
+
     dd = DataDictionary({}, fix_schema=False)
     assert dd.url == "http://127.0.0.1/api/v1/dictionary"
     assert dd.data_dictionary_json == {}

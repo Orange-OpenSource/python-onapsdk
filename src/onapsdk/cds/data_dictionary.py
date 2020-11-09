@@ -4,6 +4,8 @@
 import json
 from logging import getLogger, Logger
 
+from onapsdk.exceptions import ValidationError
+
 from .cds_element import CdsElement
 
 
@@ -20,9 +22,6 @@ class DataDictionary(CdsElement):
             fix_schema (bool, optional): determines if data dictionary should be fixed if
                 the invalid schema is detected. Fixing can raise ValueError if
                 dictionary is invalid. Defaults to True.
-
-        Rasies:
-            ValueError: raises on error during schema fixing
 
         """
         super().__init__()
@@ -141,7 +140,7 @@ class DataDictionary(CdsElement):
                 }
 
         Raises:
-            ValueError: Data dictionary doesn't have all required keys
+            ValidationError: Data dictionary doesn't have all required keys
 
         """
         try:
@@ -155,7 +154,7 @@ class DataDictionary(CdsElement):
                 "definition": self.data_dictionary_json
             }
         except KeyError:
-            raise ValueError("Raw data dictionary JSON has invalid schema")
+            raise ValidationError("Raw data dictionary JSON has invalid schema")
 
 
 class DataDictionarySet:
