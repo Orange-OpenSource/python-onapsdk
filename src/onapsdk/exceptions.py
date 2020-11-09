@@ -50,5 +50,9 @@ class ValidationError(SDKException):
     """Data validation failed."""
 
 
+class FileError(ValidationError):
+    """Reading in a file failed."""
+
+
 class SettingsError(SDKException):
     """Some settings are wrong."""

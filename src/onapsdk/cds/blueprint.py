@@ -12,6 +12,7 @@ from zipfile import ZipFile
 import oyaml as yaml
 
 from onapsdk.utils.jinja import jinja_env
+from onapsdk.exceptions import FileError
 
 from .cds_element import CdsElement
 from .data_dictionary import DataDictionary, DataDictionarySet
@@ -437,14 +438,18 @@ class Blueprint(CdsElement):
         """Load blueprint from file.
 
         Raises:
-            FileNotFoundError: File to load blueprint from doesn't exist
+            FileError: File to load blueprint from doesn't exist.
 
         Returns:
             Blueprint: Blueprint object
 
         """
-        with open(cba_file_path, "rb") as cba_file:
-            return Blueprint(cba_file.read())
+        try:
+            with open(cba_file_path, "rb") as cba_file:
+                return Blueprint(cba_file.read())
+        except FileNotFoundError as exc:
+            msg = f"The requested file with a blueprint doesn't exist."
+            raise FileError(msg) from exc
 
     def enrich(self) -> "Blueprint":
         """Call CDS API to get enriched blueprint file.

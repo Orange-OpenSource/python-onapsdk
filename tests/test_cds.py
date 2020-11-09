@@ -3,13 +3,14 @@ import json
 import os.path
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from unittest.mock import MagicMock, patch, PropertyMock
+from unittest.mock import MagicMock, patch, PropertyMock, mock_open
 
 from pytest import raises
 
 from onapsdk.cds.blueprint import Blueprint, CbaMetadata, Mapping, MappingSet, Workflow
 from onapsdk.cds.cds_element import CdsElement
 from onapsdk.cds.data_dictionary import DataDictionary, DataDictionarySet
+from onapsdk.exceptions import FileError
 
 
 DD_1 = {
@@ -97,6 +98,19 @@ def test_blueprint_load_from_file():
             f.write(b"test cba - it will never work")
         blueprint = Blueprint.load_from_file(path)
         assert blueprint.cba_file_bytes == b"test cba - it will never work"
+
+def test_blueprint_load_from_file_file_error():
+
+    with TemporaryDirectory() as tmpdirname, \
+        patch("__main__.open", new_callable=mock_open) as mo, \
+        raises(FileError) as exc:
+
+        path = os.path.join(tmpdirname, "nonexistent_file.zip")
+        mo.side_effect = FileNotFoundError
+
+        Blueprint.load_from_file(path)
+
+    assert exc.type == FileError
 
 
 def test_blueprint_save():
