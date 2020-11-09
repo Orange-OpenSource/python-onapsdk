@@ -464,8 +464,7 @@ class Blueprint(CdsElement):
             f"{self.url}/enrich",
             files={"file": self.cba_file_bytes},
             headers={},  # Leave headers empty to fill it correctly by `requests` library
-            auth=self.auth,
-            exception=ValueError
+            auth=self.auth
         )
         return Blueprint(response.content)
 
@@ -477,8 +476,7 @@ class Blueprint(CdsElement):
             f"{self.url}/publish",
             files={"file": self.cba_file_bytes},
             headers={},  # Leave headers empty to fill it correctly by `requests` library
-            auth=self.auth,
-            exception=ValueError
+            auth=self.auth
         )
 
     def deploy(self) -> None:
@@ -489,8 +487,7 @@ class Blueprint(CdsElement):
             f"{self.url}",
             files={"file": self.cba_file_bytes},
             headers={},  # Leave headers empty to fill it correctly by `requests` library
-            auth=self.auth,
-            exception=ValueError
+            auth=self.auth
         )
 
     def save(self, dest_file_path: str) -> None:
