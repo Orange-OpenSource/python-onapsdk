@@ -321,9 +321,6 @@ class Workflow(CdsElement):
         Args:
             inputs (dict): Inputs dictionary.
 
-        Raises:
-            AttributeError: Execution returns error.
-
         Returns:
             dict: Response's payload.
 
@@ -350,8 +347,7 @@ class Workflow(CdsElement):
             f"Execute {self.blueprint.metadata.template_name} blueprint {self.name} workflow",
             self.url,
             auth=self.auth,
-            data=json.dumps(execution_service_input),
-            exception=ValueError
+            data=json.dumps(execution_service_input)
         )
         return response["payload"]
 
