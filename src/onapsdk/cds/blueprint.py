@@ -12,7 +12,7 @@ from zipfile import ZipFile
 import oyaml as yaml
 
 from onapsdk.utils.jinja import jinja_env
-from onapsdk.exceptions import FileError
+from onapsdk.exceptions import FileError, ValidationError
 
 from .cds_element import CdsElement
 from .data_dictionary import DataDictionary, DataDictionarySet
@@ -522,7 +522,7 @@ class Blueprint(CdsElement):
             cba_tosca_meta_bytes (bytes): TOSCA.meta file bytes.
 
         Raises:
-            ValueError: File has invalid format.
+            ValidationError: TOSCA Meta file has invalid format.
 
         Returns:
             CbaMetadata: Dataclass with CBA metadata
@@ -530,7 +530,7 @@ class Blueprint(CdsElement):
         """
         meta_dict: dict = yaml.safe_load(cba_tosca_meta_bytes)
         if not isinstance(meta_dict, dict):
-            raise ValueError("Invalid TOSCA Meta file")
+            raise ValidationError("Invalid TOSCA Meta file")
         return CbaMetadata(
             tosca_meta_file_version=meta_dict.get("TOSCA-Meta-File-Version"),
             csar_version=meta_dict.get("CSAR-Version"),

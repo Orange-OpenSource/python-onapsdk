@@ -10,7 +10,7 @@ from pytest import raises
 from onapsdk.cds.blueprint import Blueprint, CbaMetadata, Mapping, MappingSet, Workflow
 from onapsdk.cds.cds_element import CdsElement
 from onapsdk.cds.data_dictionary import DataDictionary, DataDictionarySet
-from onapsdk.exceptions import FileError
+from onapsdk.exceptions import FileError, ValidationError
 
 
 DD_1 = {
@@ -124,9 +124,10 @@ def test_blueprint_save():
 
 def test_blueprint_read_cba_metadata():
     b = Blueprint(b"test cba - it will never work")
-    with raises(ValueError):
+    with raises(ValidationError) as exc:
         b.get_cba_metadata(b"Invalid")
         b.get_cba_metadata(b"123: 456")
+    assert exc.type is ValidationError
 
     cba_metadata = b.get_cba_metadata(vLB_CBA_Python_meta_bytes)
     assert cba_metadata.tosca_meta_file_version == "1.0.0"
