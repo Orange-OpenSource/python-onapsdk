@@ -280,31 +280,23 @@ class LoopInstance(Clamp):
                                                                add_minmax_config,
                                                                add_frequency_limiter)
 
-        Raises:
-            ValueError : Couldn't load the payload data properly from configuration
-
         """
         data = func(**kwargs)
         if not data:
-            raise ValueError("Couldn't load the payload data properly from configuration")
+            raise ParameterError("Payload data from configuration is None.")
         if self.operational_policies:
             self.operational_policies = self.operational_policies[:-1] + ","
             data = data[1:]
         self.operational_policies += data
         url = f"{self.base_url()}/loop/updateOperationalPolicies/{self.name}"
-        upload_result = self.send_message('POST',
-                                          'ADD operational policy config',
-                                          url,
-                                          data=self.operational_policies,
-                                          cert=self.cert,
-                                          exception=ValueError)
-        if upload_result:
-            self._logger.info(("Files for op policy config %s have been uploaded to loop's"
-                               "Op policy"), self.name)
-        else:
-            self._logger.error(("an error occured during file upload for config to loop's"
-                                " Op policy %s"), self.name)
-            raise ValueError("Couldn't add the operational policy configuration")
+        self.send_message('POST',
+                          'ADD operational policy config',
+                          url,
+                          data=self.operational_policies,
+                          cert=self.cert)
+                                          
+        self._logger.info(("Files for op policy config %s have been uploaded to loop's"
+                           "Op policy"), self.name)
 
     def submit(self):
         """Submit policies to policy engine."""
