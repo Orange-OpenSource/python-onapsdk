@@ -217,19 +217,20 @@ class LoopInstance(Clamp):
         Return operational policy name for a closed loop and a given policy.
 
         Args:
-            policy_type (str): the policy acronym
+            policy_type (str): the policy acronym.
 
         Raises:
-            ValueError : Couldn't load thhe operational policy name
+            ParameterError : Couldn't load the operational policy name.
 
         Returns:
-            Operational policy name in the loop details after adding a policy
+            Operational policy name in the loop details after adding a policy.
 
         """
         for policy in filter(lambda x: x["policyModel"]["policyAcronym"] == policy_type,
                              self.details["operationalPolicies"]):
-            return  policy["name"]
-        raise ValueError("Couldn't load thhe operational policy name")
+            return policy["name"]
+
+        raise ParameterError("Couldn't load the operational policy name.")
 
     def add_drools_conf(self) -> dict:
         """Add drools configuration."""

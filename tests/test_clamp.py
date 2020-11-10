@@ -381,9 +381,10 @@ def test_extract_none():
     """Test Loop Instance extract operational policy name."""
     loop = LoopInstance(template="template", name="test", details={})
     loop.details = {"operationalPolicies":[]}
-    with pytest.raises(ValueError):
+    with pytest.raises(ParameterError) as exc:
         policy_name = loop.extract_operational_policy_name(policy_type="Drools")
         assert policy_name == None
+    assert exc.type is ParameterError
 
 
 @mock.patch.object(LoopInstance, 'extract_operational_policy_name')
