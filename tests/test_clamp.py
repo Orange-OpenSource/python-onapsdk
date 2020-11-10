@@ -10,6 +10,7 @@ import pytest
 
 from onapsdk.clamp.clamp_element import Clamp
 from onapsdk.clamp.loop_instance import LoopInstance
+from onapsdk.exceptions import ResourceNotFound
 from onapsdk.sdc.service import Service
 
 #examples
@@ -150,9 +151,10 @@ def test_check_loop_template_none(mock_send_message_json):
     """Test Clamp's class method."""
     svc = Service(name='test')
     mock_send_message_json.return_value = {}
-    with pytest.raises(ValueError):
+    with pytest.raises(ResourceNotFound) as exc:
         template = Clamp.check_loop_template(service=svc)
         assert template is None
+    assert exc.type is ResourceNotFound
 
 
 @mock.patch.object(Clamp, 'send_message_json')
