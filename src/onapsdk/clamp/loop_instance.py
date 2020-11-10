@@ -8,6 +8,7 @@ from jsonschema import validate, ValidationError
 
 from onapsdk.clamp.clamp_element import Clamp
 from onapsdk.utils.jinja import jinja_env
+from onapsdk.exceptions import ParameterError, ResourceNotFound
 
 
 class LoopInstance(Clamp):
@@ -51,7 +52,7 @@ class LoopInstance(Clamp):
         Update loop details.
 
         Raises:
-            ValueError : error occured while loading the loop details
+            ParameterError : error occured while loading the loop details
 
         Returns:
             the dictionnary of loop details
@@ -64,14 +65,14 @@ class LoopInstance(Clamp):
                                               cert=self.cert)
         if loop_details:
             return loop_details
-        raise ValueError("Couldn't get the appropriate details")
+        raise ResourceNotFound("Couldn't get the appropriate details.")
 
     def refresh_status(self) -> None:
         """
         Reshresh loop status.
 
         Raises:
-            ValueError : error occured while refreshing the loop status
+            ParameterError : error occured while refreshing the loop status
 
         """
         url = f"{self.base_url()}/loop/getstatus/{self.name}"
@@ -82,7 +83,8 @@ class LoopInstance(Clamp):
         if loop_details:
             self.details = loop_details
         else:
-            raise ValueError("Couldn't get the appropriate status")
+            msg = "Cano not set the loop status. The status is not found."
+            raise ParameterError(msg)
 
     @property
     def loop_schema(self) -> dict:

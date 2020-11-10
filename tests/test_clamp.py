@@ -10,7 +10,7 @@ import pytest
 
 from onapsdk.clamp.clamp_element import Clamp
 from onapsdk.clamp.loop_instance import LoopInstance
-from onapsdk.exceptions import ResourceNotFound
+from onapsdk.exceptions import ParameterError, ResourceNotFound
 from onapsdk.sdc.service import Service
 
 #examples
@@ -225,12 +225,13 @@ def test_refresh_status_error(mock_send_message_json):
     """Test Loop instance methode."""
     loop = LoopInstance(template="template", name="test", details={})
     mock_send_message_json.return_value = {}
-    with pytest.raises(ValueError):       
+    with pytest.raises(ParameterError) as exc:       
         loop.refresh_status()
         mock_send_message_json.assert_called_once_with('GET', 'Get loop status',
             (f"{loop.base_url()}/loop/getstatus/LOOP_test"),
             cert=loop.cert)
         assert loop.details == {}
+    assert exc.type is ParameterError
 
 
 @mock.patch.object(LoopInstance, 'send_message_json')
@@ -238,11 +239,12 @@ def test_not_update_loop_details(mock_send_message_json):
     """Test Loop instance update details."""
     loop = LoopInstance(template="template", name="test", details={})
     mock_send_message_json.return_value = {}
-    with pytest.raises(ValueError):
+    with pytest.raises(ResourceNotFound) as exc:
         loop._update_loop_details()
         mock_send_message_json.assert_called_once_with('POST', 'Create Loop Instance',
-            (f"{instance.base_url()}/loop/create/LOOP_test?templateName=template"),
-            cert=instance.cert)
+            (f"{loop.base_url()}/loop/create/LOOP_test?templateName=template"),
+            cert=loop.cert)
+    assert exc.type is ResourceNotFound
 
 
 def test_validate_details():
