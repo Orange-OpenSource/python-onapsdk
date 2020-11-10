@@ -84,7 +84,7 @@ class LoopInstance(Clamp):
             self.details = loop_details
         else:
             msg = "Cano not set the loop status. The status is not found."
-            raise ParameterError(msg)
+            raise ParameterError(msg)  # FIXME remove or leave | requirement from API
 
     @property
     def loop_schema(self) -> dict:
@@ -136,7 +136,7 @@ class LoopInstance(Clamp):
         if  instance_details:
             self.details = instance_details
         else:
-            raise ValueError("Couldn't create the instance")
+            raise ValueError("Couldn't create an instance.")  # FIXME remove or change | requirement from API
 
     def add_operational_policy(self, policy_type: str, policy_version: str) -> None:
         """
@@ -162,7 +162,7 @@ class LoopInstance(Clamp):
                 self.details["operationalPolicies"]))):
             self.details = add_response
         else:
-            raise ValueError("Couldn't add the operational policy")
+            raise ValueError("Couldn't add the operational policy")  # FIXME remove or change | requirement from API
 
     def remove_operational_policy(self, policy_type: str, policy_version: str) -> None:
         """
