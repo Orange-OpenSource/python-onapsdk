@@ -8,13 +8,13 @@ from jsonschema import validate, ValidationError
 
 from onapsdk.clamp.clamp_element import Clamp
 from onapsdk.utils.jinja import jinja_env
-from onapsdk.exceptions import APIError, ParameterError
+from onapsdk.exceptions import ParameterError
 
 
 class LoopInstance(Clamp):
     """Control Loop instantiation class."""
 
-    #class variable
+    # class variable
     _loop_schema = None
     operational_policies = ""
 
@@ -51,9 +51,6 @@ class LoopInstance(Clamp):
         """
         Update loop details.
 
-        Raises:
-            ParameterError : error occured while loading the loop details
-
         Returns:
             the dictionnary of loop details
 
@@ -66,13 +63,7 @@ class LoopInstance(Clamp):
         return loop_details
 
     def refresh_status(self) -> None:
-        """
-        Reshresh loop status.
-
-        Raises:
-            ParameterError : error occured while refreshing the loop status
-
-        """
+        """Reshresh loop status."""
         url = f"{self.base_url()}/loop/getstatus/{self.name}"
         loop_details = self.send_message_json('GET',
                                               'Get loop status',
@@ -116,13 +107,7 @@ class LoopInstance(Clamp):
         return True
 
     def create(self) -> None:
-        """
-        Create instance and load loop details.
-
-        Raises:
-            ValueError : error occured while creating the loop
-
-        """
+        """Create instance and load loop details."""
         url = f"{self.base_url()}/loop/create/{self.name}?templateName={self.template}"
         instance_details = self.send_message_json('POST',
                                                   'Create Loop Instance',
@@ -182,17 +167,13 @@ class LoopInstance(Clamp):
         self.details = self.send_message_json('PUT',
                                               'Remove Operational Policy',
                                               url,
-                                              cert=self.cert,
-                                              exception=ValueError)
+                                              cert=self.cert)
 
     def update_microservice_policy(self) -> None:
         """
         Update microservice policy configuration.
 
         Update microservice policy configuration using payload data.
-
-        Raises:
-            APIError : Couldn't update microservice policy.
 
         """
         url = f"{self.base_url()}/loop/updateMicroservicePolicy/{self.name}"
@@ -201,16 +182,12 @@ class LoopInstance(Clamp):
                                         ["uniqueBlueprintParameters"]["policy_id"]
         data = template.render(name=microservice_name,
                                LOOP_name=self.name)
-        try:
-            self.send_message('POST',
-                              'ADD TCA config',
-                              url,
-                              data=data,
-                              cert=self.cert)
-        except APIError as exc:
-            self._logger.error(("an error occured during file upload for TCA config to loop's"
-                                " microservice %s"), self.name)
-            raise exc
+
+        self.send_message('POST',
+                          'ADD TCA config',
+                          url,
+                          data=data,
+                          cert=self.cert)
 
     def extract_operational_policy_name(self, policy_type: str) -> str:
         """
@@ -294,7 +271,7 @@ class LoopInstance(Clamp):
                           url,
                           data=self.operational_policies,
                           cert=self.cert)
-                                          
+
         self._logger.info(("Files for op policy config %s have been uploaded to loop's"
                            "Op policy"), self.name)
 
@@ -328,8 +305,7 @@ class LoopInstance(Clamp):
         self.send_message('PUT',
                           f'{func.__name__} policy',
                           url,
-                          cert=self.cert,
-                          exception=ValueError)
+                          cert=self.cert)
         self.refresh_status()
         self.validate_details()
         return func()
@@ -346,8 +322,7 @@ class LoopInstance(Clamp):
         self.send_message('PUT',
                           'Deploy microservice to DCAE',
                           url,
-                          cert=self.cert,
-                          exception=ValueError)
+                          cert=self.cert)
         self.validate_details()
         state = self.details["components"]["DCAE"]["componentState"]["stateName"]
         failure = "MICROSERVICE_INSTALLATION_FAILED"
@@ -364,8 +339,7 @@ class LoopInstance(Clamp):
         self.send_message('PUT',
                           'Undeploy microservice from DCAE',
                           url,
-                          cert=self.cert,
-                          exception=ValueError)
+                          cert=self.cert)
 
     def delete(self) -> None:
         """Delete the loop instance."""
@@ -374,5 +348,4 @@ class LoopInstance(Clamp):
         self.send_message('PUT',
                           'Delete loop instance',
                           url,
-                          cert=self.cert,
-                          exception=ValueError)
+                          cert=self.cert)
