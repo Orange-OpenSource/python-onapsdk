@@ -448,7 +448,7 @@ class Blueprint(CdsElement):
             with open(cba_file_path, "rb") as cba_file:
                 return Blueprint(cba_file.read())
         except FileNotFoundError as exc:
-            msg = f"The requested file with a blueprint doesn't exist."
+            msg = "The requested file with a blueprint doesn't exist."
             raise FileError(msg) from exc
 
     def enrich(self) -> "Blueprint":

@@ -10,7 +10,7 @@ import pytest
 
 from onapsdk.clamp.clamp_element import Clamp
 from onapsdk.clamp.loop_instance import LoopInstance
-from onapsdk.exceptions import ParameterError, ResourceNotFound
+from onapsdk.exceptions import APIError, ParameterError, ResourceNotFound
 from onapsdk.sdc.service import Service
 
 #examples
@@ -220,33 +220,6 @@ def test_refresh_status(mock_send_message_json):
     assert loop.details == LOOP_DETAILS
 
 
-@mock.patch.object(LoopInstance, 'send_message_json')
-def test_refresh_status_error(mock_send_message_json):
-    """Test Loop instance methode."""
-    loop = LoopInstance(template="template", name="test", details={})
-    mock_send_message_json.return_value = {}
-    with pytest.raises(ParameterError) as exc:       
-        loop.refresh_status()
-        mock_send_message_json.assert_called_once_with('GET', 'Get loop status',
-            (f"{loop.base_url()}/loop/getstatus/LOOP_test"),
-            cert=loop.cert)
-        assert loop.details == {}
-    assert exc.type is ParameterError
-
-
-@mock.patch.object(LoopInstance, 'send_message_json')
-def test_not_update_loop_details(mock_send_message_json):
-    """Test Loop instance update details."""
-    loop = LoopInstance(template="template", name="test", details={})
-    mock_send_message_json.return_value = {}
-    with pytest.raises(ResourceNotFound) as exc:
-        loop._update_loop_details()
-        mock_send_message_json.assert_called_once_with('POST', 'Create Loop Instance',
-            (f"{loop.base_url()}/loop/create/LOOP_test?templateName=template"),
-            cert=loop.cert)
-    assert exc.type is ResourceNotFound
-
-
 def test_validate_details():
     """Test Loop instance details validation."""
     loop = LoopInstance(template="template", name="test", details=LOOP_DETAILS)
@@ -276,18 +249,6 @@ def test_create(mock_send_message_json):
 
 
 @mock.patch.object(LoopInstance, 'send_message_json')
-def test_create_none(mock_send_message_json):
-    """Test Loop instance creation."""
-    instance = LoopInstance(template="template", name="test", details={})
-    mock_send_message_json.return_value = {}
-    with pytest.raises(ValueError):
-        instance.create()
-        mock_send_message_json.assert_called_once_with('POST', 'Create Loop Instance',
-            (f"{instance.base_url()}/loop/create/LOOP_test?templateName=template"),
-            cert=instance.cert)
-
-
-@mock.patch.object(LoopInstance, 'send_message_json')
 def test_add_operational_policy(mock_send_message_json):
     """Test adding an op policy."""
     loop = LoopInstance(template="template", name="test", details={})
@@ -310,8 +271,8 @@ def test_add_operational_policy(mock_send_message_json):
 
 
 @mock.patch.object(LoopInstance, 'send_message_json')
-def test_not_add_operational_policy(mock_send_message_json):
-    """Test adding an op policy."""
+def test_not_add_operational_policy_parameter_error(mock_send_message_json):
+    """Test adding an op policy - mistaken policy version."""
     loop = LoopInstance(template="template", name="test", details={})
     loop.details = {
         "name" : "LOOP_test",
@@ -322,14 +283,47 @@ def test_not_add_operational_policy(mock_send_message_json):
             }
         ]
     }
-    with pytest.raises(ValueError):
+    with pytest.raises(ParameterError) as exc:
         mock_send_message_json.return_value = loop.details
-        #mistaken policy version
         loop.add_operational_policy(policy_type="FrequencyLimiter", policy_version="not_correct")
         mock_send_message_json.assert_called_once_with('PUT', 'Create Operational Policy',
             (f"{loop.base_url()}/loop/addOperationaPolicy/{loop.name}/policyModel/FrequencyLimiter/not_correct"),
             cert=loop.cert)
         assert len(loop.details["operationalPolicies"]) == 0
+        assert exc.type is ParameterError
+
+@mock.patch.object(LoopInstance, 'send_message_json')
+def test_add_operational_policy_key_parameter_error(mock_send_message_json):
+    """Test adding an op policy - key doesn't exist."""
+    loop = LoopInstance(template="template", name="test", details={})
+    loop.details = {}
+    with pytest.raises(ParameterError) as exc:
+        mock_send_message_json.return_value = loop.details
+        loop.add_operational_policy(policy_type="FrequencyLimiter", policy_version="not_correct")
+        mock_send_message_json.assert_called_once_with('PUT', 'Create Operational Policy',
+                (f"{loop.base_url()}/loop/addOperationaPolicy/{loop.name}/policyModel/FrequencyLimiter/not_correct"),
+                cert=loop.cert)
+        assert exc.type is ParameterError
+
+@mock.patch.object(LoopInstance, 'send_message_json')
+def test_add_operational_policy_condition_parameter_error(mock_send_message_json):
+    """Test adding an op policy - response cintains more policies."""
+    
+    key = "operationalPolicies"
+    
+    response_policies = ["one"]           # N policies
+    current_policies = ["one", "two"]   # N+1 policies
+
+    details = {key: current_policies}
+    response = {key: response_policies}
+    
+    loop = LoopInstance(template="template", name="test", details=details)
+
+    assert len(response_policies) < len(current_policies)  # raising condition
+    with pytest.raises(ParameterError) as exc:
+        mock_send_message_json.return_value = response
+        loop.add_operational_policy(policy_type="FrequencyLimiter", policy_version="not_correct")
+    assert exc.type is ParameterError
 
 
 @mock.patch.object(LoopInstance, 'send_message_json')

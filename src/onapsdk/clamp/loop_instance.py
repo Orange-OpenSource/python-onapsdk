@@ -8,7 +8,7 @@ from jsonschema import validate, ValidationError
 
 from onapsdk.clamp.clamp_element import Clamp
 from onapsdk.utils.jinja import jinja_env
-from onapsdk.exceptions import APIError, ParameterError, RequestError, ResourceNotFound
+from onapsdk.exceptions import APIError, ParameterError
 
 
 class LoopInstance(Clamp):
@@ -63,9 +63,7 @@ class LoopInstance(Clamp):
                                               'Get loop details',
                                               url,
                                               cert=self.cert)
-        if loop_details:
-            return loop_details
-        raise ResourceNotFound("Couldn't get the appropriate details.")
+        return loop_details
 
     def refresh_status(self) -> None:
         """
@@ -80,11 +78,8 @@ class LoopInstance(Clamp):
                                               'Get loop status',
                                               url,
                                               cert=self.cert)
-        if loop_details:
-            self.details = loop_details
-        else:
-            msg = "Cano not set the loop status. The status is not found."
-            raise ParameterError(msg)  # FIXME remove or leave | requirement from API
+
+        self.details = loop_details
 
     @property
     def loop_schema(self) -> dict:
@@ -133,10 +128,7 @@ class LoopInstance(Clamp):
                                                   'Create Loop Instance',
                                                   url,
                                                   cert=self.cert)
-        if  instance_details:
-            self.details = instance_details
-        else:
-            raise ValueError("Couldn't create an instance.")  # FIXME remove or change | requirement from API
+        self.details = instance_details
 
     def add_operational_policy(self, policy_type: str, policy_version: str) -> None:
         """
@@ -147,7 +139,9 @@ class LoopInstance(Clamp):
             policy_version (str): policy version
 
         Raises:
-            ValueError : Couldn't add the operational policy
+            ParameterError : Corrupt response or a key in a dictionary not found.
+                It will also be raised when the response contains more operational
+                policies than there are currently.
 
         """
         url = (f"{self.base_url()}/loop/addOperationaPolicy/{self.name}/"
@@ -156,13 +150,23 @@ class LoopInstance(Clamp):
                                               'Create Operational Policy',
                                               url,
                                               cert=self.cert)
-        if self.details["operationalPolicies"] is None:
-            self.details["operationalPolicies"] = []
-        if (add_response and (len(add_response["operationalPolicies"]) > len(
-                self.details["operationalPolicies"]))):
+
+        key = "operationalPolicies"
+
+        try:
+            if self.details[key] is None:
+                self.details[key] = []
+
+            response_policies = add_response[key]
+            current_policies = self.details[key]
+        except KeyError as exc:
+            msg = 'Corrupt response, current loop details. Key not found.'
+            raise ParameterError(msg) from exc
+
+        if len(response_policies) > len(current_policies):
             self.details = add_response
         else:
-            raise ValueError("Couldn't add the operational policy")  # FIXME remove or change | requirement from API
+            raise ParameterError("Couldn't add the operational policy.")
 
     def remove_operational_policy(self, policy_type: str, policy_version: str) -> None:
         """

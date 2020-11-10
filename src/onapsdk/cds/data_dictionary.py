@@ -85,7 +85,6 @@ class DataDictionary(CdsElement):
 
     def upload(self) -> None:
         """Upload data dictionary using CDS API."""
-
         self.logger.debug("Upload %s data dictionary", self.name)
         self.send_message(
             "POST",
@@ -235,4 +234,3 @@ class DataDictionarySet:
         except FileNotFoundError as exc:
             msg = "File with a set of data dictionaries does not exist."
             raise FileError(msg) from exc
-
