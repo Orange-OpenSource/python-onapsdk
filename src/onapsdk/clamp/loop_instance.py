@@ -8,7 +8,7 @@ from jsonschema import validate, ValidationError
 
 from onapsdk.clamp.clamp_element import Clamp
 from onapsdk.utils.jinja import jinja_env
-from onapsdk.exceptions import ParameterError, ResourceNotFound
+from onapsdk.exceptions import APIError, ParameterError, RequestError, ResourceNotFound
 
 
 class LoopInstance(Clamp):
@@ -188,7 +188,7 @@ class LoopInstance(Clamp):
         Update microservice policy configuration using payload data.
 
         Raises:
-            ValueError : Couldn't update microservice policy
+            APIError : Couldn't update microservice policy.
 
         """
         url = f"{self.base_url()}/loop/updateMicroservicePolicy/{self.name}"
@@ -202,12 +202,11 @@ class LoopInstance(Clamp):
                               'ADD TCA config',
                               url,
                               data=data,
-                              cert=self.cert,
-                              exception=ValueError)
-        except  ValueError:
+                              cert=self.cert)
+        except APIError as exc:
             self._logger.error(("an error occured during file upload for TCA config to loop's"
                                 " microservice %s"), self.name)
-            raise ValueError("Couldn't update microservice policy")
+            raise exc
 
     def extract_operational_policy_name(self, policy_type: str) -> str:
         """
