@@ -86,11 +86,34 @@ $ tox
 ```
 
 Please note that the above runs unit tests on all major versions of Python available on your
-OS (3.7, 3.8, 3.9). To limit execution to only specific version of Python Interpreter,
+OS (3.7, 3.8, 3.9). To limit execution to only specific version of Python interpreter,
 use the following example:
 
 ```
 $ tox -e py37
+```
+
+### Integration testing
+
+It is possible to run integration tests using [mock-servers](https://gitlab.com/Orange-OpenSource/lfn/onap/mock_servers)
+project. 
+Make sure Docker Compose is available on your system. Install required dependencies:
+```
+$ pip install pytest mock
+```
+
+Go to *integration_tests/* directory and execute:
+```
+$ docker-compose up
+```
+Please note that *docker-compose* attempts to create subnet 172.20.0.0/24, so it can not be run if the scope is already allocated.
+Also, containers are not reachable by their IP addresses on Windows host since 
+Docker for Windows [does not support](https://docs.docker.com/docker-for-windows/networking/#known-limitations-use-cases-and-workarounds) 
+bridged network interface for Linux containers.
+
+Once containers are running, execute the following in the project's directory:
+```
+$ PYTHONPATH=$PYTHONPATH:integration_tests/:src/ ONAP_PYTHON_SDK_SETTINGS="local_urls" pytest -c /dev/null --verbose --junitxml=pytest-integration.xml integration_tests
 ```
 
 Please make sure all the test are passing before creating merge request.

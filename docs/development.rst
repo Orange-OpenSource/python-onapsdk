@@ -81,4 +81,36 @@ use the following example:
 
     $ tox -e py37
 
+Integration testing
+-------------------
+
+It is possible to run integration tests using mock-servers_ project.
+
+.. _mock-servers: https://gitlab.com/Orange-OpenSource/lfn/onap/mock_servers
+
+Make sure Docker Compose is available on your system. Install required dependencies:
+
+.. code:: shell
+
+    $ pip install pytest mock
+
+Go to *integration_tests/* directory and execute:
+
+.. code:: shell
+
+    $ docker-compose up
+
+Please note that *docker-compose* attempts to create subnet 172.20.0.0/24, so it can not be run if the scope is already allocated.
+Also, containers are not reachable by their IP addresses on Windows host since
+Docker for Windows does not support bridged network interface for Linux containers.
+For reference, please see Docker docs_.
+
+.. _docs: https://docs.docker.com/docker-for-windows/networking/#known-limitations-use-cases-and-workarounds
+
+Once containers are running, execute the following in the project's directory:
+
+.. code:: shell
+
+    $ PYTHONPATH=$PYTHONPATH:integration_tests/:src/ ONAP_PYTHON_SDK_SETTINGS="local_urls" pytest -c /dev/null --verbose --junitxml=pytest-integration.xml integration_tests
+
 Please make sure all the test are passing before creating merge request.
