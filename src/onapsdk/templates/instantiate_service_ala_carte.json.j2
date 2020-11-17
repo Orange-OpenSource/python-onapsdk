@@ -19,7 +19,14 @@
             "lcpCloudRegionId": "{{ cloud_region.cloud_region_id }}"
         },
 		"requestParameters": {
-			"userParams": [],
+			"userParams": [
+                {% if enable_multicloud %}
+                {
+                    "name":"orchestrator",
+                    "value":"multicloud"
+                }
+                {% endif %}
+			],
 			"testApi": "GR_API",
 			"subscriptionServiceType": "{{ sdc_service.name }}",
 			"aLaCarte": true
