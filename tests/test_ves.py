@@ -2,13 +2,14 @@
 # Copyright 2020 Nokia
 import os
 from unittest.mock import patch
+import json
 
 from onapsdk.ves.ves import Ves, ACTION, POST_HTTP_METHOD
 
 VERSION = "v7"
 
-VES_URL = f"https://ves.api.simpledemo.onap.org:30417/eventListener/{VERSION}"
-VES_BATCH_URL = f"https://ves.api.simpledemo.onap.org:30417/eventListener/{VERSION}/eventBatch"
+VES_URL = f"http://ves.api.simpledemo.onap.org:30417/eventListener/{VERSION}"
+VES_BATCH_URL = f"http://ves.api.simpledemo.onap.org:30417/eventListener/{VERSION}/eventBatch"
 
 TEST_EVENT = '{"event": {"test": "val"}}'
 
@@ -37,7 +38,7 @@ def test_should_send_event_batch_to_ves_service(send_message_mock):
 def verify_that_event_was_send_to_ves(expected_event, send_message_mock, ves_url):
     send_message_mock.assert_called_once_with(
         POST_HTTP_METHOD, ACTION, ves_url,
-        data=expected_event,
-        basic_auth=None
+        basic_auth=None,
+        json=json.loads(expected_event)
     )
     send_message_mock.return_value = None
