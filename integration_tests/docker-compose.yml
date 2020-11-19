@@ -35,11 +35,16 @@ services:
         networks:
             sdk_integration:
                 ipv4_address: 172.20.0.8
-    dcae.api.simpledemo.onap.org:
-        image: registry.gitlab.com/orange-opensource/lfn/onap/mock_servers/mock-dcae
+    ves.api.simpledemo.onap.org:
+        image: registry.gitlab.com/orange-opensource/lfn/onap/mock_servers/mock-dcae/mock-ves
         networks:
             sdk_integration:
                 ipv4_address: 172.20.0.9
+    dmaap.api.simpledemo.onap.org:
+        image: registry.gitlab.com/orange-opensource/lfn/onap/mock_servers/mock-dmaap
+        networks:
+            sdk_integration:
+                ipv4_address: 172.20.0.10
 
 networks:
     sdk_integration:
