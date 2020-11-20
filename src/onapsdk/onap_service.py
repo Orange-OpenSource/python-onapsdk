@@ -106,11 +106,13 @@ class OnapService(ABC):
             cls._logger.debug("[%s][%s] response: %s", cls.server, action,
                               response.text)
             return response
-        except requests.HTTPError:
+        except requests.HTTPError as http_err:
             cls._logger.error("[%s][%s] response code: %s", cls.server, action,
-                              response.status_code if response else "n/a")
+                              http_err.response.status_code if http_err.response is not None \
+                                  else "n/a")
             cls._logger.error("[%s][%s] response: %s", cls.server, action,
-                              response.text if response else "n/a")
+                              http_err.response.text if http_err.response is not None \
+                                  else "n/a")
         except requests.RequestException as err:
             cls._logger.error("[%s][%s] Failed to perform: %s", cls.server,
                               action, err)
