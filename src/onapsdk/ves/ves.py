@@ -3,6 +3,7 @@
 """Base VES event sender."""
 from typing import Dict, Union
 
+import json
 import requests
 
 from onapsdk.ves.ves_service import VesService
@@ -62,12 +63,11 @@ class Ves(VesService):
                              json_event: str,
                              basic_auth: Dict[str, str] = None
                              ) -> Union[requests.Response, None]:
-
         cls._logger.debug("Event to send %s", json_event)
         return cls.send_message(
             POST_HTTP_METHOD,
             ACTION,
             f"{base_url}",
             basic_auth=basic_auth,
-            data=json_event
+            json=json.loads(json_event)
         )
