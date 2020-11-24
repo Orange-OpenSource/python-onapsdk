@@ -467,3 +467,10 @@ def test_component_property_set_value(mock_component_properties):
 
     prop1.value = "123"
     mock_sdc_resource.send_message_json.assert_called_once()
+
+@mock.patch.object(SdcResource, "_action_to_sdc")
+def test_sdc_resource_checkout(mock_action_to_sdc):
+    sdc_resource = SdcResource()
+    sdc_resource.checkout()
+    mock_action_to_sdc.return_value = None
+    mock_action_to_sdc.assert_called_once_with(const.CHECKOUT, "lifecycleState")
