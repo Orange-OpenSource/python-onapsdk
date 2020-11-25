@@ -392,7 +392,6 @@ def test_class_variables():
     """Test the class variables."""
     assert AaiElement.server == "AAI"
     assert AaiElement.base_url == "https://aai.api.sparky.simpledemo.onap.org:30233"
-    assert AaiElement.api_version == "/aai/v16"
     assert AaiElement.headers == {
         "Content-Type": "application/json",
         "Accept": "application/json",
