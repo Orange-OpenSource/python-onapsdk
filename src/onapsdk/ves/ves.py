@@ -22,7 +22,7 @@ class Ves(VesService):
     def send_event(cls,
                    version: str,
                    json_event: str,
-                   basic_auth: Dict[str, str] = None) -> Union[requests.Response, None]:
+                   basic_auth: Dict[str, str]) -> Union[requests.Response, None]:
         """
         Send an event stored in a file to VES.
 
@@ -41,7 +41,7 @@ class Ves(VesService):
     def send_batch_event(cls,
                          version: str,
                          json_event: str,
-                         basic_auth: Dict[str, str] = None) -> Union[requests.Response, None]:
+                         basic_auth: Dict[str, str]) -> Union[requests.Response, None]:
         """
         Send a batch event stored in a file to VES.
 
@@ -61,7 +61,7 @@ class Ves(VesService):
     def __send_event_message(cls,
                              base_url: str,
                              json_event: str,
-                             basic_auth: Dict[str, str] = None
+                             basic_auth: Dict[str, str]
                              ) -> Union[requests.Response, None]:
         cls._logger.debug("Event to send %s", json_event)
         return cls.send_message(
