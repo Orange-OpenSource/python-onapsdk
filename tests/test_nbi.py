@@ -1,3 +1,4 @@
+from collections import namedtuple
 from unittest import mock
 
 import pytest
@@ -512,4 +513,6 @@ def test_service_order_wait_for_finish():
             service_order.WAIT_FOR_SLEEP_TIME = 0
             mock_finished.side_effect = [False, False, True]
             mock_completed.return_value = True
-            assert service_order.wait_for_finish()
+            rv = namedtuple("Value", ["return_value"])
+            service_order._wait_for_finish(rv)
+            assert rv.return_value

@@ -8,6 +8,7 @@ from unittest.mock import MagicMock, patch, PropertyMock, mock_open
 from pytest import raises
 
 from onapsdk.cds.blueprint import Blueprint, CbaMetadata, Mapping, MappingSet, Workflow
+from onapsdk.cds.blueprint_processor import Blueprintprocessor
 from onapsdk.cds.cds_element import CdsElement
 from onapsdk.cds.data_dictionary import DataDictionary, DataDictionarySet
 from onapsdk.exceptions import FileError, ValidationError
@@ -295,3 +296,16 @@ def test_data_dictionary_validation():
     assert not raw_dd.has_valid_schema()
     raw_dd = DataDictionary(RAW_DD, fix_schema=True)
     assert raw_dd.has_valid_schema()
+
+
+@patch.object(Blueprintprocessor, "send_message")
+def test_blueprintprocessor_bootstrap(mock_send_message):
+
+    Blueprintprocessor.bootstrap()
+    assert mock_send_message.called_once()
+    assert mock_send_message.call_args[1]["data"] == '{\n    "loadModelType" : true,\n    "loadResourceDictionary" : true,\n    "loadCBA" : true\n}'
+    mock_send_message.reset_mock()
+
+    Blueprintprocessor.bootstrap(load_cba=False, load_model_type=False, load_resource_dictionary=False)
+    assert mock_send_message.called_once()
+    assert mock_send_message.call_args[1]["data"] == '{\n    "loadModelType" : false,\n    "loadResourceDictionary" : false,\n    "loadCBA" : false\n}'

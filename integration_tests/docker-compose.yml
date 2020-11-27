@@ -1,0 +1,53 @@
+version: "3.4"
+services:
+    sdc.api.fe.simpledemo.onap.org:
+        image: registry.gitlab.com/orange-opensource/lfn/onap/mock_servers/mock-sdc:develop
+        networks:
+            sdk_integration:
+                ipv4_address: 172.20.0.2
+    aai.api.sparky.simpledemo.onap.org:
+        image: registry.gitlab.com/orange-opensource/lfn/onap/mock_servers/mock-aai
+        networks:
+            sdk_integration:
+                ipv4_address: 172.20.0.3
+    so.api.simpledemo.onap.org:
+        image: registry.gitlab.com/orange-opensource/lfn/onap/mock_servers/mock-so
+        networks:
+            sdk_integration:
+                ipv4_address: 172.20.0.4
+    sdnc.api.simpledemo.onap.org:
+        image: registry.gitlab.com/orange-opensource/lfn/onap/mock_servers/mock-sdnc
+        networks:
+            sdk_integration:
+                ipv4_address: 172.20.0.5
+    clamp.api.simpledemo.onap.org:
+        image: registry.gitlab.com/orange-opensource/lfn/onap/mock_servers/mock-clamp:develop
+        networks:
+            sdk_integration:
+                ipv4_address: 172.20.0.6
+    cds.api.simpledemo.onap.org:
+        image: registry.gitlab.com/orange-opensource/lfn/onap/mock_servers/mock-cds
+        networks:
+            sdk_integration:
+                ipv4_address: 172.20.0.7
+    msb.k8s.api.simpledemo.onap.org:
+        image: registry.gitlab.com/orange-opensource/lfn/onap/mock_servers/mock-msb-k8s
+        networks:
+            sdk_integration:
+                ipv4_address: 172.20.0.8
+    ves.api.simpledemo.onap.org:
+        image: registry.gitlab.com/orange-opensource/lfn/onap/mock_servers/mock-dcae/mock-ves
+        networks:
+            sdk_integration:
+                ipv4_address: 172.20.0.9
+    dmaap.api.simpledemo.onap.org:
+        image: registry.gitlab.com/orange-opensource/lfn/onap/mock_servers/mock-dmaap
+        networks:
+            sdk_integration:
+                ipv4_address: 172.20.0.10
+
+networks:
+    sdk_integration:
+        ipam:
+            config:
+                - subnet: 172.20.0.0/24

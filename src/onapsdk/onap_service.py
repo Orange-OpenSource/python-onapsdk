@@ -64,7 +64,7 @@ class OnapService(ABC):
         """Initialize the service."""
     @classmethod
     def send_message(cls, method: str, action: str, url: str,
-                     **kwargs) -> Union[requests.Request, None]:
+                     **kwargs) -> Union[requests.Response, None]:
         """
         Send a message to an ONAP service.
 
@@ -89,6 +89,7 @@ class OnapService(ABC):
 
         """
         cert = kwargs.pop('cert', None)
+        basic_auth: Dict[str, str] = kwargs.pop('basic_auth', None)
         exception = kwargs.pop('exception', None)
         headers = kwargs.pop('headers', cls.headers)
         data = kwargs.get('data', None)
@@ -97,6 +98,7 @@ class OnapService(ABC):
             session = cls.__requests_retry_session()
             if cert:
                 session.cert = cert
+            OnapService._set_basic_auth_if_needed(basic_auth, session)
 
             cls._logger.debug("[%s][%s] sent header: %s", cls.server, action,
                               headers)
@@ -111,10 +113,14 @@ class OnapService(ABC):
                                        proxies=cls.proxy,
                                        **kwargs)
 
-            cls._logger.info("[%s][%s] response code: %s", cls.server, action,
-                             response.status_code)
-            cls._logger.debug("[%s][%s] response: %s", cls.server, action,
-                              response.text)
+            cls._logger.info(
+                "[%s][%s] response code: %s",
+                cls.server, action,
+                response.status_code if response is not None else "n/a")
+            cls._logger.debug(
+                "[%s][%s] response: %s",
+                cls.server, action,
+                response.text if response is not None else "n/a")
 
             response.raise_for_status()
             return response
@@ -148,6 +154,11 @@ class OnapService(ABC):
             raise RequestError(msg)
 
         raise exception
+
+    @classmethod
+    def _set_basic_auth_if_needed(cls, basic_auth, session):
+        if basic_auth:
+            session.auth = (basic_auth.get('username'), basic_auth.get('password'))
 
     @classmethod
     def send_message_json(cls, method: str, action: str, url: str,

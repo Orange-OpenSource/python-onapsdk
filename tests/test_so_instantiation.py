@@ -1,4 +1,5 @@
 import json
+from collections import namedtuple
 from unittest import mock
 
 import pytest
@@ -439,7 +440,9 @@ def test_instantiation_wait_for_finish():
             instantiation.WAIT_FOR_SLEEP_TIME = 0
             mock_finished.side_effect = [False, False, True]
             mock_completed.return_value = True
-            assert instantiation.wait_for_finish()
+            rv = namedtuple("Value", ["return_value"])
+            instantiation._wait_for_finish(rv)
+            assert rv.return_value
 
 @mock.patch.object(ServiceInstantiation, "send_message_json")
 def test_service_instantiation_multicloud(mock_send_message_json):

@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Control Loop module."""
 import json
+import time
 from pathlib import Path
 from jsonschema import validate, ValidationError
 
@@ -10,6 +11,7 @@ from onapsdk.clamp.clamp_element import Clamp
 from onapsdk.utils.jinja import jinja_env
 from onapsdk.exceptions import ParameterError
 
+CLAMP_UPDDATE_REFRESH_TIMER = 60
 
 class LoopInstance(Clamp):
     """Control Loop instantiation class."""

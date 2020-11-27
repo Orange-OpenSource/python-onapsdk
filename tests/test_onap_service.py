@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Test OnapService module."""
 from unittest import mock
+from unittest.mock import ANY
 
 import pytest
 from jinja2 import Environment
@@ -33,7 +34,7 @@ def http_codes():
         501,  # Not Implemented
         502,  # Bad Gateway
         503,  # Service Unavailable
-        504   # Gateway Timeout 
+        504   # Gateway Timeout
         ]
 
 class TestException(Exception):
@@ -98,6 +99,28 @@ def test_send_message_custom_header_OK(mock_request):
                                          proxies=None)
     assert response == mocked_response
 
+@mock.patch.object(OnapService, '_set_basic_auth_if_needed')
+@mock.patch.object(Session, 'request')
+def test_send_message_with_basic_auth(mock_request, mock_set_basic_auth_if_needed):
+    """Should give response of request if OK."""
+    svc = OnapService()
+    mocked_response = Response()
+    mocked_response.status_code = 200
+    basic_auth = {'username': 'user1', "password": "password1"}
+    mock_request.return_value = mocked_response
+    expect_headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Once": "Upon a time"
+    }
+    response = svc.send_message("GET", 'test get', 'http://my.url/',
+                                headers=expect_headers, basic_auth=basic_auth)
+    mock_set_basic_auth_if_needed.assert_called_once_with(basic_auth, ANY)
+    mock_request.assert_called_once_with('GET', 'http://my.url/',
+                                         headers=expect_headers, verify=False,
+                                         proxies=None)
+    assert response == mocked_response
+
 @mock.patch.object(Session, 'request')
 def test_send_message_resource_not_found(mock_request):
     """Should raise ResourceNotFound if status code 404."""
@@ -105,7 +128,7 @@ def test_send_message_resource_not_found(mock_request):
 
     mocked_response = Response()
     mocked_response.status_code = 404
-    
+
     mock_request.return_value = mocked_response
 
     with pytest.raises(ResourceNotFound) as exc:
@@ -266,7 +289,7 @@ def test_send_message_json_custom_error(mock_send):
     mock_send.side_effect = RequestError
 
     with pytest.raises(TestException) as exc:
-        svc.send_message_json("GET", 'test get', 'http://my.url/', 
+        svc.send_message_json("GET", 'test get', 'http://my.url/',
                               exception=TestException)
     assert exc.type is TestException
 

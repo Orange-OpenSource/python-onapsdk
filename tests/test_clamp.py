@@ -5,6 +5,7 @@
 from unittest import mock
 from unittest.mock import MagicMock
 import os
+import time
 import json
 import pytest
 from requests.exceptions import HTTPError
@@ -209,8 +210,9 @@ def test_update_loop_details(mock_send_message_json):
     assert loop.details == LOOP_DETAILS
 
 
+@mock.patch('time.sleep', return_value=False)
 @mock.patch.object(LoopInstance, 'send_message_json')
-def test_refresh_status(mock_send_message_json):
+def test_refresh_status(mock_send_message_json,mock_timer):
     """Test Loop instance methode."""
     loop = LoopInstance(template="template", name="test", details={})
     mock_send_message_json.return_value = LOOP_DETAILS
@@ -309,15 +311,15 @@ def test_add_operational_policy_key_parameter_error(mock_send_message_json):
 @mock.patch.object(LoopInstance, 'send_message_json')
 def test_add_operational_policy_condition_parameter_error(mock_send_message_json):
     """Test adding an op policy - response cintains more policies."""
-    
+
     key = "operationalPolicies"
-    
+
     response_policies = ["one"]           # N policies
     current_policies = ["one", "two"]   # N+1 policies
 
     details = {key: current_policies}
     response = {key: response_policies}
-    
+
     loop = LoopInstance(template="template", name="test", details=details)
 
     assert len(response_policies) < len(current_policies)  # raising condition
@@ -353,7 +355,7 @@ def test_update_microservice_policy(mock_send_message):
     loop = LoopInstance(template="template", name="test", details=LOOP_DETAILS)
     mock_send_message.return_value = True
     loop.update_microservice_policy()
-    mock_send_message.assert_called_once() 
+    mock_send_message.assert_called_once()
     method, description, url = mock_send_message.call_args[0]
     assert method == "POST"
     assert description == "ADD TCA config"
@@ -394,7 +396,7 @@ def test_add_drools_policy_config(mock_send_message, mock_extract):
     loop = LoopInstance(template="template", name="test", details=LOOP_DETAILS)
     mock_send_message.return_value = True
     loop.add_op_policy_config(loop.add_drools_conf)
-    mock_send_message.assert_called_once() 
+    mock_send_message.assert_called_once()
     method, description, url = mock_send_message.call_args[0]
     assert method == "POST"
     assert description == "ADD operational policy config"
@@ -408,7 +410,7 @@ def test_add_minmax_config(mock_send_message, mock_extract):
     loop = LoopInstance(template="template", name="test", details=LOOP_DETAILS)
     mock_send_message.return_value = True
     loop.add_op_policy_config(loop.add_minmax_config)
-    mock_send_message.assert_called_once() 
+    mock_send_message.assert_called_once()
     method, description, url = mock_send_message.call_args[0]
     assert method == "POST"
     assert description == "ADD operational policy config"
@@ -422,7 +424,7 @@ def test_add_frequency_policy_config(mock_send_message, mock_extract):
     loop = LoopInstance(template="template", name="test", details=LOOP_DETAILS)
     mock_send_message.return_value = True
     loop.add_op_policy_config(loop.add_frequency_limiter)
-    mock_send_message.assert_called_once() 
+    mock_send_message.assert_called_once()
     method, description, url = mock_send_message.call_args[0]
     assert method == "POST"
     assert description == "ADD operational policy config"
@@ -505,9 +507,10 @@ def test_not_submited_policy(mock_send_message, mock_refresh):
     assert loop.details["components"]["POLICY"]["componentState"]["stateName"] == "SENT"
 
 
+@mock.patch('time.sleep', return_value=False)
 @mock.patch.object(LoopInstance, 'send_message_json')
 @mock.patch.object(LoopInstance, 'send_message')
-def test_deploy_microservice_to_dcae(mock_send_message, mock_send_message_json):
+def test_deploy_microservice_to_dcae(mock_send_message, mock_send_message_json, mock_timer):
     """Test stop microservice."""
     loop = LoopInstance(template="template", name="test", details=LOOP_DETAILS)
     mock_send_message_json.return_value = SUBMITED
