@@ -851,4 +851,10 @@ class SdcResource(SdcOnboardable, ABC):  # pylint: disable=too-many-instance-att
                                     ),
                                exception=ValueError
                                )
-        
+
+    def checkout(self) -> None:
+        """Checkout SDC resource."""
+        self._logger.debug("Checkout %s SDC resource", self.name)
+        result = self._action_to_sdc(const.CHECKOUT, "lifecycleState")
+        if result:
+            self.load()

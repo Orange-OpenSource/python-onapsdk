@@ -56,7 +56,7 @@ class OnapService(ABC):
         """Initialize the service."""
     @classmethod
     def send_message(cls, method: str, action: str, url: str,
-                     **kwargs) -> Union[requests.Request, None]:
+                     **kwargs) -> Union[requests.Response, None]:
         """
         Send a message to an ONAP service.
 
@@ -77,6 +77,7 @@ class OnapService(ABC):
 
         """
         cert = kwargs.pop('cert', None)
+        basic_auth: Dict[str, str] = kwargs.pop('basic_auth', None)
         exception = kwargs.pop('exception', None)
         headers = kwargs.pop('headers', cls.headers)
         data = kwargs.get('data', None)
@@ -85,6 +86,8 @@ class OnapService(ABC):
             session = cls.__requests_retry_session()
             if cert:
                 session.cert = cert
+            OnapService._set_basic_auth_if_needed(basic_auth, session)
+
             response = session.request(method,
                                        url,
                                        headers=headers,
@@ -103,11 +106,13 @@ class OnapService(ABC):
             cls._logger.debug("[%s][%s] response: %s", cls.server, action,
                               response.text)
             return response
-        except requests.HTTPError:
+        except requests.HTTPError as http_err:
             cls._logger.error("[%s][%s] response code: %s", cls.server, action,
-                              response.status_code)
+                              http_err.response.status_code if http_err.response is not None \
+                                  else "n/a")
             cls._logger.error("[%s][%s] response: %s", cls.server, action,
-                              response.text)
+                              http_err.response.text if http_err.response is not None \
+                                  else "n/a")
         except requests.RequestException as err:
             cls._logger.error("[%s][%s] Failed to perform: %s", cls.server,
                               action, err)
@@ -121,6 +126,11 @@ class OnapService(ABC):
         if exception:
             raise exception
         return None
+
+    @classmethod
+    def _set_basic_auth_if_needed(cls, basic_auth, session):
+        if basic_auth:
+            session.auth = (basic_auth.get('username'), basic_auth.get('password'))
 
     @classmethod
     def send_message_json(cls, method: str, action: str, url: str,
