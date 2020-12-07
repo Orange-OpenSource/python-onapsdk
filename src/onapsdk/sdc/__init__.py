@@ -9,6 +9,7 @@ from abc import ABC, abstractmethod
 from requests import Response
 
 from onapsdk.configuration import settings
+from onapsdk.exceptions import APIError
 from onapsdk.onap_service import OnapService
 import onapsdk.constants as const
 from onapsdk.utils.jinja import jinja_env
@@ -128,12 +129,17 @@ class SDC(OnapService, ABC):
         cls._logger.info("retrieving all objects of type %s from SDC",
                          cls.__name__)
         url = cls._get_all_url()
-        result = cls.send_message_json('GET', "get {}s".format(cls.__name__),
-                                       url, **kwargs)
         objects = []
-        if result:
+
+        try:
+            result = cls.send_message_json('GET', "get {}s".format(cls.__name__),
+                                       url, **kwargs)
+
             for obj_info in cls._get_objects_list(result):
                 objects.append(cls.import_from_sdc(obj_info))
+        except APIError as exc:
+            cls._logger.debug("Couldn't get %s: %s", cls.__name__, exc)
+
         cls._logger.debug("number of %s returned: %s", cls.__name__,
                           len(objects))
         return objects

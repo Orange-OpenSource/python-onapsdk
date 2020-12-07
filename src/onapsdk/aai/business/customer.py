@@ -5,7 +5,7 @@ from urllib.parse import urlencode
 
 from onapsdk.sdc.service import Service as SdcService
 from onapsdk.utils.jinja import jinja_env
-from onapsdk.exceptions import ResourceNotFound
+from onapsdk.exceptions import APIError, ResourceNotFound
 
 from ..aai_element import AaiElement, Relationship
 from ..cloud_infrastructure.cloud_region import CloudRegion
@@ -519,17 +519,25 @@ class Customer(AaiElement):
             ServiceSubscription: ServiceSubscription object
 
         """
-        response: dict = self.send_message_json(
-            "GET",
-            "get customer service subscriptions",
-            f"{self.base_url}{self.api_version}/business/customers/"
-            f"customer/{self.global_customer_id}/service-subscriptions"
-        )
-        for service_subscription in response.get("service-subscription", []):
-            yield ServiceSubscription.create_from_api_response(
-                service_subscription,
-                self
+        try:
+            response: dict = self.send_message_json(
+                "GET",
+                "get customer service subscriptions",
+                f"{self.base_url}{self.api_version}/business/customers/"
+                f"customer/{self.global_customer_id}/service-subscriptions"
             )
+            for service_subscription in response.get("service-subscription", []):
+                yield ServiceSubscription.create_from_api_response(
+                    service_subscription,
+                    self
+                )
+        except ResourceNotFound as exc:
+            self._logger.info(
+                "Subscriptions are not " \
+                "found for a customer: %s", exc)
+        except APIError as exc:
+            self._logger.error(
+                "API returned an error: %s", exc)
 
     def subscribe_service(self, service: SdcService) -> "ServiceSubscription":
         """Create SDC Service subscription.
