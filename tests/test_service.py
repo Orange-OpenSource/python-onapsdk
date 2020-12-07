@@ -318,7 +318,7 @@ def test_add_resource_bad_result(mock_send, mock_load):
     resource.name = "test"
     assert svc.add_resource(resource) is None
     mock_send.assert_called_once_with(
-        'POST', 'Add SdcResource to service',
+        'POST', 'Add SDCRESOURCE to service',
         'https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/rest/v1/catalog/services/45/resourceInstance',
         data='{\n  "name": "test",\n  "componentVersion": "40",\n  "posY": 100,\n  "posX": 200,\n  "uniqueId": "12",\n  "originType": "SDCRESOURCE",\n  "componentUid": "12",\n  "icon": "defaulticon"\n}')
 
@@ -338,7 +338,7 @@ def test_add_resource_OK(mock_send, mock_load):
     result = svc.add_resource(resource)
     assert result['yes'] == "indeed"
     mock_send.assert_called_once_with(
-        'POST', 'Add SdcResource to service',
+        'POST', 'Add SDCRESOURCE to service',
         'https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/rest/v1/catalog/services/45/resourceInstance',
         data='{\n  "name": "test",\n  "componentVersion": "40",\n  "posY": 100,\n  "posX": 200,\n  "uniqueId": "12",\n  "originType": "SDCRESOURCE",\n  "componentUid": "12",\n  "icon": "defaulticon"\n}')
 

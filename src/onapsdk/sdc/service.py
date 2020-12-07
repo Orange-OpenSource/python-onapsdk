@@ -466,7 +466,7 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
             template = jinja_env().get_template(
                 "add_resource_to_service.json.j2")
             data = template.render(resource=resource,
-                                   resource_type=resource.origin_type.upper())
+                                   resource_type=resource.origin_type)
             result = self.send_message("POST",
                                        "Add {} to service".format(
                                            resource.origin_type),
