@@ -439,7 +439,7 @@ class SdcResource(SdcOnboardable, ABC):  # pylint: disable=too-many-instance-att
             str: SDC resource origin type
 
         """
-        return type(self).__name__
+        return type(self).__name__.upper()
 
     @property
     def properties(self) -> Iterator[Property]:
