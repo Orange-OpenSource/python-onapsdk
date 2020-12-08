@@ -137,8 +137,11 @@ class SDC(OnapService, ABC):
 
             for obj_info in cls._get_objects_list(result):
                 objects.append(cls.import_from_sdc(obj_info))
+
         except APIError as exc:
             cls._logger.debug("Couldn't get %s: %s", cls.__name__, exc)
+        except KeyError as exc:
+            cls._logger.debug("Invalid result dictionary: %s", exc)
 
         cls._logger.debug("number of %s returned: %s", cls.__name__,
                           len(objects))
