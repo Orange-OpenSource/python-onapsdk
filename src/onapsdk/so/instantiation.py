@@ -516,8 +516,7 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
                 project=project,
                 enable_multicloud=enable_multicloud
             ),
-            headers=headers_so_creator(OnapService.headers),
-            exception=ValueError
+            headers=headers_so_creator(OnapService.headers)
         )
         return cls(
             name=service_instance_name,
