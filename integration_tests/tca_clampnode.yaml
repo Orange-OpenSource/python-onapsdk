@@ -76,7 +76,7 @@ node_templates:
   tca_k8s:
     type: dcae.nodes.ContainerizedServiceComponent
     relationships:
-      - target: tca_policy
+      - target: tca.policy
         type: cloudify.relationships.depends_on
     properties:
         service_component_type: 'dcaegen2-analytics-tca'
@@ -137,8 +137,8 @@ node_templates:
                 subscriberProtocol: http
                 subscriberTimeoutMS: '-1'
                 subscriberTopicName: unauthenticated.VES_MEASUREMENT_OUTPUT
-                #tca_policy: '{"domain":"measurementsForVfScaling","metricsPerEventName":[{"eventName":"vFirewallBroadcastPackets","controlLoopSchemaType":"VM","policyScope":"DCAE","policyName":"DCAE.Config_tca-hi-lo","policyVersion":"v0.0.1","thresholds":[{"closedLoopControlName":"ControlLoop-vFirewall-d0a1dfc6-94f5-4fd4-a5b5-4630b438850a","version":"1.0.2","fieldPath":"$.event.measurementsForVfScalingFields.vNicPerformanceArray[*].receivedTotalPacketsDelta","thresholdValue":300,"direction":"LESS_OR_EQUAL","severity":"MAJOR","closedLoopEventStatus":"ONSET"},{"closedLoopControlName":"ControlLoop-vFirewall-d0a1dfc6-94f5-4fd4-a5b5-4630b438850a","version":"1.0.2","fieldPath":"$.event.measurementsForVfScalingFields.vNicPerformanceArray[*].receivedTotalPacketsDelta","thresholdValue":700,"direction":"GREATER_OR_EQUAL","severity":"CRITICAL","closedLoopEventStatus":"ONSET"}]},{"eventName":"vLoadBalancer","controlLoopSchemaType":"VM","policyScope":"DCAE","policyName":"DCAE.Config_tca-hi-lo","policyVersion":"v0.0.1","thresholds":[{"closedLoopControlName":"ControlLoop-vDNS-6f37f56d-a87d-4b85-b6a9-cc953cf779b3","version":"1.0.2","fieldPath":"$.event.measurementsForVfScalingFields.vNicPerformanceArray[*].receivedTotalPacketsDelta","thresholdValue":300,"direction":"GREATER_OR_EQUAL","severity":"CRITICAL","closedLoopEventStatus":"ONSET"}]},{"eventName":"Measurement_vGMUX","controlLoopSchemaType":"VNF","policyScope":"DCAE","policyName":"DCAE.Config_tca-hi-lo","policyVersion":"v0.0.1","thresholds":[{"closedLoopControlName":"ControlLoop-vCPE-48f0c2c3-a172-4192-9ae3-052274181b6e","version":"1.0.2","fieldPath":"$.event.measurementsForVfScalingFields.additionalMeasurements[*].arrayOfFields[0].value","thresholdValue":0,"direction":"EQUAL","severity":"MAJOR","closedLoopEventStatus":"ABATED"},{"closedLoopControlName":"ControlLoop-vCPE-48f0c2c3-a172-4192-9ae3-052274181b6e","version":"1.0.2","fieldPath":"$.event.measurementsForVfScalingFields.additionalMeasurements[*].arrayOfFields[0].value","thresholdValue":0,"direction":"GREATER","severity":"CRITICAL","closedLoopEventStatus":"ONSET"}]}]}'
-                tca_policy: ''
+                #tca.policy: '{"domain":"measurementsForVfScaling","metricsPerEventName":[{"eventName":"vFirewallBroadcastPackets","controlLoopSchemaType":"VM","policyScope":"DCAE","policyName":"DCAE.Config_tca-hi-lo","policyVersion":"v0.0.1","thresholds":[{"closedLoopControlName":"ControlLoop-vFirewall-d0a1dfc6-94f5-4fd4-a5b5-4630b438850a","version":"1.0.2","fieldPath":"$.event.measurementsForVfScalingFields.vNicPerformanceArray[*].receivedTotalPacketsDelta","thresholdValue":300,"direction":"LESS_OR_EQUAL","severity":"MAJOR","closedLoopEventStatus":"ONSET"},{"closedLoopControlName":"ControlLoop-vFirewall-d0a1dfc6-94f5-4fd4-a5b5-4630b438850a","version":"1.0.2","fieldPath":"$.event.measurementsForVfScalingFields.vNicPerformanceArray[*].receivedTotalPacketsDelta","thresholdValue":700,"direction":"GREATER_OR_EQUAL","severity":"CRITICAL","closedLoopEventStatus":"ONSET"}]},{"eventName":"vLoadBalancer","controlLoopSchemaType":"VM","policyScope":"DCAE","policyName":"DCAE.Config_tca-hi-lo","policyVersion":"v0.0.1","thresholds":[{"closedLoopControlName":"ControlLoop-vDNS-6f37f56d-a87d-4b85-b6a9-cc953cf779b3","version":"1.0.2","fieldPath":"$.event.measurementsForVfScalingFields.vNicPerformanceArray[*].receivedTotalPacketsDelta","thresholdValue":300,"direction":"GREATER_OR_EQUAL","severity":"CRITICAL","closedLoopEventStatus":"ONSET"}]},{"eventName":"Measurement_vGMUX","controlLoopSchemaType":"VNF","policyScope":"DCAE","policyName":"DCAE.Config_tca-hi-lo","policyVersion":"v0.0.1","thresholds":[{"closedLoopControlName":"ControlLoop-vCPE-48f0c2c3-a172-4192-9ae3-052274181b6e","version":"1.0.2","fieldPath":"$.event.measurementsForVfScalingFields.additionalMeasurements[*].arrayOfFields[0].value","thresholdValue":0,"direction":"EQUAL","severity":"MAJOR","closedLoopEventStatus":"ABATED"},{"closedLoopControlName":"ControlLoop-vCPE-48f0c2c3-a172-4192-9ae3-052274181b6e","version":"1.0.2","fieldPath":"$.event.measurementsForVfScalingFields.additionalMeasurements[*].arrayOfFields[0].value","thresholdValue":0,"direction":"GREATER","severity":"CRITICAL","closedLoopEventStatus":"ONSET"}]}]}'
+                tca.policy: ''
         service_component_type: dcaegen2-analytics_tca
     interfaces:
       cloudify.interfaces.lifecycle:
@@ -162,7 +162,7 @@ node_templates:
                 CONFIG_BINDING_SERVICE: "config_binding_service"
             ports:
               - concat: ["11011:", { get_input: external_port }]
-  tca_policy:
+  tca.policy:
     type: clamp.nodes.policy
     properties:
       policy_id:
