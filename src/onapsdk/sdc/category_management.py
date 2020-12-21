@@ -7,6 +7,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict, List
 
 from onapsdk.configuration import settings
+from onapsdk.exceptions import ResourceNotFound
 from onapsdk.sdc import SDC
 from onapsdk.utils.headers_creator import headers_sdc_generic
 
@@ -108,7 +109,7 @@ class BaseCategory(SDC, ABC):  # pylint: disable=too-many-instance-attributes
         """Get category with given name.
 
         Raises:
-            ValueError: Category with given name does not exist
+            ResourceNotFound: Category with given name does not exist
 
         Returns:
             BaseCategory: BaseCategory instance
@@ -117,7 +118,8 @@ class BaseCategory(SDC, ABC):  # pylint: disable=too-many-instance-attributes
         category_obj: "BaseCategory" = cls(name)
         if category_obj.exists():
             return category_obj
-        raise ValueError(f"{cls.category_name()} with \"{name}\" name does not exist")
+        msg = f"{cls.category_name()} with \"{name}\" name does not exist."
+        raise ResourceNotFound(msg)
 
     @classmethod
     def create(cls, name: str) -> "BaseCategory":
@@ -125,9 +127,6 @@ class BaseCategory(SDC, ABC):  # pylint: disable=too-many-instance-attributes
 
         Checks if category with given name exists and if it already
             exists just returns category with given name.
-
-        Raises:
-            ValueError: Creation error
 
         Returns:
             BaseCategory: Created category instance
@@ -140,8 +139,7 @@ class BaseCategory(SDC, ABC):  # pylint: disable=too-many-instance-attributes
                               f"Create {name} {cls.category_name()}",
                               cls._base_create_url(),
                               data=json.dumps({"name": name}),
-                              headers=cls.headers(),
-                              exception=ValueError)
+                              headers=cls.headers())
         category_obj.exists()
         return category_obj
 
@@ -217,8 +215,7 @@ class ResourceCategory(BaseCategory):
             subcategory (str, optional): Name of subcategory. Defaults to None.
 
         Raises:
-            ValueError: Category with given name does not exist
-            ValueError: Subcategory with given name does not exist
+            ResourceNotFound: Subcategory with given name does not exist
 
         Returns:
             BaseCategory: BaseCategory instance
@@ -230,7 +227,7 @@ class ResourceCategory(BaseCategory):
         filtered_subcategories: Dict[str, str] = list(filter(lambda x: x["name"] == subcategory,
                                                              category_obj.subcategories))
         if not filtered_subcategories:
-            raise ValueError(f"Subcategory {subcategory} does not exist")
+            raise ResourceNotFound(f"Subcategory {subcategory} does not exist.")
         category_obj.subcategories = filtered_subcategories
         return category_obj
 

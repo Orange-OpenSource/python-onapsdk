@@ -1,17 +1,18 @@
 import pytest
+from onapsdk.exceptions import ParameterError
 
 from onapsdk.so.instantiation import Subnet
 
 
 def test_dhcp_subnet():
-    with pytest.raises(ValueError):
+    with pytest.raises(ParameterError):
         Subnet(name="test",
                role="test",
                start_address="192.168.8.0",
                gateway_address="192.168.8.1",
                dhcp_enabled="sss"
         )
-    with pytest.raises(ValueError):
+    with pytest.raises(ParameterError):
         Subnet(name="test",
                role="test",
                start_address="192.168.8.0",

@@ -7,6 +7,9 @@ from dataclasses import dataclass
 from typing import Iterable, Optional
 from uuid import uuid4
 from warnings import warn
+from onapsdk.exceptions import (
+    APIError, InvalidResponse, ParameterError, ResourceNotFound, StatusError
+)
 
 from onapsdk.onap_service import OnapService
 from onapsdk.sdnc import NetworkPreload, VfModulePreload
@@ -81,18 +84,20 @@ class Subnet:  # pylint: disable=too-many-instance-attributes
     def __post_init__(self) -> None:
         """Post init subnet method.
 
-        Checks if both dhcp_start_address and dhcp_end_address
-            values are provided if dhcp is enabled
+        Checks if both dhcp_start_address and dhcp_end_address values are
+        provided if dhcp is enabled.
 
         Raises:
-            ValueError: Not both dhcp_start_address
-                and dhcp_end_address values provided
+            ParameterError: Neither dhcp_start_addres
+                    nor dhcp_end_address are provided
 
         """
         if self.dhcp_enabled and \
             not all([self.dhcp_start_address,
                      self.dhcp_end_address]):
-            raise ValueError("DHCP is enabled but not all DHCP start and end adress were provided")
+            msg = "DHCP is enabled but neither DHCP " \
+                  "start nor end adresses are provided."
+            raise ParameterError(msg)
 
 
 class Instantiation(OrchestrationRequest, ABC):
@@ -169,10 +174,6 @@ class VfModuleInstantiation(Instantiation):  # pytest: disable=too-many-ancestor
             vnf_parameters (Iterable[InstantiationParameter], optional): Parameters which are
                 going to be used in preload upload for vf modules. Defaults to None.
 
-        Raises:
-            AttributeError: VNF is not successfully instantiated.
-            ValueError: VF module instnatiation request returns HTTP error code.
-
         Yields:
             Iterator[VfModuleInstantiation]: VfModuleInstantiation class object.
 
@@ -205,8 +206,7 @@ class VfModuleInstantiation(Instantiation):  # pytest: disable=too-many-ancestor
                     vnf_instance.service_instance.service_subscription.tenant,
                 vnf_instance=vnf_instance
             ),
-            headers=headers_so_creator(OnapService.headers),
-            exception=ValueError
+            headers=headers_so_creator(OnapService.headers)
         )
         return VfModuleInstantiation(
             name=vf_module_instance_name,
@@ -267,10 +267,10 @@ class VnfInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-many-a
         """Create VNF instantiation object based on request details.
 
         Raises:
-            ValueError: Service related with given object doesn't exist
-            ValueError: No ServiceInstantiation related with given VNF instantiation
-            ValueError: VNF related with given object doesn't exist
-            ValueError: Invalid dictionary - couldn't create VnfInstantiation object
+            ResourceNotFound: Service related with given object doesn't exist
+            ResourceNotFound: No ServiceInstantiation related with given VNF instantiation
+            ResourceNotFound: VNF related with given object doesn't exist
+            InvalidResponse: Invalid dictionary - couldn't create VnfInstantiation object
 
         Returns:
             VnfInstantiation: VnfInstantiation object
@@ -286,14 +286,14 @@ class VnfInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-many-a
                     service = SdcService(related_instance.get("relatedInstance", {})\
                         .get("modelInfo", {}).get("modelName"))
             if not service:
-                raise ValueError("No related service in Vnf instance details response")
+                raise ResourceNotFound("No related service in Vnf instance details response")
             vnf: Vnf = None
             for service_vnf in service.vnfs:
                 if service_vnf.name == request_response.get("request", {})\
                     .get("requestDetails", {}).get("modelInfo", {}).get("modelCustomizationName"):
                     vnf = service_vnf
             if not vnf:
-                raise ValueError("No vnf in service vnfs list")
+                raise ResourceNotFound("No vnf in service vnfs list")
             return cls(
                 name=request_response.get("request", {})\
                     .get("instanceReferences", {}).get("vnfInstanceName"),
@@ -306,14 +306,15 @@ class VnfInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-many-a
                     .get("requestDetails", {}).get("platform", {}).get("platformName")),
                 vnf=vnf
             )
-        raise ValueError("Invalid vnf instantions request dictionary")
+        raise InvalidResponse("Invalid vnf instantions in response dictionary's requestList")
 
     @classmethod
     def get_by_vnf_instance_name(cls, vnf_instance_name: str) -> "VnfInstantiation":
         """Get VNF instantiation request by instance name.
 
         Raises:
-            ValueError: Vnf instance with given name doesn't exist
+            InvalidResponse: Vnf instance with given name does not contain
+                requestList or the requestList does not contain any details.
 
         Returns:
             VnfInstantiation: Vnf instantiation request object
@@ -326,11 +327,13 @@ class VnfInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-many-a
              f"filter=vnfInstanceName:EQUALS:{vnf_instance_name}"),
             headers=headers_so_creator(OnapService.headers)
         )
-        if not response.get("requestList", []):
-            raise ValueError("Vnf instance doesn't exist")
-        for details in response["requestList"]:
+        key = "requestList"
+        if not response.get(key, []):
+            raise InvalidResponse(f"{key} of a Vnf instance is missing.")
+        for details in response[key]:
             return cls.create_from_request_response(details)
-        raise ValueError("No createInstance request found")
+        msg = f"No details available in response dictionary's {key}."
+        raise InvalidResponse(msg)
 
     @classmethod
     def instantiate_ala_carte(cls,  # pylint: disable=too-many-arguments
@@ -356,9 +359,6 @@ class VnfInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-many-a
                 THAT PROPERTY WILL BE REQUIRED IN ONE OF THE FUTURE RELEASE. REFACTOR YOUR CODE
                 TO USE IT!.
             vnf_instance_name (str, optional): Vnf instance name. Defaults to None.
-
-        Raises:
-            ValueError: Instantiate request returns response with HTTP error code
 
         Returns:
             VnfInstantiation: VnfInstantiation object
@@ -386,8 +386,7 @@ class VnfInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-many-a
                 platform=platform_object,
                 service_instance=aai_service_instance
             ),
-            headers=headers_so_creator(OnapService.headers),
-            exception=ValueError
+            headers=headers_so_creator(OnapService.headers)
         )
         return VnfInstantiation(
             name=vnf_instance_name,
@@ -455,9 +454,6 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
             project (Project): Project to use in instantiation request
             service_instance_name (str, optional): Service instance name. Defaults to None.
 
-        Raises:
-            ValueError: Instantiation request returns HTTP error code.
-
         Returns:
             ServiceInstantiation: instantiation request object
 
@@ -490,14 +486,15 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
                 for instantiation request. Defaults to False.
 
         Raises:
-            ValueError: Instantiation request returns HTTP error code.
+            StatusError: if a service is not distributed.
 
         Returns:
             ServiceInstantiation: instantiation request object
 
         """
         if not sdc_service.distributed:
-            raise ValueError("Service is not distributed")
+            msg = f"Service {sdc_service.name} is not distributed."
+            raise StatusError(msg)
         if service_instance_name is None:
             service_instance_name = f"Python_ONAP_SDK_service_instance_{str(uuid4())}"
         response: dict = cls.send_message_json(
@@ -516,8 +513,7 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
                 project=project,
                 enable_multicloud=enable_multicloud
             ),
-            headers=headers_so_creator(OnapService.headers),
-            exception=ValueError
+            headers=headers_so_creator(OnapService.headers)
         )
         return cls(
             name=service_instance_name,
@@ -566,14 +562,15 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
                 for instantiation request. Defaults to False.
 
         Raises:
-            ValueError: Instantiation request returns HTTP error code.
+            StatusError: if a service is not distributed.
 
         Returns:
             ServiceInstantiation: instantiation request object
 
         """
         if not sdc_service.distributed:
-            raise ValueError("Service is not distributed")
+            msg = f"Service {sdc_service.name} is not distributed."
+            raise StatusError(msg)
         if service_instance_name is None:
             service_instance_name = f"Python_ONAP_SDK_service_instance_{str(uuid4())}"
 
@@ -597,8 +594,7 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
                 vnf_parameters=vnf_parameters,
                 enable_multicloud=enable_multicloud
             ),
-            headers=headers_so_creator(OnapService.headers),
-            exception=ValueError
+            headers=headers_so_creator(OnapService.headers)
         )
         return cls(
             name=service_instance_name,
@@ -617,22 +613,26 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
         """Service instane associated with service instantiation request.
 
         Raises:
-            AttributeError: Service is not instantiated
-            AttributeError: A&AI resource is not created
+            StatusError: if a service is not instantiated -
+                not in COMPLETE status.
+            APIError: A&AI resource is not created
 
         Returns:
             ServiceInstance: ServiceInstance
 
         """
-        if self.status != self.StatusEnum.COMPLETED:
-            raise AttributeError("Service not instantiated")
+        required_status = self.StatusEnum.COMPLETED
+        if self.status != required_status:
+            msg = (f"Service {self.name} is not instantiated - "
+                   f"not in {required_status} status.")
+            raise StatusError(msg)
         try:
             service_subscription: "ServiceSubscription" = \
                 self.customer.get_service_subscription_by_service_type(self.sdc_service.name)
             return service_subscription.get_service_instance_by_name(self.name)
-        except ValueError:
+        except APIError as exc:
             self._logger.error("A&AI resources not created properly")
-            raise AttributeError
+            raise exc
 
 
 class NetworkInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-many-ancestors
@@ -685,9 +685,6 @@ class NetworkInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-ma
                 TO USE IT!.
             network_instance_name (str, optional): Network instance name. Defaults to None.
 
-        Raises:
-            ValueError: Instantiate request returns response with HTTP error code
-
         Returns:
             NetworkInstantiation: NetworkInstantiation object
 
@@ -718,8 +715,7 @@ class NetworkInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-ma
                 service_instance=aai_service_instance,
                 subnets=subnets
             ),
-            headers=headers_so_creator(OnapService.headers),
-            exception=ValueError
+            headers=headers_so_creator(OnapService.headers)
         )
         return cls(
             name=network_instance_name,

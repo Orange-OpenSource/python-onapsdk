@@ -1,113 +1,113 @@
 
 from unittest import mock
 
-from onapsdk.aai.business import NetworkInstance, ServiceInstance
+from onapsdk.aai.business import NetworkInstance
 from onapsdk.so.deletion import NetworkDeletionRequest
 
 
 NETWORK_INSTANCE = {
-    'network-id': '49dab38b-3a5b-47e5-9cd6-b8d069d6109d', 
-    'network-name': 'Python_ONAP_SDK_network_instance_0b4308ca-3fe0-4af1-9c4e-ed2c816b9496', 
-    'is-bound-to-vpn': False, 
-    'resource-version': '1593162237842', 
-    'orchestration-status': 'Inventoried', 
-    'model-invariant-id': 'cdbb2169-e638-4aab-a4e9-b9d2d6d62b04', 
-    'model-version-id': '51789f7b-5ffc-4c12-ac87-02363fdb40b1', 
-    'model-customization-id': 'db9c9a6c-2a1c-4cdd-8fbc-e10448d0e4cc', 
-    'is-provider-network': False, 
-    'is-shared-network': False, 
-    'is-external-network': False, 
+    'network-id': '49dab38b-3a5b-47e5-9cd6-b8d069d6109d',
+    'network-name': 'Python_ONAP_SDK_network_instance_0b4308ca-3fe0-4af1-9c4e-ed2c816b9496',
+    'is-bound-to-vpn': False,
+    'resource-version': '1593162237842',
+    'orchestration-status': 'Inventoried',
+    'model-invariant-id': 'cdbb2169-e638-4aab-a4e9-b9d2d6d62b04',
+    'model-version-id': '51789f7b-5ffc-4c12-ac87-02363fdb40b1',
+    'model-customization-id': 'db9c9a6c-2a1c-4cdd-8fbc-e10448d0e4cc',
+    'is-provider-network': False,
+    'is-shared-network': False,
+    'is-external-network': False,
     'relationship-list': {
         'relationship': [
             {
-                'related-to': 'service-instance', 
-                'relationship-label': 'org.onap.relationships.inventory.ComposedOf', 
-                'related-link': '/aai/v19/business/customers/customer/TestCustomer/service-subscriptions/service-subscription/vFW_with_net/service-instances/service-instance/72fd9ee9-077f-4d3d-8e86-08ed24514802', 
+                'related-to': 'service-instance',
+                'relationship-label': 'org.onap.relationships.inventory.ComposedOf',
+                'related-link': '/aai/v19/business/customers/customer/TestCustomer/service-subscriptions/service-subscription/vFW_with_net/service-instances/service-instance/72fd9ee9-077f-4d3d-8e86-08ed24514802',
                 'relationship-data': [
                     {
-                        'relationship-key': 'customer.global-customer-id', 
+                        'relationship-key': 'customer.global-customer-id',
                         'relationship-value': 'TestCustomer'
-                    }, 
+                    },
                     {
-                        'relationship-key': 'service-subscription.service-type', 
+                        'relationship-key': 'service-subscription.service-type',
                         'relationship-value': 'vFW_with_net'
-                    }, 
+                    },
                     {
-                        'relationship-key': 'service-instance.service-instance-id', 
+                        'relationship-key': 'service-instance.service-instance-id',
                         'relationship-value': '72fd9ee9-077f-4d3d-8e86-08ed24514802'
                     }
-                ], 
+                ],
                 'related-to-property': [
                     {
-                        'property-key': 'service-instance.service-instance-name', 
+                        'property-key': 'service-instance.service-instance-name',
                         'property-value': 'Python_ONAP_SDK_service_instance_7be66d06-c466-46cf-b84a-cd7af2d633ed'
                     }
                 ]
-            }, 
+            },
             {
-                'related-to': 'cloud-region', 
-                'relationship-label': 'org.onap.relationships.inventory.Uses', 
-                'related-link': '/aai/v19/cloud-infrastructure/cloud-regions/cloud-region/TestCloudOwner/RegionOne', 
+                'related-to': 'cloud-region',
+                'relationship-label': 'org.onap.relationships.inventory.Uses',
+                'related-link': '/aai/v19/cloud-infrastructure/cloud-regions/cloud-region/TestCloudOwner/RegionOne',
                 'relationship-data': [
                     {
-                        'relationship-key': 'cloud-region.cloud-owner', 
+                        'relationship-key': 'cloud-region.cloud-owner',
                         'relationship-value': 'TestCloudOwner'
                     },
                     {
-                        'relationship-key': 'cloud-region.cloud-region-id', 
+                        'relationship-key': 'cloud-region.cloud-region-id',
                         'relationship-value': 'RegionOne'
                     }
-                ], 
+                ],
                 'related-to-property': [
                     {
-                        'property-key': 'cloud-region.owner-defined-type', 
+                        'property-key': 'cloud-region.owner-defined-type',
                         'property-value': ''
                     }
                 ]
-            }, 
+            },
             {
-                'related-to': 'line-of-business', 
-                'relationship-label': 'org.onap.relationships.inventory.Uses', 
-                'related-link': '/aai/v19/business/lines-of-business/line-of-business/Test-BusinessLine', 
+                'related-to': 'line-of-business',
+                'relationship-label': 'org.onap.relationships.inventory.Uses',
+                'related-link': '/aai/v19/business/lines-of-business/line-of-business/Test-BusinessLine',
                 'relationship-data': [
                     {
-                        'relationship-key': 'line-of-business.line-of-business-name', 
+                        'relationship-key': 'line-of-business.line-of-business-name',
                         'relationship-value': 'Test-BusinessLine'
                     }
                 ]
-            }, 
+            },
             {
-                'related-to': 'tenant', 
-                'relationship-label': 'org.onap.relationships.inventory.Uses', 
-                'related-link': '/aai/v19/cloud-infrastructure/cloud-regions/cloud-region/TestCloudOwner/RegionOne/tenants/tenant/89788fdf49514f94963b12a6c0cfdc71', 
+                'related-to': 'tenant',
+                'relationship-label': 'org.onap.relationships.inventory.Uses',
+                'related-link': '/aai/v19/cloud-infrastructure/cloud-regions/cloud-region/TestCloudOwner/RegionOne/tenants/tenant/89788fdf49514f94963b12a6c0cfdc71',
                 'relationship-data': [
                     {
-                        'relationship-key': 'cloud-region.cloud-owner', 
+                        'relationship-key': 'cloud-region.cloud-owner',
                         'relationship-value': 'TestCloudOwner'
-                    }, 
+                    },
                     {
-                        'relationship-key': 'cloud-region.cloud-region-id', 
+                        'relationship-key': 'cloud-region.cloud-region-id',
                         'relationship-value': 'RegionOne'
-                    }, 
+                    },
                     {
-                        'relationship-key': 'tenant.tenant-id', 
+                        'relationship-key': 'tenant.tenant-id',
                         'relationship-value': '89788fdf49514f94963b12a6c0cfdc71'
                     }
-                ], 
+                ],
                 'related-to-property': [
                     {
-                        'property-key': 'tenant.tenant-name', 
+                        'property-key': 'tenant.tenant-name',
                         'property-value': 'test-tenant'
                     }
                 ]
-            }, 
+            },
             {
-                'related-to': 'platform', 
-                'relationship-label': 'org.onap.relationships.inventory.Uses', 
-                'related-link': '/aai/v19/business/platforms/platform/Test-Platform', 
+                'related-to': 'platform',
+                'relationship-label': 'org.onap.relationships.inventory.Uses',
+                'related-link': '/aai/v19/business/platforms/platform/Test-Platform',
                 'relationship-data': [
                     {
-                        'relationship-key': 'platform.platform-name', 
+                        'relationship-key': 'platform.platform-name',
                         'relationship-value': 'Test-Platform'
                     }
                 ]

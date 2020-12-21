@@ -4,6 +4,7 @@
 """SDC Component module."""
 from dataclasses import dataclass
 from typing import Any, Dict, Iterator
+from onapsdk.exceptions import ParameterError
 
 from onapsdk.sdc.properties import ComponentProperty
 from onapsdk.utils.jinja import jinja_env
@@ -91,8 +92,7 @@ class Component:  # pylint: disable=too-many-instance-attributes
         for component_property in self.sdc_resource.send_message_json(\
                 "GET",
                 f"Get {self.name} component properties",
-                self.properties_url,
-                exception=ValueError):
+                self.properties_url):
             yield ComponentProperty(unique_id=component_property["uniqueId"],
                                     name=component_property["name"],
                                     property_type=component_property["type"],
@@ -106,7 +106,7 @@ class Component:  # pylint: disable=too-many-instance-attributes
             property_name (str): property name
 
         Raises:
-            AttributeError: Component has no property with given name
+            ParameterError: Component has no property with given name
 
         Returns:
             ComponentProperty: Component's property object
@@ -115,7 +115,8 @@ class Component:  # pylint: disable=too-many-instance-attributes
         for property_obj in self.properties:
             if property_obj.name == property_name:
                 return property_obj
-        raise AttributeError("Component has no property with %s name" % property_name)
+        msg = f"Component has no property with {property_name} name"
+        raise ParameterError(msg)
 
     def set_property_value(self, property_obj: "ComponentProperty", value: Any) -> None:
         """Set property value.
@@ -137,6 +138,5 @@ class Component:  # pylint: disable=too-many-instance-attributes
                     component=self,
                     value=value,
                     property=property_obj
-                ),
-            exception=ValueError
+                )
         )

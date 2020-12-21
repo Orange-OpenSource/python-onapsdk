@@ -5,6 +5,7 @@ from urllib.parse import urlencode
 
 from onapsdk.sdc.service import Service as SdcService
 from onapsdk.utils.jinja import jinja_env
+from onapsdk.exceptions import APIError, ParameterError, ResourceNotFound
 
 from ..aai_element import AaiElement, Relationship
 from ..cloud_infrastructure.cloud_region import CloudRegion
@@ -50,10 +51,6 @@ class ServiceSubscription(AaiElement):
             filter_parameter_name (str): Name of parameter to filter
             filter_parameter_value (str): Value of filter parameter
 
-        Raises:
-            ValueError: Service instance with given filter parameters
-                doesn't exist
-
         Returns:
             ServiceInstance: ServiceInstance object
 
@@ -61,8 +58,7 @@ class ServiceSubscription(AaiElement):
         service_instance: dict = self.send_message_json(
             "GET",
             f"Get service instance with {filter_parameter_value} {filter_parameter_name}",
-            f"{self.url}/service-instances?{filter_parameter_name}={filter_parameter_value}",
-            exception=ValueError
+            f"{self.url}/service-instances?{filter_parameter_name}={filter_parameter_value}"
         )["service-instance"][0]
         return ServiceInstance(
             service_subscription=self,
@@ -180,7 +176,7 @@ class ServiceSubscription(AaiElement):
         IT'S DEPRECATED! `cloud_regions` parameter SHOULD BE USED
 
         Raises:
-            AttributeError: Service subscription has no associated cloud region.
+            ParameterError: Service subscription has no associated cloud region.
 
         Returns:
             CloudRegion: CloudRegion object
@@ -189,7 +185,8 @@ class ServiceSubscription(AaiElement):
         try:
             return next(self.cloud_regions)
         except StopIteration:
-            raise AttributeError
+            msg = f"No cloud region for service subscription '{self.name}'"
+            raise ParameterError(msg)
 
     @property
     def tenant(self) -> "Tenant":
@@ -198,7 +195,7 @@ class ServiceSubscription(AaiElement):
         IT'S DEPRECATED! `tenants` parameter SHOULD BE USED
 
         Raises:
-            AttributeError: Service subscription has no associated tenants
+            ParameterError: Service subscription has no associated tenants
 
         Returns:
             Tenant: Tenant object
@@ -207,7 +204,8 @@ class ServiceSubscription(AaiElement):
         try:
             return next(self.tenants)
         except StopIteration:
-            raise AttributeError
+            msg = f"No tenants for service subscription '{self.name}'"
+            raise ParameterError(msg)
 
     @property
     def _cloud_regions_tenants_data(self) -> Iterator["ServiceSubscriptionCloudRegionTenantData"]:
@@ -243,7 +241,7 @@ class ServiceSubscription(AaiElement):
             try:
                 yield CloudRegion.get_by_id(cloud_owner=cloud_region_data[0],
                                             cloud_region_id=cloud_region_data[1])
-            except ValueError:
+            except ResourceNotFound:
                 self._logger.error("Can't get cloud region %s %s", cloud_region_data[0], \
                                                                    cloud_region_data[1])
 
@@ -260,7 +258,7 @@ class ServiceSubscription(AaiElement):
                 cloud_region: CloudRegion = CloudRegion.get_by_id(cr_data.cloud_owner,
                                                                   cr_data.cloud_region_id)
                 yield cloud_region.get_tenant(cr_data.tenant_id)
-            except ValueError:
+            except ResourceNotFound:
                 self._logger.error("Can't get %s tenant", cr_data.tenant_id)
 
     @property
@@ -281,9 +279,6 @@ class ServiceSubscription(AaiElement):
         Args:
             service_instance_id (str): ID of the service instance
 
-        Raises:
-            ValueError: service subscription has no related service instance with given ID
-
         Returns:
             ServiceInstance: ServiceInstance object
 
@@ -298,9 +293,6 @@ class ServiceSubscription(AaiElement):
 
         Args:
             service_instance_name (str): Name of the service instance
-
-        Raises:
-            ValueError: service subscription has no related service instance with given name
 
         Returns:
             ServiceInstance: ServiceInstance object
@@ -391,9 +383,6 @@ class Customer(AaiElement):
         Args:
             service_type (str): Service type
 
-        Raises:
-            ValueError: No service subscription with given service-type.
-
         Returns:
             ServiceSubscription: Service subscription
 
@@ -403,8 +392,7 @@ class Customer(AaiElement):
             f"Get service subscription with {service_type} service type",
             (f"{self.base_url}{self.api_version}/business/customers/"
              f"customer/{self.global_customer_id}/service-subscriptions"
-             f"?service-type={service_type}"),
-            exception=ValueError
+             f"?service-type={service_type}")
         )
         return ServiceSubscription.create_from_api_response(response["service-subscription"][0],
                                                             self)
@@ -452,15 +440,11 @@ class Customer(AaiElement):
         Returns:
             Customer: Customer with given global_customer_id
 
-        Raises:
-            ValueError: Customer with given global_customer_id doesn't exist
-
         """
         response: dict = cls.send_message_json(
             "GET",
             f"Get {global_customer_id} customer",
-            f"{cls.base_url}{cls.api_version}/business/customers/customer/{global_customer_id}",
-            exception=ValueError
+            f"{cls.base_url}{cls.api_version}/business/customers/customer/{global_customer_id}"
         )
         return Customer(
             global_customer_id=response["global-customer-id"],
@@ -537,17 +521,25 @@ class Customer(AaiElement):
             ServiceSubscription: ServiceSubscription object
 
         """
-        response: dict = self.send_message_json(
-            "GET",
-            "get customer service subscriptions",
-            f"{self.base_url}{self.api_version}/business/customers/"
-            f"customer/{self.global_customer_id}/service-subscriptions"
-        )
-        for service_subscription in response.get("service-subscription", []):
-            yield ServiceSubscription.create_from_api_response(
-                service_subscription,
-                self
+        try:
+            response: dict = self.send_message_json(
+                "GET",
+                "get customer service subscriptions",
+                f"{self.base_url}{self.api_version}/business/customers/"
+                f"customer/{self.global_customer_id}/service-subscriptions"
             )
+            for service_subscription in response.get("service-subscription", []):
+                yield ServiceSubscription.create_from_api_response(
+                    service_subscription,
+                    self
+                )
+        except ResourceNotFound as exc:
+            self._logger.info(
+                "Subscriptions are not " \
+                "found for a customer: %s", exc)
+        except APIError as exc:
+            self._logger.error(
+                "API returned an error: %s", exc)
 
     def subscribe_service(self, service: SdcService) -> "ServiceSubscription":
         """Create SDC Service subscription.
@@ -557,14 +549,10 @@ class Customer(AaiElement):
 
         Args:
             service (SdcService): SdcService object to subscribe.
-
-        Raises:
-            ValueError: Request response with HTTP error code
-
         """
         try:
             return self.get_service_subscription_by_service_type(service.name)
-        except ValueError:
+        except ResourceNotFound:
             self._logger.info("Create service subscription for %s customer",
                               self.global_customer_id)
         self.send_message(
@@ -577,7 +565,6 @@ class Customer(AaiElement):
             .get_template("customer_service_subscription_create.json.j2")
             .render(
                 service_id=service.unique_uuid,
-            ),
-            exception=ValueError
+            )
         )
         return self.get_service_subscription_by_service_type(service.name)

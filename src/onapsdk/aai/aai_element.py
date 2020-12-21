@@ -10,6 +10,8 @@ from onapsdk.onap_service import OnapService
 from onapsdk.utils.headers_creator import headers_aai_creator
 from onapsdk.utils.jinja import jinja_env
 
+from onapsdk.exceptions import RelationshipNotFound, ResourceNotFound
+
 
 @dataclass
 class Relationship:
@@ -69,17 +71,28 @@ class AaiElement(OnapService):
         Yields:
             Relationship: resource relationship
 
+        Raises:
+            RelationshipNotFound: if request for relationships returned 404
+
         """
-        for relationship in self.send_message_json("GET",
-                                                   "Get object relationships",
-                                                   f"{self.url}/relationship-list")\
-                                                       .get("relationship", []):
-            yield Relationship(
-                related_to=relationship.get("related-to"),
-                relationship_label=relationship.get("relationship-label"),
-                related_link=relationship.get("related-link"),
-                relationship_data=relationship.get("relationship-data"),
-            )
+        try:
+            for relationship in self.send_message_json("GET",
+                                                       "Get object relationships",
+                                                       f"{self.url}/relationship-list")\
+                                                        .get("relationship", []):
+                yield Relationship(
+                    related_to=relationship.get("related-to"),
+                    relationship_label=relationship.get("relationship-label"),
+                    related_link=relationship.get("related-link"),
+                    relationship_data=relationship.get("relationship-data"),
+                )
+        except ResourceNotFound as exc:
+            self._logger.error("Getting object relationships failed: %s", exc)
+
+            msg = (f'{self.name} relationships not found.'
+                   f'Server: {self.server}. Url: {self.url}')
+            raise RelationshipNotFound(msg) from exc
+
 
     def add_relationship(self, relationship: Relationship) -> None:
         """Add relationship to aai resource.

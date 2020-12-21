@@ -9,6 +9,7 @@ from pathlib import Path
 import pytest
 
 import onapsdk.constants as const
+from onapsdk.exceptions import ParameterError, StatusError, RequestError
 from onapsdk.sdc.category_management import ResourceCategory
 from onapsdk.sdc.properties import Property
 from onapsdk.sdc.sdc_resource import SdcResource
@@ -145,8 +146,10 @@ def test_create_no_vsp(mock_send, mock_exists):
     """Do nothing if no vsp."""
     vf = Vf()
     mock_exists.return_value = False
-    with pytest.raises(ValueError, match=r"No Vsp was given"):
+    with pytest.raises(ParameterError) as err:
         vf.create()
+    assert err.type == ParameterError
+    assert str(err.value) == "No Vsp was given"
 
 
 @mock.patch.object(Vf, 'exists')
@@ -176,7 +179,7 @@ def test_create_issue_in_creation(mock_category, mock_send, mock_exists):
     vf.vsp = vsp
     expected_data = '{\n    "artifacts": {},\n    "attributes": [],\n    "capabilities": {},\n      "categories": [\n    {\n      "normalizedName": "generic",\n      "name": "Generic",\n      "uniqueId": "resourceNewCategory.generic",\n      "subcategories": [{"empty": false, "groupings": null, "icons": ["objectStorage", "compute"], "name": "Abstract", "normalizedName": "abstract", "ownerId": null, "type": null, "uniqueId": "resourceNewCategory.generic.abstract", "version": null}],\n      "version": null,\n      "ownerId": null,\n      "empty": false,\n      "type": null,\n      "icons": null\n    }\n  ],\n    "componentInstances": [],\n    "componentInstancesAttributes": {},\n    "componentInstancesProperties": {},\n    "componentType": "RESOURCE",\n    "contactId": "cs0008",\n    "csarUUID": "None",\n    "csarVersion": "1.0",\n    "deploymentArtifacts": {},\n    "description": "VF",\n    "icon": "defaulticon",\n    "name": "ONAP-test-VF",\n    "properties": [],\n    "groups": [],\n    "requirements": {},\n    "resourceType": "VF",\n    "tags": ["ONAP-test-VF"],\n    "toscaArtifacts": {},\n    "vendorName": "Generic-Vendor",\n    "vendorRelease": "1.0"\n}'
     mock_exists.return_value = False
-    mock_send.return_value = {}
+    mock_send.side_effect = RequestError
     rc = ResourceCategory(
         name="Generic"
     )
@@ -369,7 +372,7 @@ def test_add_properties(mock_send_message_json):
     vf._identifier = "toto"
     vf._unique_identifier = "toto"
     vf._status = const.CERTIFIED
-    with pytest.raises(AttributeError):
+    with pytest.raises(StatusError):
         vf.add_property(Property(name="test", property_type="string"))
     vf._status = const.DRAFT
     vf.add_property(Property(name="test", property_type="string"))

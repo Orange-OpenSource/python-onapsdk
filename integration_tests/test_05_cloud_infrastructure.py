@@ -2,6 +2,7 @@ import pytest
 import requests
 
 from onapsdk.aai.cloud_infrastructure import CloudRegion, Complex
+from onapsdk.exceptions import ResourceNotFound
 
 
 @pytest.mark.integration
@@ -10,7 +11,7 @@ def test_cloud_region_get_all():
     cloud_regions = list(CloudRegion.get_all())
     assert len(cloud_regions) == 0
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ResourceNotFound):
         CloudRegion.get_by_id("test_owner", "test_cloud_region")
 
     cloud_region: CloudRegion = CloudRegion.create(
@@ -64,7 +65,7 @@ def test_link_cloud_region_to_complex():
 
 @pytest.mark.integration
 def test_cloud_region_tenants():
-    
+
     cloud_region: CloudRegion = CloudRegion.create(
         "test_owner", "test_cloud_region", orchestration_disabled=True, in_maint=False
     )

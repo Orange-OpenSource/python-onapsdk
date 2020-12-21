@@ -4,6 +4,8 @@
 """Vl module."""
 from typing import Dict
 
+from onapsdk.exceptions import ResourceNotFound
+
 from .sdc_resource import SdcResource
 
 
@@ -21,12 +23,13 @@ class Vl(SdcResource):
             sdc_values (Dict[str, str], optional): Sdc values of existing Vl. Defaults to None.
 
         Raises:
-            ValueError: Vl doesn't exist in SDC
+            ResourceNotFound: Vl doesn't exist in SDC
 
         """
         super().__init__(name=name, version=version, sdc_values=sdc_values)
         if not sdc_values and not self.exists():
-            raise ValueError("VL doesn't exist - can't be used")
+            raise ResourceNotFound(
+                "This Vl has to exist prior to object initialization.")
 
     def _really_submit(self) -> None:
         """Really submit the SDC in order to enable it."""

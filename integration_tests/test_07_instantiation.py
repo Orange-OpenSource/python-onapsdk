@@ -4,6 +4,7 @@ from uuid import uuid4
 
 import pytest
 import requests
+from onapsdk.exceptions import StatusError
 from onapsdk.aai.business import Customer, ServiceInstance, ServiceSubscription, VnfInstance
 from onapsdk.aai.cloud_infrastructure import CloudRegion, Tenant
 from onapsdk.configuration import settings
@@ -65,7 +66,7 @@ def test_a_la_carte_instantiation():
     vnf = MagicMock()
     line_of_business = LineOfBusiness(name="test_line_of_business")
     platform = Platform(name="test_platform")
-    with pytest.raises(AttributeError):
+    with pytest.raises(StatusError):
         service_instance.add_vnf(
             vnf,
             line_of_business,
