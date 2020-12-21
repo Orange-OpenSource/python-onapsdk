@@ -37,6 +37,5 @@ class Blueprintprocessor(CdsElement):
                 load_cba=load_cba
             ),
             auth=cls.auth,
-            headers=cls.headers,
-            exception=ValueError
+            headers=cls.headers
         )

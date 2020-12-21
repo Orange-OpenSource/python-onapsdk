@@ -89,9 +89,8 @@ class Vendor(SdcElement):
 
     def _really_submit(self) -> None:
         """Really submit the SDC Vf in order to enable it."""
-        result = self._action_to_sdc(const.SUBMIT)
-        if result:
-            self._status = const.CERTIFIED
+        self._action_to_sdc(const.SUBMIT)
+        self._status = const.CERTIFIED
 
     @classmethod
     def _sdc_path(cls) -> None:

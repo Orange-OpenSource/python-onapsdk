@@ -2,7 +2,6 @@ from unittest import mock
 
 import pytest
 
-from onapsdk.sdc.vf import Vf
 from onapsdk.so.so_element import OrchestrationRequest, SoElement
 from onapsdk.utils.headers_creator import headers_so_creator
 from onapsdk.onap_service import OnapService
@@ -72,7 +71,7 @@ def test_orchestration_request_status(mock_send_message):
     assert orchestration_req.failed
 
 
-#Test the Class SoElement 
+#Test the Class SoElement
 def test_SoElement_headers():
     """Test the header property"""
     element = SoElement()
@@ -91,4 +90,3 @@ def test_base_create_url():
     assert SoElement._base_create_url() == "{}/onap/so/infra/serviceInstantiation/{}/serviceInstances".\
                                             format(SoElement.base_url, SoElement.api_version)
 
-                                            

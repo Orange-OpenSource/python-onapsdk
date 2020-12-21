@@ -4,6 +4,8 @@
 import json
 from logging import getLogger, Logger
 
+from onapsdk.exceptions import FileError, ValidationError
+
 from .cds_element import CdsElement
 
 
@@ -18,11 +20,8 @@ class DataDictionary(CdsElement):
         Args:
             data_dictionary_json (dict): data dictionary json
             fix_schema (bool, optional): determines if data dictionary should be fixed if
-                the invalid schema is detected. Fixing can raise ValueError if
+                the invalid schema is detected. Fixing can raise ValidationError if
                 dictionary is invalid. Defaults to True.
-
-        Rasies:
-            ValueError: raises on error during schema fixing
 
         """
         super().__init__()
@@ -85,20 +84,14 @@ class DataDictionary(CdsElement):
         return f"{self._url}/api/v1/dictionary"
 
     def upload(self) -> None:
-        """Upload data dictionary using CDS API.
-
-        Raises:
-            ValueError: CDS API returns error on upload.
-
-        """
+        """Upload data dictionary using CDS API."""
         self.logger.debug("Upload %s data dictionary", self.name)
         self.send_message(
             "POST",
             "Publish CDS data dictionary",
             f"{self.url}",
             auth=self.auth,
-            data=json.dumps(self.data_dictionary_json),
-            exception=ValueError
+            data=json.dumps(self.data_dictionary_json)
         )
 
     def has_valid_schema(self) -> bool:
@@ -141,7 +134,7 @@ class DataDictionary(CdsElement):
                 }
 
         Raises:
-            ValueError: Data dictionary doesn't have all required keys
+            ValidationError: Data dictionary doesn't have all required keys
 
         """
         try:
@@ -155,7 +148,7 @@ class DataDictionary(CdsElement):
                 "definition": self.data_dictionary_json
             }
         except KeyError:
-            raise ValueError("Raw data dictionary JSON has invalid schema")
+            raise ValidationError("Raw data dictionary JSON has invalid schema")
 
 
 class DataDictionarySet:
@@ -202,7 +195,7 @@ class DataDictionarySet:
         """
         self.logger.debug("Upload data dictionary")
         for data_dictionary in self.dd_set:  # type DataDictionary
-            data_dictionary.upload()
+            data_dictionary.upload()  # raise a relevant exception
 
     def save_to_file(self, dd_file_path: str) -> None:
         """Save data dictionaries to file.
@@ -221,18 +214,23 @@ class DataDictionarySet:
 
         Args:
             dd_file_path (str): Data dictionaries file path.
-            fix_schema (bool): Determines if schema should be fixed or not
+            fix_schema (bool): Determines if schema should be fixed or not.
 
         Raises:
-            FileNotFoundError: File to load data dictionaries from doesn't exist
+            FileError: File to load data dictionaries from doesn't exist.
 
         Returns:
-            DataDictionarySet: Data dictionary set with data dictionaries from given file
+            DataDictionarySet: Data dictionary set with data dictionaries from given file.
 
         """
         dd_set: DataDictionarySet = DataDictionarySet()
-        with open(dd_file_path, "r") as dd_file:  # type file
-            dd_json: dict = json.loads(dd_file.read())
-            for data_dictionary in dd_json:  # type DataDictionary
-                dd_set.add(DataDictionary(data_dictionary, fix_schema=fix_schema))
-        return dd_set
+
+        try:
+            with open(dd_file_path, "r") as dd_file:  # type file
+                dd_json: dict = json.loads(dd_file.read())
+                for data_dictionary in dd_json:  # type DataDictionary
+                    dd_set.add(DataDictionary(data_dictionary, fix_schema=fix_schema))
+            return dd_set
+        except FileNotFoundError as exc:
+            msg = "File with a set of data dictionaries does not exist."
+            raise FileError(msg) from exc

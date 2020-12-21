@@ -9,6 +9,7 @@ import pytest
 from onapsdk.aai.business import ServiceInstance, VnfInstance
 from onapsdk.so.deletion import VnfDeletionRequest
 from onapsdk.so.instantiation import VfModuleInstantiation
+from onapsdk.exceptions import ResourceNotFound
 
 
 VNF_INSTANCE = {
@@ -227,8 +228,9 @@ def test_vnf_instance_vnf():
                                model_version_id="test_model_version_id")
     assert vnf_instance._vnf is None
     service_instance.service_subscription.sdc_service.vnfs = []
-    with pytest.raises(AttributeError):
+    with pytest.raises(ResourceNotFound) as exc:
         vnf_instance.vnf
+    assert exc.type == ResourceNotFound
     assert vnf_instance._vnf is None
 
     vnf = mock.MagicMock()

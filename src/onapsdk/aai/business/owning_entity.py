@@ -4,6 +4,7 @@ from uuid import uuid4
 from typing import Iterator
 
 from onapsdk.utils.jinja import jinja_env
+from onapsdk.exceptions import ResourceNotFound
 
 from ..aai_element import AaiElement
 
@@ -77,8 +78,7 @@ class OwningEntity(AaiElement):
             "GET",
             "Get A&AI owning entity",
             (f"{cls.base_url}{cls.api_version}/business/owning-entities/"
-             f"owning-entity/{owning_entity_id}"),
-            exception=ValueError
+             f"owning-entity/{owning_entity_id}")
         )
         return cls(
             response.get("owning-entity-name"),
@@ -91,16 +91,18 @@ class OwningEntity(AaiElement):
         """Get owning entity resource by it's name.
 
         Raises:
-            ValueError: Owning entity with given name doesn't exist
+            ResourceNotFound: Owning entity requested by a name does not exist.
 
         Returns:
-            OwningEntity: Owning entity with given name
+            OwningEntity: Owning entity requested by a name.
 
         """
         for owning_entity in cls.get_all():
             if owning_entity.name == owning_entity_name:
                 return owning_entity
-        raise ValueError
+
+        msg = f'Owning entity "{owning_entity_name}" does not exist.'
+        raise ResourceNotFound(msg)
 
     @classmethod
     def create(cls, name: str, owning_entity_id: str = None) -> "OwningEntity":
@@ -109,9 +111,6 @@ class OwningEntity(AaiElement):
         Args:
             name (str): owning entity name
             owning_entity_id (str): owning entity ID. Defaults to None.
-
-        Raises:
-            ValueError: request response with HTTP error code
 
         Returns:
             OwningEntity: Created OwningEntity object
@@ -127,7 +126,6 @@ class OwningEntity(AaiElement):
             data=jinja_env().get_template("aai_owning_entity_create.json.j2").render(
                 owning_entity_name=name,
                 owning_entity_id=owning_entity_id
-            ),
-            exception=ValueError
+            )
         )
         return cls.get_by_owning_entity_id(owning_entity_id)

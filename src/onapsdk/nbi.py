@@ -8,6 +8,7 @@ from typing import Iterator
 from uuid import uuid4
 
 from onapsdk.aai.business.customer import Customer
+from onapsdk.exceptions import RequestError
 from onapsdk.onap_service import OnapService
 from onapsdk.utils import get_zulu_time_isoformat
 from onapsdk.utils.jinja import jinja_env
@@ -27,19 +28,16 @@ class Nbi(OnapService, ABC):
         Returns:
             bool: True if NBI works fine, False otherwise
 
-        Raises:
-            ValueError: Health check request returns HTTP error
-
         """
         try:
             cls.send_message(
                 "GET",
                 "Check NBI status",
-                f"{cls.base_url}{cls.api_version}/status",
-                exception=ValueError
+                f"{cls.base_url}{cls.api_version}/status"
             )
-        except ValueError:
-            cls._logger.error("NBI Status check returns error")
+        except RequestError as exc:
+            msg = f"An error occured during NBI status check: {exc}"
+            cls._logger.error(msg)
             return False
         return True
 
@@ -420,8 +418,7 @@ class ServiceOrder(Nbi, WaitForFinishMixin):  # pylint: disable=too-many-instanc
         response: dict = self.send_message_json("GET",
                                                 "Get service order status",
                                                 (f"{self.base_url}{self.api_version}/"
-                                                 f"serviceOrder/{self.unique_id}"),
-                                                exception=ValueError)
+                                                 f"serviceOrder/{self.unique_id}"))
         try:
             return self.StatusEnum(response.get("state"))
         except (KeyError, ValueError):

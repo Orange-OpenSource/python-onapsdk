@@ -4,6 +4,7 @@ from typing import Iterator, Type, Union
 
 from onapsdk.so.deletion import ServiceDeletionRequest
 from onapsdk.so.instantiation import NetworkInstantiation, VnfInstantiation
+from onapsdk.exceptions import StatusError, ParameterError
 
 from .instance import Instance
 from .network import NetworkInstance
@@ -125,21 +126,27 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
                 to create required object instances
             relationship_related_to_type (str): Has to be "generic-vnf" or "l3-network"
 
+        Raises:
+            ParameterError: relationship_related_to_type does not satisfy the requirements
+
         Yields:
             Iterator[ Union[NetworkInstance, VnfInstance]]: [description]
 
         """
         if not relationship_related_to_type in ["l3-network", "generic-vnf"]:
-            raise ValueError("Invalid \"relationship_related_to_type'\" value, has to be "
-                             "\"l3-network\" or \"generic-vnf\"")
+            msg = (
+                f'Invalid "relationship_related_to_type" value. '
+                f'Provided "{relationship_related_to_type}". '
+                f'Has to be "l3-network" or "generic-vnf".'
+            )
+            raise ParameterError(msg)
         for relationship in self.relationships:
             if relationship.related_to == relationship_related_to_type:
                 yield related_instance_class.create_from_api_response(\
                     self.send_message_json("GET",
                                            (f"Get {self.instance_id} "
                                             f"{related_instance_class.__class__}"),
-                                           f"{self.base_url}{relationship.related_link}",
-                                           exception=ValueError),
+                                           f"{self.base_url}{relationship.related_link}"),
                     self)
 
     @property
@@ -160,9 +167,6 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
 
         Returns iterator of VnfInstances representing VNF instantiated for that service
 
-        Raises:
-            ValueError: Request sent to get vnf instances returns HTTP error code.
-
         Yields:
             VnfInstance: VnfInstance object
 
@@ -174,9 +178,6 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
         """Network instances associated with service instance.
 
         Returns iterator of NetworkInstance representing network instantiated for that service
-
-        Raises:
-            ValueError: Request sent to get network instances returns HTTP error code.
 
         Yields:
             NetworkInstance: NetworkInstance object
@@ -213,15 +214,17 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
                 Defaults to None.
 
         Raises:
-            AttributeError: Service orchestration status is not "Active"
-            ValueError: Instantiation request error.
+            StatusError: Service orchestration status is not "Active".
 
         Returns:
             VnfInstantiation: VnfInstantiation request object
 
         """
-        if self.orchestration_status != "Active":
-            raise AttributeError("Service has invalid orchestration status")
+        required_status = "Active"
+
+        if self.orchestration_status != required_status:
+            msg = f'Service orchestration status must be "{required_status}"'
+            raise StatusError(msg)
         return VnfInstantiation.instantiate_ala_carte(
             self,
             vnf,
@@ -262,15 +265,17 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
                 Defaults to None.
 
         Raises:
-            AttributeError: Service orchestration status is not "Active"
-            ValueError: Instantiation request error.
+            StatusError: Service orchestration status is not "Active"
 
         Returns:
             NetworkInstantiation: NetworkInstantiation request object
 
         """
-        if self.orchestration_status != "Active":
-            raise AttributeError("Service has invalid orchestration status")
+        required_status = "Active"
+
+        if self.orchestration_status != required_status:
+            msg = f'Service orchestration status must be "{required_status}"'
+            raise StatusError(msg)
         return NetworkInstantiation.instantiate_ala_carte(
             self,
             network,

@@ -6,6 +6,7 @@ import json
 
 import pytest
 import requests
+from onapsdk.exceptions import ParameterError, RequestError
 
 from onapsdk.sdc.vsp import Vsp
 from onapsdk.sdc.vendor import Vendor
@@ -169,7 +170,7 @@ def test_create_issue_in_creation(mock_send, mock_exists):
     vsp.vendor = vendor
     expected_data = '{\n  "name": "ONAP-test-VSP",\n  "description": "vendor software product",\n  "icon": "icon",\n  "category": "resourceNewCategory.generic",\n  "subCategory": "resourceNewCategory.generic.abstract",\n  "vendorName": "Generic-Vendor",\n  "vendorId": "1232",\n  "licensingData": {},\n  "onboardingMethod": "NetworkPackage"\n}'
     mock_exists.return_value = False
-    mock_send.return_value = {}
+    mock_send.side_effect = RequestError
     vsp.create()
     mock_send.assert_called_once_with("POST", "create Vsp", 'https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/onboarding-api/v1.0/vendor-software-products', data=expected_data)
     assert vsp.created() == False
@@ -548,7 +549,7 @@ def test_onboard_new_vsp_no_vendor(mock_created, mock_create, mock_upload_packag
                                const.APPROVED, const.APPROVED,
                                const.APPROVED, None]
         vsp = Vsp()
-        with pytest.raises(ValueError):
+        with pytest.raises(ParameterError):
             vsp.onboard()
             mock_create.assert_not_called()
             mock_upload_package.assert_not_called()
@@ -601,7 +602,7 @@ def test_onboard_vsp_upload_no_files(mock_create, mock_upload_package,
                                const.APPROVED, const.APPROVED, const.APPROVED,
                                const.APPROVED, None]
         vsp = Vsp()
-        with pytest.raises(ValueError):
+        with pytest.raises(ParameterError):
             vsp.onboard()
             mock_create.assert_not_called()
             mock_upload_package.assert_not_called()
