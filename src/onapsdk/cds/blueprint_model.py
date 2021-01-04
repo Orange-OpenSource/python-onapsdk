@@ -1,6 +1,7 @@
 """CDS Blueprint Models module."""
 
 from typing import Iterator
+from onapsdk.exceptions import ResourceNotFound
 
 from .blueprint import Blueprint
 from .cds_element import CdsElement
@@ -73,17 +74,16 @@ class BlueprintModel(CdsElement):  # pylint: disable=too-many-instance-attribute
             BlueprintModel: Blueprint model object
 
         Raises:
-            ValueError: Blueprint model with provided ID doesn't exist
+            ResourceNotFound: Blueprint model with provided ID doesn't exist
 
         """
         try:
             blueprint_model = cls.send_message_json(
                 "GET",
-                "Retrieve all blueprints",
+                "Retrieve blueprint",
                 f"{cls._url}/api/v1/blueprint-model/{blueprint_model_id}",
                 headers={},
-                auth=cls.auth,
-                exception=ValueError)
+                auth=cls.auth)
 
             return BlueprintModel(
                 blueprint_model_id=blueprint_model["blueprintModel"]['id'],
@@ -98,8 +98,8 @@ class BlueprintModel(CdsElement):  # pylint: disable=too-many-instance-attribute
                 tags=blueprint_model["blueprintModel"]['tags']
             )
 
-        except ValueError:
-            raise ValueError(f"BlueprintModel blueprint_model_id='{blueprint_model_id} not found")
+        except ResourceNotFound:
+            raise ResourceNotFound(f"BlueprintModel blueprint_model_id='{blueprint_model_id} not found")
 
     @classmethod
     def get_by_name_and_version(cls, blueprint_name: str,
@@ -114,18 +114,17 @@ class BlueprintModel(CdsElement):  # pylint: disable=too-many-instance-attribute
             BlueprintModel: Blueprint model object
 
         Raises:
-            ValueError: Blueprint model with provided name and version doesn't exist
+            ResourceNotFound: Blueprint model with provided name and version doesn't exist
 
         """
         try:
             blueprint_model = cls.send_message_json(
                 "GET",
-                "Retrieve all blueprints",
+                "Retrieve blueprint",
                 f"{cls._url}/api/v1/blueprint-model/by-name/{blueprint_name}"
                 f"/version/{blueprint_version}",
                 headers={},
-                auth=cls.auth,
-                exception=ValueError)
+                auth=cls.auth)
 
             return BlueprintModel(
                 blueprint_model_id=blueprint_model["blueprintModel"]['id'],
@@ -140,9 +139,9 @@ class BlueprintModel(CdsElement):  # pylint: disable=too-many-instance-attribute
                 tags=blueprint_model["blueprintModel"]['tags']
             )
 
-        except ValueError:
-            raise ValueError(f"BlueprintModel blueprint_name='{blueprint_name}"
-                             f" and blueprint_version='{blueprint_version}' not found")
+        except ResourceNotFound:
+            raise ResourceNotFound(f"BlueprintModel blueprint_name='{blueprint_name}"
+                                   f" and blueprint_version='{blueprint_version}' not found")
 
     @classmethod
     def get_all(cls) -> Iterator["BlueprintModel"]:
@@ -157,8 +156,7 @@ class BlueprintModel(CdsElement):  # pylint: disable=too-many-instance-attribute
                 "Retrieve all blueprints",
                 f"{cls._url}/api/v1/blueprint-model",
                 headers={},
-                auth=cls.auth,
-                exception=ValueError):
+                auth=cls.auth):
 
             yield BlueprintModel(
                 blueprint_model_id=blueprint_model["blueprintModel"]['id'],
@@ -182,11 +180,10 @@ class BlueprintModel(CdsElement):  # pylint: disable=too-many-instance-attribute
         """
         cba_package = self.send_message(
             "GET",
-            "Retrieve selected blueprints",
+            "Retrieve selected blueprint object",
             f"{self._url}/api/v1/blueprint-model/download/{self.blueprint_model_id}",
             headers={},
-            auth=self.auth,
-            exception=ValueError)
+            auth=self.auth)
 
         return Blueprint(cba_file_bytes=cba_package.content)
 
@@ -198,11 +195,10 @@ class BlueprintModel(CdsElement):  # pylint: disable=too-many-instance-attribute
         """
         cba_package = self.send_message(
             "GET",
-            "Retrieve selected blueprints",
+            "Retrieve and save selected blueprint",
             f"{self._url}/api/v1/blueprint-model/download/{self.blueprint_model_id}",
             headers={},
-            auth=self.auth,
-            exception=ValueError)
+            auth=self.auth)
 
         with open(dst_file_path, "wb") as content:
             for chunk in cba_package.iter_content(chunk_size=128):
@@ -215,5 +211,4 @@ class BlueprintModel(CdsElement):  # pylint: disable=too-many-instance-attribute
             "Delete blueprint",
             f"{self._url}/api/v1/blueprint-model/{self.blueprint_model_id}",
             headers={},
-            auth=self.auth,
-            exception=ValueError)
+            auth=self.auth)
