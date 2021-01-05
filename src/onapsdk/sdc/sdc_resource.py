@@ -9,6 +9,7 @@ import base64
 import time
 
 import onapsdk.constants as const
+from onapsdk.exceptions import ParameterError, ResourceNotFound, StatusError
 from onapsdk.sdc import SdcOnboardable
 from onapsdk.sdc.category_management import ResourceCategory, ServiceCategory
 from onapsdk.sdc.component import Component
@@ -104,21 +105,22 @@ class SdcResource(SdcOnboardable, ABC):  # pylint: disable=too-many-instance-att
         headers = headers_sdc_creator(SdcResource.headers)
         if self.status == const.UNDER_CERTIFICATION:
             headers = headers_sdc_tester(SdcResource.headers)
+
         response = self.send_message_json("GET",
                                           "Deep Load {}".format(
                                               type(self).__name__),
                                           url,
                                           headers=headers)
-        if response:
-            for resource in response[self._sdc_path()]:
-                if resource["uuid"] == self.identifier:
-                    self._logger.debug("Resource %s found in %s list",
-                                       resource["name"], self._sdc_path())
-                    self.unique_identifier = resource["uniqueId"]
-                    self._category_name = resource["categories"][0]["name"]
-                    subcategories = resource["categories"][0].get("subcategories", [{}])
-                    self._subcategory_name = None if subcategories is None else \
-                        subcategories[0].get("name")
+
+        for resource in response[self._sdc_path()]:
+            if resource["uuid"] == self.identifier:
+                self._logger.debug("Resource %s found in %s list",
+                                   resource["name"], self._sdc_path())
+                self.unique_identifier = resource["uniqueId"]
+                self._category_name = resource["categories"][0]["name"]
+                subcategories = resource["categories"][0].get("subcategories", [{}])
+                self._subcategory_name = None if subcategories is None else \
+                    subcategories[0].get("name")
 
     def _generate_action_subpath(self, action: str) -> str:
         """
@@ -319,7 +321,7 @@ class SdcResource(SdcOnboardable, ABC):  # pylint: disable=too-many-instance-att
     def _parse_sdc_status(sdc_status: str, distribution_state: str,
                           logger: logging.Logger) -> str:
         """
-        Parse  SDC status in order to normalize it.
+        Parse SDC status in order to normalize it.
 
         Args:
             sdc_status (str): the status found in SDC
@@ -454,8 +456,7 @@ class SdcResource(SdcOnboardable, ABC):  # pylint: disable=too-many-instance-att
         for property_data in self.send_message_json(\
                 "GET",
                 f"Get {self.name} resource properties",
-                self.properties_url,
-                exception=AttributeError).get("properties", []):
+                self.properties_url).get("properties", []):
             yield Property(
                 sdc_resource=self,
                 unique_id=property_data["uniqueId"],
@@ -474,7 +475,7 @@ class SdcResource(SdcOnboardable, ABC):  # pylint: disable=too-many-instance-att
             property_name (str): property name
 
         Raises:
-            AttributeError: Resource has no property with given name
+            ResourceNotFound: Resource has no property with given name
 
         Returns:
             Property: Resource's property object
@@ -483,7 +484,9 @@ class SdcResource(SdcOnboardable, ABC):  # pylint: disable=too-many-instance-att
         for property_obj in self.properties:
             if property_obj.name == property_name:
                 return property_obj
-        raise AttributeError("Resource has no property with %s name" % property_name)
+
+        msg = f"Resource has no property with {property_name} name"
+        raise ResourceNotFound(msg)
 
     @property
     def resource_inputs_url(self) -> str:
@@ -520,11 +523,10 @@ class SdcResource(SdcOnboardable, ABC):  # pylint: disable=too-many-instance-att
             Iterator[Input]: Resource input
 
         """
+        url = f"{self.resource_inputs_url}/filteredDataByParams?include=inputs"
         for input_data in self.send_message_json(\
-                "GET",
-                f"Get {self.name} resource inputs",
-                f"{self.resource_inputs_url}/filteredDataByParams?include=inputs",
-                exception=AttributeError).get("inputs", []):
+                "GET", f"Get {self.name} resource inputs",
+                url).get("inputs", []):
 
             yield Input(
                 unique_id=input_data["uniqueId"],
@@ -541,7 +543,7 @@ class SdcResource(SdcOnboardable, ABC):  # pylint: disable=too-many-instance-att
             input_name (str): Input name
 
         Raises:
-            AttributeError: Resource doesn't have input with given name
+            ResourceNotFound: Resource doesn't have input with given name
 
         Returns:
             Input: Found input object
@@ -550,7 +552,7 @@ class SdcResource(SdcOnboardable, ABC):  # pylint: disable=too-many-instance-att
         for input_obj in self.inputs:
             if input_obj.name == input_name:
                 return input_obj
-        raise AttributeError("SDC resource has no %s input" % input_name)
+        raise ResourceNotFound(f"SDC resource has no {input_name} input")
 
     def add_deployment_artifact(self, artifact_type: str, artifact_label: str,
                                 artifact_name: str, artifact: str):
@@ -566,13 +568,14 @@ class SdcResource(SdcOnboardable, ABC):  # pylint: disable=too-many-instance-att
             artifact_label (str): Unique Identifier of the artifact within the VF / Service.
 
         Raises:
-            AttributeError: Resource has not DRAFT status
+            StatusError: Resource has not DRAFT status
 
         """
         data = open(artifact, 'rb').read()
         artifact_string = base64.b64encode(data).decode('utf-8')
         if self.status != const.DRAFT:
-            raise AttributeError("Can't add artifact to resource which is not in DRAFT status")
+            msg = "Can't add artifact to resource which is not in DRAFT status"
+            raise StatusError(msg)
         self._logger.debug("Add deployment artifact to sdc resource")
         my_data = jinja_env().get_template(
             "sdc_resource_add_deployment_artifact.json.j2").\
@@ -586,8 +589,7 @@ class SdcResource(SdcOnboardable, ABC):  # pylint: disable=too-many-instance-att
                                f"Add deployment artifact for {self.name} sdc resource",
                                self.add_deployment_artifacts_url,
                                data=my_data,
-                               headers=my_header,
-                               exception=ValueError)
+                               headers=my_header)
 
     @property
     def components(self) -> Iterator[Component]:
@@ -602,15 +604,14 @@ class SdcResource(SdcOnboardable, ABC):  # pylint: disable=too-many-instance-att
         for component_instance in self.send_message_json(\
                 "GET",
                 f"Get {self.name} resource inputs",
-                f"{self.resource_inputs_url}/filteredDataByParams?include=componentInstances",
-                exception=AttributeError).get("componentInstances", []):
+                f"{self.resource_inputs_url}/filteredDataByParams?include=componentInstances"
+                ).get("componentInstances", []):
             sdc_resource: "SdcResource" = SdcResource.import_from_sdc(self.send_message_json(\
                 "GET",
                 f"Get {self.name} component's SDC resource metadata",
                 (f"{self.base_front_url}/sdc1/feProxy/rest/v1/catalog/resources/"
                  f"{component_instance['actualComponentUid']}/"
-                 "filteredDataByParams?include=metadata"),
-                exception=AttributeError)["metadata"])
+                 "filteredDataByParams?include=metadata"))["metadata"])
             yield Component.create_from_api_response(api_response=component_instance,
                                                      sdc_resource=sdc_resource,
                                                      parent_sdc_resource=self)
@@ -704,7 +705,7 @@ class SdcResource(SdcOnboardable, ABC):  # pylint: disable=too-many-instance-att
             sdc_resource (SdcResource): Component's SdcResource
 
         Raises:
-            AttributeError: Component with given SdcResource does not exist
+            ResourceNotFound: Component with given SdcResource does not exist
 
         Returns:
             Component: Component object
@@ -713,7 +714,8 @@ class SdcResource(SdcOnboardable, ABC):  # pylint: disable=too-many-instance-att
         for component in self.components:
             if component.sdc_resource.name == sdc_resource.name:
                 return component
-        raise AttributeError("SDC resource %s is not a component" % sdc_resource.name)
+        msg = f"SDC resource {sdc_resource.name} is not a component"
+        raise ResourceNotFound(msg)
 
     def declare_input_for_own_property(self, property_obj: Property) -> None:
         """Declare input for resource's property.
@@ -732,8 +734,7 @@ class SdcResource(SdcOnboardable, ABC):  # pylint: disable=too-many-instance-att
                                    "sdc_resource_add_input.json.j2").\
                                        render(\
                                            sdc_resource=self,
-                                           property=property_obj),
-                               exception=ValueError)
+                                           property=property_obj))
 
     def declare_nested_input(self,
                              nested_input: NestedInput) -> None:
@@ -755,8 +756,7 @@ class SdcResource(SdcOnboardable, ABC):  # pylint: disable=too-many-instance-att
                                        render(\
                                            sdc_resource=self,
                                            component=component,
-                                           input=nested_input.input_obj),
-                               exception=ValueError)
+                                           input=nested_input.input_obj))
 
     def declare_input(self, input_to_declare: Union[Property, NestedInput]) -> None:
         """Declare input for given property or nested input object.
@@ -767,13 +767,17 @@ class SdcResource(SdcOnboardable, ABC):  # pylint: disable=too-many-instance-att
             input_declaration (Union[Property, NestedInput]): Property to declare input
                 or NestedInput object
 
+        Raises:
+            ParameterError: if the given property is not SDC resource property
+
         """
         self._logger.debug("Declare input")
         if isinstance(input_to_declare, Property):
             if self.is_own_property(input_to_declare):
                 self.declare_input_for_own_property(input_to_declare)
             else:
-                raise ValueError("Given property is not SDC resource property")
+                msg = "Given property is not SDC resource property"
+                raise ParameterError(msg)
         else:
             self.declare_nested_input(input_to_declare)
 
@@ -786,11 +790,12 @@ class SdcResource(SdcOnboardable, ABC):  # pylint: disable=too-many-instance-att
             property_to_add (Property): Property object to add to resource.
 
         Raises:
-            AttributeError: Resource has not DRAFT status
+            StatusError: Resource has not DRAFT status
 
         """
         if self.status != const.DRAFT:
-            raise AttributeError("Can't add property to resource which is not in DRAFT status")
+            msg = "Can't add property to resource which is not in DRAFT status"
+            raise StatusError(msg)
         self._logger.debug("Add property to sdc resource")
         self.send_message_json("POST",
                                f"Declare new property for {self.name} sdc resource",
@@ -799,8 +804,7 @@ class SdcResource(SdcOnboardable, ABC):  # pylint: disable=too-many-instance-att
                                    "sdc_resource_add_property.json.j2").\
                                     render(
                                         property=property_to_add
-                                    ),
-                               exception=ValueError)
+                                    ))
 
     def set_property_value(self, property_obj: Property, value: Any) -> None:
         """Set property value.
@@ -811,9 +815,12 @@ class SdcResource(SdcOnboardable, ABC):  # pylint: disable=too-many-instance-att
             property_obj (Property): Property object
             value (Any): Property value to set
 
+        Raises:
+            ParameterError: if the given property is not the resource's property
+
         """
         if not self.is_own_property(property_obj):
-            raise ValueError("Given property is not a resource's property")
+            raise ParameterError("Given property is not a resource's property")
         self._logger.debug("Set %s property value", property_obj.name)
         self.send_message_json("PUT",
                                f"Set {property_obj.name} value to {value}",
@@ -824,8 +831,7 @@ class SdcResource(SdcOnboardable, ABC):  # pylint: disable=too-many-instance-att
                                         sdc_resource=self,
                                         property=property_obj,
                                         value=value
-                                    ),
-                               exception=ValueError
+                                    )
                                )
 
     def set_input_default_value(self, input_obj: Input, default_value: Any) -> None:
@@ -848,8 +854,7 @@ class SdcResource(SdcOnboardable, ABC):  # pylint: disable=too-many-instance-att
                                         sdc_resource=self,
                                         input=input_obj,
                                         default_value=default_value
-                                    ),
-                               exception=ValueError
+                                    )
                                )
 
     def checkout(self) -> None:

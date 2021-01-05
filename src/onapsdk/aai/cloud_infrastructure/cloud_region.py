@@ -5,6 +5,7 @@ from urllib.parse import urlencode
 
 from onapsdk.msb.multicloud import Multicloud
 from onapsdk.utils.jinja import jinja_env
+from onapsdk.exceptions import ResourceNotFound
 
 from ..aai_element import AaiElement, Relationship
 from .complex import Complex
@@ -182,7 +183,7 @@ class CloudRegion(AaiElement):  # pylint: disable=too-many-instance-attributes
         cloud-region-id field value.
 
         Raises:
-            ValueError: Cloud region with given id does not exist.
+            ResourceNotFound: Cloud region with given id does not exist.
 
         Returns:
             CloudRegion: CloudRegion object with given cloud-region-id.
@@ -191,7 +192,11 @@ class CloudRegion(AaiElement):  # pylint: disable=too-many-instance-attributes
         try:
             return next(cls.get_all(cloud_owner=cloud_owner, cloud_region_id=cloud_region_id))
         except StopIteration:
-            raise ValueError(f"CloudRegion with {cloud_owner},{cloud_region_id} cloud-id not found")
+            msg = (
+                f'CloudRegion with {cloud_owner}, '
+                f'{cloud_region_id} cloud-id not found. '
+            )
+            raise ResourceNotFound(msg)
 
     @classmethod
     def create(cls,  # pylint: disable=too-many-locals
@@ -360,8 +365,8 @@ class CloudRegion(AaiElement):  # pylint: disable=too-many-instance-attributes
             f"{self.url}/tenants/tenant/{tenant_id}",
             data=jinja_env()
             .get_template("cloud_region_add_tenant.json.j2")
-            .render(tenant_id=tenant_id, tenant_name=tenant_name, tenant_context=tenant_context),
-            exception=ValueError
+            .render(tenant_id=tenant_id, tenant_name=tenant_name,
+                    tenant_context=tenant_context)
         )
 
     def get_tenant(self, tenant_id: str) -> "Tenant":
@@ -373,15 +378,11 @@ class CloudRegion(AaiElement):  # pylint: disable=too-many-instance-attributes
         Returns:
             Tenant: Tenant object
 
-        Raises:
-            ValueError: Tenant with provided ID doesn't exist
-
         """
         response: dict = self.send_message_json(
             "GET",
             "get tenants",
-            f"{self.url}/tenants/tenant/{tenant_id}",
-            exception=ValueError
+            f"{self.url}/tenants/tenant/{tenant_id}"
         )
         return Tenant(
             cloud_region=self,
@@ -401,15 +402,11 @@ class CloudRegion(AaiElement):  # pylint: disable=too-many-instance-attributes
         Returns:
             AvailabilityZone: AvailabilityZone object
 
-        Raises:
-            ValueError: Availability Zone with provided name doesn't exist
-
         """
         response: dict = self.send_message_json(
             "GET",
             "get availability_zones",
-            f"{self.url}/availability-zones/availability-zone/{zone_name}",
-            exception=ValueError
+            f"{self.url}/availability-zones/availability-zone/{zone_name}"
         )
         return AvailabilityZone(
             name=response["availability-zone-name"],

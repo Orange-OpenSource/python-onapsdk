@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Vf module."""
 from typing import Dict, List, Union
+from onapsdk.exceptions import ParameterError
 
 from onapsdk.sdc.sdc_resource import SdcResource
 from onapsdk.sdc.properties import NestedInput, Property
@@ -44,13 +45,17 @@ class Vf(SdcResource):
         self.vsp: Vsp = vsp or None
 
     def create(self) -> None:
-        """Create the Vf in SDC if not already existing."""
+        """Create the Vf in SDC if not already existing.
+
+        Raises:
+            ParameterError: VSP is not provided during VF object initalization
+
+        """
         if not self.vsp:
-            raise ValueError("No Vsp was given")
+            raise ParameterError("No Vsp was given")
         self._create("vf_create.json.j2", name=self.name, vsp=self.vsp, category=self.category)
 
     def _really_submit(self) -> None:
         """Really submit the SDC Vf in order to enable it."""
-        result = self._action_to_sdc(const.CERTIFY, "lifecycleState")
-        if result:
-            self.load()
+        self._action_to_sdc(const.CERTIFY, "lifecycleState")
+        self.load()

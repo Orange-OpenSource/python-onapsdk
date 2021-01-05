@@ -80,7 +80,8 @@ class Complex(AaiElement):  # pylint: disable=too-many-instance-attributes
             str: Complex object description
 
         """
-        return (f"Complex(name={self.name}, physical_location_id={self.physical_location_id}, "
+        return (f"Complex(name={self.name}, "
+                f"physical_location_id={self.physical_location_id}, "
                 f"resource_version={self.resource_version})")
 
     @property

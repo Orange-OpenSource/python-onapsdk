@@ -14,7 +14,7 @@ import os
 import os.path
 import unittest
 
-from onapsdk.utils.jinja import jinja_env
+from onapsdk.exceptions import ValidationError
 import onapsdk.utils.tosca_file_handler as tosca_file_handler
 
 
@@ -44,7 +44,7 @@ class ToscaFileHandlerTestingBase(unittest.TestCase):
     def test_get_wrong_parameter_from_yaml(self):
         with open(self._foo_path) as f:
             model = json.dumps(yaml.safe_load(f))
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ValidationError):
             tosca_file_handler.get_parameter_from_yaml(
                 "wrong_parameter", model)
 

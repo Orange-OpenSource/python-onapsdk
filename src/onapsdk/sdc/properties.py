@@ -5,6 +5,8 @@
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
+from onapsdk.exceptions import ParameterError
+
 
 @dataclass
 class Input:
@@ -112,9 +114,9 @@ class Property:  # pylint: disable=too-many-instance-attributes, too-few-public-
             Returns None if property has no associated input.
 
         Raises:
-            AttributeError: Input has no associated SdcResource
+            ParameterError: Input has no associated SdcResource
 
-            AttributeError: Input for given property does not exits.
+            ParameterError: Input for given property does not exits.
                 It shouldn't ever happen, but it's possible if after you
                 get property object someone delete input.
 
@@ -123,14 +125,14 @@ class Property:  # pylint: disable=too-many-instance-attributes, too-few-public-
 
         """
         if not self.sdc_resource:
-            raise AttributeError("Property has no associated SdcResource")
+            raise ParameterError("Property has no associated SdcResource")
         if not self.get_input_values:
             return None
         try:
             return next(filter(lambda x: x.unique_id == self.get_input_values[0].get("inputId"),
                                self.sdc_resource.inputs))
         except StopIteration:
-            raise AttributeError("Property input does not exist")
+            raise ParameterError("Property input does not exist")
 
     @property
     def value(self) -> Any:

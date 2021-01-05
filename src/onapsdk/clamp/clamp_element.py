@@ -5,6 +5,7 @@
 from onapsdk.configuration import settings
 from onapsdk.onap_service import OnapService as Onap
 from onapsdk.sdc.service import Service
+from onapsdk.exceptions import ResourceNotFound
 
 
 class Clamp(Onap):
@@ -39,7 +40,7 @@ class Clamp(Onap):
             service (Service): the distributed sdc service with tca blueprint artifact
 
         Raises:
-            ValueError : Template not found
+            ResourceNotFound: Template not found.
 
         Returns:
             if required template exists in CLAMP or not
@@ -52,7 +53,7 @@ class Clamp(Onap):
                                               cert=cls.cert):
             if template["modelService"]["serviceDetails"]["name"] == service.name:
                 return template["name"]
-        raise ValueError("Template not found")
+        raise ResourceNotFound("Template not found.")
 
     @classmethod
     def check_policies(cls, policy_name: str, req_policies: int = 30) -> bool:

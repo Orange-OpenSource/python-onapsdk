@@ -9,6 +9,7 @@ from abc import ABC, abstractmethod
 from requests import Response
 
 from onapsdk.configuration import settings
+from onapsdk.exceptions import APIError, RequestError
 from onapsdk.onap_service import OnapService
 import onapsdk.constants as const
 from onapsdk.utils.jinja import jinja_env
@@ -128,12 +129,21 @@ class SDC(OnapService, ABC):
         cls._logger.info("retrieving all objects of type %s from SDC",
                          cls.__name__)
         url = cls._get_all_url()
-        result = cls.send_message_json('GET', "get {}s".format(cls.__name__),
-                                       url, **kwargs)
         objects = []
-        if result:
+
+        try:
+            result = \
+                cls.send_message_json('GET', "get {}s".format(cls.__name__),
+                                      url, **kwargs)
+
             for obj_info in cls._get_objects_list(result):
                 objects.append(cls.import_from_sdc(obj_info))
+
+        except APIError as exc:
+            cls._logger.debug("Couldn't get %s: %s", cls.__name__, exc)
+        except KeyError as exc:
+            cls._logger.debug("Invalid result dictionary: %s", exc)
+
         cls._logger.debug("number of %s returned: %s", cls.__name__,
                           len(objects))
         return objects
@@ -146,28 +156,34 @@ class SDC(OnapService, ABC):
             True if exists, False either
 
         """
-        self._logger.debug("check if %s %s exists in SDC", type(self).__name__, self.name)
+        self._logger.debug("check if %s %s exists in SDC",
+                           type(self).__name__, self.name)
         objects = self.get_all()
 
-        self._logger.debug("filtering objects of all versions to be %s", self.name)
+        self._logger.debug("filtering objects of all versions to be %s",
+                           self.name)
         relevant_objects = list(filter(lambda obj: obj == self, objects))
 
         if not relevant_objects:
 
-            self._logger.info("%s %s doesn't exist in SDC", type(self).__name__, self.name)
+            self._logger.info("%s %s doesn't exist in SDC",
+                              type(self).__name__, self.name)
             return False
 
         if hasattr(self, 'version_filter') and self.version_filter is not None: # pylint: disable=no-member
 
-            self._logger.debug("filtering %s objects by version %s", self.name, self.version_filter) # pylint: disable=no-member
-            all_versioned = filter(lambda obj: obj.version == self.version_filter,  # pylint: disable=no-member
-                                   relevant_objects)
+            self._logger.debug("filtering %s objects by version %s",
+                               self.name, self.version_filter) # pylint: disable=no-member
+
+            all_versioned = filter(
+                lambda obj: obj.version == self.version_filter, relevant_objects) # pylint: disable=no-member
 
             try:
                 versioned_object = next(all_versioned)
             except StopIteration:
                 self._logger.info("Version %s of %s %s, doesn't exist in SDC",
-                                  self.version_filter, type(self).__name__, self.name) # pylint: disable=no-member
+                                  self.version_filter, type(self).__name__,  # pylint: disable=no-member
+                                  self.name)
                 return False
 
         else:
@@ -254,22 +270,24 @@ class SdcOnboardable(SDC, ABC):
             url = "{}/{}".format(self._base_create_url(), self._sdc_path())
             template = jinja_env().get_template(template_name)
             data = template.render(**kwargs)
-            create_result = self.send_message_json('POST',
-                                                   "create {}".format(
-                                                       type(self).__name__),
-                                                   url,
-                                                   data=data)
-            if create_result:
+            try:
+                create_result = self.send_message_json('POST',
+                                                       "create {}".format(
+                                                           type(self).__name__),
+                                                       url,
+                                                       data=data)
+            except RequestError:
+                self._logger.error(
+                    "an error occured during creation of %s %s in SDC",
+                    type(self).__name__, self.name)
+            else:
                 self._logger.info("%s %s is created in SDC",
                                   type(self).__name__, self.name)
                 self._status = const.DRAFT
                 self.identifier = self._get_identifier_from_sdc(create_result)
                 self._version = self._get_version_from_sdc(create_result)
                 self.update_informations_from_sdc_creation(create_result)
-            else:
-                self._logger.error(
-                    "an error occured during creation of %s %s in SDC",
-                    type(self).__name__, self.name)
+
         else:
             self._logger.warning("%s %s is already created in SDC",
                                  type(self).__name__, self.name)
@@ -285,7 +303,7 @@ class SdcOnboardable(SDC, ABC):
             headers (Dict[str, str], optional): headers to use if any
 
         Returns:
-            Response: the response if any
+            Response: the response
 
         """
         subpath = self._generate_action_subpath(action)
@@ -295,20 +313,13 @@ class SdcOnboardable(SDC, ABC):
                                action_type=action_type)
         template = jinja_env().get_template(self.ACTION_TEMPLATE)
         data = template.render(action=action, const=const)
-        result = self.send_message(self.ACTION_METHOD,
-                                   "{} {}".format(action,
-                                                  type(self).__name__),
-                                   url,
-                                   data=data,
-                                   **kwargs)
-        if result:
-            self._logger.info("action %s has been performed on %s %s", action,
-                              type(self).__name__, self.name)
-            return result
-        self._logger.error("an error occured during action %s on %s %s in SDC",
-                           action,
-                           type(self).__name__, self.name)
-        return None
+
+        return self.send_message(self.ACTION_METHOD,
+                                 "{} {}".format(action,
+                                                type(self).__name__),
+                                 url,
+                                 data=data,
+                                 **kwargs)
 
     def _get_item_details(self) -> Dict[str, Any]:
         """

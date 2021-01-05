@@ -2,7 +2,7 @@ from unittest import mock
 
 import pytest
 
-from onapsdk.msb.k8s import Definition, Profile, ConfigurationTemplate, ConnectivityInfo, InstantiationParameter, InstantiationRequest, Instance
+from onapsdk.msb.k8s import Definition, ConnectivityInfo, Instance
 
 
 CONNECTIVITY_INFO = {
@@ -83,22 +83,22 @@ INSTANCE = {
     },
   },
   "resources": [
-        {                                                                                                                                                                                                         
-            "GVK": {                                                                                                                                                                                              
-                "Group": "",                                                                                                                                                                                      
-                "Kind": "ConfigMap",                                                                                                                                                                              
-                "Version": "v1"                                                                                                                                                                                   
-            },                                                                                                                                                                                                    
-            "Name": "test-cm"                                                                                                                                                                              
-        },                                                                                                                                                                                                        
-        {                                                                                                                                                                                                         
-            "GVK": {                                                                                                                                                                                              
-                "Group": "",                                                                                                                                                                                      
-                "Kind": "Service",                                                                                                                                                                                
-                "Version": "v1"                                                                                                                                                                                   
-            },                                                                                                                                                                                                    
-            "Name": "test-svc"                                                                                                                                                                           
-        },                                                                                                                                                                                                        
+        {
+            "GVK": {
+                "Group": "",
+                "Kind": "ConfigMap",
+                "Version": "v1"
+            },
+            "Name": "test-cm"
+        },
+        {
+            "GVK": {
+                "Group": "",
+                "Kind": "Service",
+                "Version": "v1"
+            },
+            "Name": "test-svc"
+        },
         {
             "GVK": {
                 "Group": "apps",
@@ -142,7 +142,7 @@ def test_connectivity_info_create_delete(mock_send_message_json, mock_send_messa
 def test_definition_get_all(mock_send_message_json):
     mock_send_message_json.return_value = []
     assert len(list(Definition.get_all())) == 0
-    
+
     mock_send_message_json.return_value = DEFINITIONS
     definitions = list(Definition.get_all())
     assert len(definitions) == 2
@@ -318,7 +318,7 @@ def test_definition_get_all_configuration_templates(mock_send_message_json):
         labels={}
     )
     assert len(list(deff.get_all_configuration_templates())) == 0
-    
+
     mock_send_message_json.return_value = CONFIGURATION_TEMPLATES
     configuration_tmplts = list(deff.get_all_configuration_templates())
     assert len(configuration_tmplts) == 2

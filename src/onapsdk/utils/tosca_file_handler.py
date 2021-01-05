@@ -10,38 +10,49 @@
 import json
 import string
 import random
-from typing import Dict
+from typing import Dict, List
 
-def get_parameter_from_yaml(parameter, config_file):
-    """
-    Get the value of a given parameter in file.yaml.
+from onapsdk.exceptions import ValidationError
+
+def get_parameter_from_yaml(parameter: str, config_file: str):
+    """Get the value of a given parameter in file.yaml.
 
     Parameter must be given in string format with dots
     Example: general.openstack.image_name
-    :param config_file: yaml file of configuration formtatted as string
-    :return: the value of the parameter
+
+    Args:
+        parameter (str):
+        config_file (str): configuration yaml file formtatted as string
+
+    Raises:
+        ParameterError: parameter not defined
+
+    Returns:
+        the value of the parameter
+
     """
-    # with open(config_file) as my_file
-    #     file_yaml = yaml.safe_load(my_file)
-    # my_file.close()
-    # value = file_yaml
     value = json.loads(config_file)
-    # Ugly fix as workaround for the .. within the params in the yaml file
+
+    # Workaround for the .. within the params in the yaml file
     ugly_param = parameter.replace("..", "##")
     for element in ugly_param.split("."):
         value = value.get(element.replace("##", ".."))
         if value is None:
-            raise ValueError("Parameter %s not defined" % parameter)
+            msg = f"{element} in the {parameter} is not in YAML config file."
+            raise ValidationError(msg)
 
     return value
 
-def get_vf_list_from_tosca_file(model):
-    """
-    Get the list of Vfs of a VNF based on the tosca file.
+def get_vf_list_from_tosca_file(model: str) -> List:
+    """Get the list of Vfs of a VNF based on the tosca file.
 
-    :param model: the model retrieved from the tosca file at Vnf instantiation
+    Args:
+        model (str): the model retrieved from the tosca file at Vnf
+            instantiation
 
-    :return: the list of Vfs
+    Returns:
+        list: a list of Vfs
+
     """
     newlist = []
     node_list = get_parameter_from_yaml(
@@ -63,21 +74,28 @@ def get_modules_list_from_tosca_file(model: str) -> Dict:
 
     Modules are stored on topology_template.groups TOSCA file section.
 
-    :param model: the model retrieved from the tosca file at Vnf instantiation
-    :return: the list of modules
-    :raises:
-        ValueError: no modules in Tosca file
+    Args:
+        model (str): the model retrieved from the tosca file at Vnf
+            instantiation.
+
+    Returns:
+        dict: a list of modules
+
     """
     return get_parameter_from_yaml(
         "topology_template.groups", model
     )
 
 def random_string_generator(size=6,
-                            chars=string.ascii_uppercase + string.digits):
-    """
-    Get a random String for VNF.
+                            chars=string.ascii_uppercase + string.digits) -> str:
+    """Get a random String for VNF.
 
-    6 alphanumerical char for CI (to get single instances)
-    :return: a random sequence of 6 characters
+    Args:
+        size (int): the number of alphanumerical chars for CI
+        chars (str): alphanumerical characters (ASCII uppercase and digits)
+
+    Returns:
+        str: a sequence of random characters
+
     """
     return ''.join(random.choice(chars) for _ in range(size))

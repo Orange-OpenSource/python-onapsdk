@@ -3,7 +3,6 @@
 """Test Service module."""
 
 from os import path
-from io import BytesIO
 from pathlib import Path
 from unittest import mock
 from unittest.mock import MagicMock
@@ -11,16 +10,14 @@ import shutil
 
 import oyaml as yaml
 import pytest
-from typing import BinaryIO
 
 import onapsdk.constants as const
+from onapsdk.exceptions import ParameterError, RequestError, ResourceNotFound, StatusError, ValidationError
 from onapsdk.sdc.category_management import ServiceCategory
 from onapsdk.sdc.component import Component
 from onapsdk.sdc.properties import ComponentProperty, Property
 from onapsdk.sdc.service import Service, ServiceInstantiationType
 from onapsdk.sdc.sdc_resource import SdcResource
-from onapsdk.utils.headers_creator import headers_sdc_tester
-from onapsdk.utils.headers_creator import headers_sdc_governor
 from onapsdk.utils.headers_creator import headers_sdc_operator
 from onapsdk.utils.headers_creator import headers_sdc_creator
 
@@ -31,7 +28,7 @@ ARTIFACTS = {
             "uniqueId" : "test_unique_id",
             "componentName" : "ubuntu16test_VF 0"
         }
-    ]                 
+    ]
 }
 
 
@@ -422,12 +419,12 @@ def test_get_tosca_result_no_service_in_csar(requests_mock):
             content=file_content)
     svc = Service()
     svc.identifier = "12"
-    with pytest.raises(AttributeError):
+    with pytest.raises(ValidationError):
         svc.get_tosca()
 
 @mock.patch.object(Service, 'send_message_json')
-def test_distributed_no_result(mock_send):
-    mock_send.return_value = {}
+def test_distributed_api_error(mock_send):
+    mock_send.side_effect = ResourceNotFound
     svc = Service()
     svc.distribution_id = "12"
     assert not svc.distributed
@@ -518,10 +515,12 @@ def test_get_all_url():
 
 @mock.patch.object(Service, '_action_to_sdc')
 @mock.patch.object(Service, 'load')
-def test_really_submit_no_results(mock_load, mock_action):
-    mock_action.return_value = {}
+def test_really_submit_request_failed(mock_load, mock_action):
+    mock_action.side_effect = RequestError
     svc = Service()
-    svc._really_submit()
+    with pytest.raises(RequestError) as err:
+        svc._really_submit()
+    assert err.type == RequestError
     mock_load.assert_not_called()
     mock_action.assert_called_once_with('Certify', action_type='lifecycleState')
 
@@ -553,20 +552,9 @@ def test_verify_action_to_sdc_bad_status(mock_created, mock_action, mock_load):
     mock_created.return_value = True
     svc = Service()
     svc._status = "no_yes"
-    svc._verify_action_to_sdc("yes", "action", action_type='lifecycleState')
-    mock_created.assert_called()
-    mock_action.assert_not_called()
-    mock_load.assert_not_called()
-
-@mock.patch.object(Service, 'load')
-@mock.patch.object(Service, '_action_to_sdc')
-@mock.patch.object(Service, 'created')
-def test_verify_action_to_sdc_no_result(mock_created, mock_action, mock_load):
-    mock_created.return_value = True
-    mock_action.return_value = {}
-    svc = Service()
-    svc._status = "no_yes"
-    svc._verify_action_to_sdc("yes", "action", action_type='lifecycleState')
+    with pytest.raises(StatusError) as err:
+        svc._verify_action_to_sdc("yes", "action", action_type='lifecycleState')
+    assert err.type == StatusError
     mock_created.assert_called()
     mock_action.assert_not_called()
     mock_load.assert_not_called()
@@ -615,6 +603,15 @@ def test_onboard_new_service(mock_create, mock_add_resource,
         mock_approve.assert_not_called()
         mock_distribute.assert_not_called()
 
+@mock.patch.object(Service, 'status')
+def test_onboard_invalid_status(mock_status):
+    mock_status.return_value = False
+    service = Service()
+    service._time_wait = 0
+    with pytest.raises(StatusError) as err:
+        service.onboard()
+    assert err.type == StatusError
+
 @mock.patch.object(Service, 'distribute')
 @mock.patch.object(Service, 'approve')
 @mock.patch.object(Service, 'certify')
@@ -637,7 +634,7 @@ def test_onboard_service_no_resources(mock_create,
                                 const.DISTRIBUTED, const.DISTRIBUTED, None]
         service = Service()
         service._time_wait = 0
-        with pytest.raises(ValueError):
+        with pytest.raises(ParameterError):
             service.onboard()
             mock_create.assert_not_called()
             mock_add_resource.assert_not_called()
@@ -820,7 +817,7 @@ def test_vnf_no_template():
     getter_mock.return_value = False
     mock_status = Service.tosca_template.getter(getter_mock)
     with mock.patch.object(Service, 'tosca_template', mock_status):
-        with pytest.raises(AttributeError):
+        with pytest.raises(ParameterError):
             service = Service(name="test")
             service.vnfs
 
@@ -829,7 +826,7 @@ def test_pnf_no_template():
     getter_mock.return_value = False
     mock_status = Service.tosca_template.getter(getter_mock)
     with mock.patch.object(Service, 'tosca_template', mock_status):
-        with pytest.raises(AttributeError):
+        with pytest.raises(ParameterError):
             service = Service(name="test")
             service.pnfs
 
@@ -897,6 +894,19 @@ def test_get_vnf_unique_id(mock_send):
         f"https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/rest/v1/catalog/services/{svc.unique_identifier}")
     assert unique_id == 'test_unique_id'
 
+@mock.patch.object(Service, 'send_message_json')
+def test_get_vnf_unique_id_not_found(mock_send):
+    """Test Service get nf uid with One Vf"""
+    svc = Service()
+    svc.unique_identifier = "service_unique_identifier"
+    artifacts = {"componentInstances": []}
+    mock_send.return_value = artifacts
+    with pytest.raises(ResourceNotFound) as err:
+        svc.get_nf_unique_id(nf_name="ubuntu16test_VF 0")
+    assert err.type == ResourceNotFound
+    mock_send.assert_called_once_with(
+        'GET', 'Get nf unique ID',
+        f"https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/rest/v1/catalog/services/{svc.unique_identifier}")
 
 @mock.patch.object(Service, 'get_nf_unique_id')
 @mock.patch.object(Service, 'load')
@@ -905,7 +915,7 @@ def test_add_artifact_to_vf(mock_send_message, mock_load, mock_add):
     """Test Service add artifact"""
     svc = Service()
     mock_add.return_value = "54321"
-    result = svc.add_artifact_to_vf(vnf_name="ubuntu16test_VF 0", 
+    result = svc.add_artifact_to_vf(vnf_name="ubuntu16test_VF 0",
                                     artifact_type="DCAE_INVENTORY_BLUEPRINT",
                                     artifact_name="clampnode.yaml",
                                     artifact="data".encode('utf-8'))
@@ -976,7 +986,6 @@ def test_tosca_model(mock_send):
     service.tosca_model
     mock_send.assert_called_once_with("GET", "Download Tosca Model for test",
                                       "https://sdc.api.be.simpledemo.onap.org:30204/sdc/v1/catalog/services/toto/toscaModel",
-                                      exception=mock.ANY,
                                       headers={'Content-Type': 'application/json', 'Accept': 'application/octet-stream', 'USER_ID': 'cs0008', 'Authorization': 'Basic YWFpOktwOGJKNFNYc3pNMFdYbGhhazNlSGxjc2UyZ0F3ODR2YW9HR21KdlV5MlU=', 'X-ECOMP-InstanceID': 'onapsdk'})
 
 @mock.patch.object(Service, "send_message_json")
@@ -985,7 +994,7 @@ def test_add_properties(mock_send_message_json):
     service._identifier = "toto"
     service._unique_identifier = "toto"
     service._status = const.CERTIFIED
-    with pytest.raises(AttributeError):
+    with pytest.raises(StatusError):
         service.add_property(Property(name="test", property_type="string"))
     service._status = const.DRAFT
     service.add_property(Property(name="test", property_type="string"))
@@ -1074,7 +1083,7 @@ def test_component_property_set_value(mock_component_properties):
             component=component
         )
     ]
-    with pytest.raises(AttributeError):
+    with pytest.raises(ParameterError):
         component.get_property(property_name="non_exists")
     prop1 = component.get_property(property_name="test_property")
     assert prop1.name == "test_property"

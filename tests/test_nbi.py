@@ -4,6 +4,7 @@ from unittest import mock
 import pytest
 
 from onapsdk.aai.business import Customer
+from onapsdk.exceptions import RequestError
 from onapsdk.nbi import Nbi, Service, ServiceOrder, ServiceSpecification
 
 
@@ -279,7 +280,7 @@ def test_nbi(mock_send_message):
     assert Nbi.base_url == "https://nbi.api.simpledemo.onap.org:30274"
     assert Nbi.api_version == "/nbi/api/v4"
 
-    mock_send_message.side_effect = ValueError
+    mock_send_message.side_effect = RequestError
     assert Nbi.is_status_ok() == False
     mock_send_message.side_effect = None
     assert Nbi.is_status_ok() == True

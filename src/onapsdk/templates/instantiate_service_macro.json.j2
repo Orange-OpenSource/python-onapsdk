@@ -120,7 +120,7 @@
                                                 "modelVersion": "{{ vf_module.metadata["vfModuleModelVersion"] }}",
                                                 "modelCustomizationId": "{{ vf_module.metadata["vfModuleModelCustomizationUUID"] }}"
                                             },
-                                            "instanceName": "{{ vf_module.name }}",
+                                            "instanceName": "{{ service_name }}_{{ vf_module.name }}",
                                             "instanceParams": [
                                                 {
                                                     {% for vnf_parameter in vnf_parameters %}

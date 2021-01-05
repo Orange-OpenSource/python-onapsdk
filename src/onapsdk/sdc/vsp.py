@@ -7,6 +7,7 @@ from typing import BinaryIO
 from typing import Callable
 from typing import Dict
 
+from onapsdk.exceptions import ParameterError
 from onapsdk.sdc.sdc_element import SdcElement
 from onapsdk.sdc.vendor import Vendor
 import onapsdk.constants as const
@@ -55,12 +56,12 @@ class Vsp(SdcElement): # pylint: disable=too-many-instance-attributes
         """Onboard the VSP in SDC."""
         if not self.status:
             if not self.vendor:
-                raise ValueError("No Vendor was given")
+                raise ParameterError("No Vendor provided.")
             self.create()
             self.onboard()
         elif self.status == const.DRAFT:
             if not self.package:
-                raise ValueError("No file were given for upload")
+                raise ParameterError("No file/package provided.")
             self.upload_package(self.package)
             self.onboard()
         elif self.status == const.UPLOADED:
@@ -299,7 +300,12 @@ class Vsp(SdcElement): # pylint: disable=too-many-instance-attributes
         return vsp
 
     def _really_submit(self) -> None:
-        """Really submit the SDC Vf in order to enable it."""
+        """Really submit the SDC Vf in order to enable it.
+
+        Raises:
+            NotImplementedError
+
+        """
         raise NotImplementedError("VSP don't need _really_submit")
 
     @classmethod

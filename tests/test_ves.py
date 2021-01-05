@@ -1,6 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2020 Nokia
-import os
 from unittest.mock import patch
 import json
 
