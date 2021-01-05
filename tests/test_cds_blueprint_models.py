@@ -10,7 +10,7 @@ import pytest
 import requests
 import io
 
-
+from onapsdk.exceptions import ResourceNotFound
 from onapsdk.cds.blueprint_model import BlueprintModel
 from onapsdk.cds.cds_element import CdsElement
 from onapsdk.cds.blueprint import Blueprint
@@ -101,6 +101,18 @@ def test_blueprint_model_by_id(mock_send):
 
 
 @mock.patch.object(CdsElement, 'send_message_json')
+def test_blueprint_model_by_id_non_existing(mock_send):
+    """Test get_by_id exception for non existing BlueprintModel."""
+
+    mock_send.side_effect = ResourceNotFound
+    with pytest.raises(ResourceNotFound) as exc:
+        BlueprintModel.get_by_id(
+            blueprint_model_id="11111111-2222-3333-4444-555555555555")
+
+    assert exc.type == ResourceNotFound
+
+
+@mock.patch.object(CdsElement, 'send_message_json')
 def test_blueprint_model_by_name_and_version(mock_send):
     """Test get_by_name_and_version function of BlueprintModel."""
     mock_send.return_value = BLUEPRINT_MODEL
@@ -120,8 +132,22 @@ def test_blueprint_model_by_name_and_version(mock_send):
     assert blueprint_model_3.tags == "Carlos Santana, test, blueprint"
 
 
+@mock.patch.object(CdsElement, 'send_message_json')
+def test_blueprint_model_by_name_and_version_non_existing(mock_send):
+    """Test get_by_name_and_version exception for non existing BlueprintModel."""
+
+    mock_send.side_effect = ResourceNotFound
+    with pytest.raises(ResourceNotFound) as exc:
+        BlueprintModel.get_by_name_and_version(
+            blueprint_name="test_blueprint_wrong",
+            blueprint_version="1.0.0")
+
+    assert exc.type == ResourceNotFound
+
+
 @mock.patch.object(CdsElement, 'send_message')
 def test_get_blueprint_object(mock_send):
+    """Test retrieve Blueprint object for selected BlueprintModel."""
     mock_send.return_value.content = b"test cba - it will never work"
 
     blueprint_model_4 = BlueprintModel(
@@ -133,6 +159,7 @@ def test_get_blueprint_object(mock_send):
 
 @mock.patch.object(CdsElement, 'send_message')
 def test_save_blueprint(mock_send):
+    """Test download BlueprintModel from onap cds."""
     r = requests.Response()
     r.raw = io.BytesIO(b'test cba - it will never work')
     mock_send.return_value = r
@@ -150,6 +177,7 @@ def test_save_blueprint(mock_send):
 
 @mock.patch.object(CdsElement, 'send_message')
 def test_delete_blueprint(mock_send):
+    """Test delete BlueprintModel in onap cds. """
 
     blueprint_model_6 = BlueprintModel(
         blueprint_model_id="11111111-2222-3333-4444-555555555555")
