@@ -103,9 +103,6 @@ class VfModuleInstance(Instance):  # pylint: disable=too-many-instance-attribute
     def vf_module(self) -> "VfModule":
         """Vf module associated with that vf module instance.
 
-        Raises:
-            AttributeError: Could not find VF module for that VfModule instance
-
         Returns:
             VfModule: VfModule object associated with vf module instance
 

@@ -72,6 +72,5 @@ class Dmaap(DmaapService):
             GET_HTTP_METHOD,
             ACTION,
             url,
-            basic_auth=basic_auth,
-            exception=ValueError
+            basic_auth=basic_auth
         )

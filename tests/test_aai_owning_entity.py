@@ -3,6 +3,7 @@ from unittest import mock
 import pytest
 
 from onapsdk.aai.business import OwningEntity
+from onapsdk.exceptions import ResourceNotFound
 
 
 OWNING_ENTITIES = {
@@ -50,8 +51,9 @@ def test_owning_entity_get_all(mock_send):
 @mock.patch.object(OwningEntity, "send_message_json")
 def test_owning_entity_get_by_name(mock_send):
     mock_send.return_value = OWNING_ENTITIES
-    with pytest.raises(ValueError):
+    with pytest.raises(ResourceNotFound) as exc:
         OwningEntity.get_by_owning_entity_name("invalid name")
+    assert exc.type == ResourceNotFound
     owning_entity = OwningEntity.get_by_owning_entity_name("OE-Generic")
     assert owning_entity.owning_entity_id == "ff6c945f-89ab-4f14-bafd-0cdd6eac791a"
     assert owning_entity.name == "OE-Generic"

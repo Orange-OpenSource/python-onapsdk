@@ -53,7 +53,6 @@ class VfModuleDeletionRequest(DeletionRequest):  # pytest: disable=too-many-ance
                                          data=jinja_env().
                                          get_template("deletion_vf_module.json.j2").
                                          render(vf_module_instance=instance),
-                                         exception=ValueError,
                                          headers=headers_so_creator(OnapService.headers))
         return cls(request_id=response["requestReferences"]["requestId"])
 
@@ -84,7 +83,6 @@ class VnfDeletionRequest(DeletionRequest):  # pytest: disable=too-many-ancestors
                                          data=jinja_env().
                                          get_template("deletion_vnf.json.j2").
                                          render(vnf_instance=instance),
-                                         exception=ValueError,
                                          headers=headers_so_creator(OnapService.headers))
         return cls(request_id=response["requestReferences"]["requestId"])
 
@@ -113,7 +111,6 @@ class ServiceDeletionRequest(DeletionRequest):  # pytest: disable=too-many-ances
                                          data=jinja_env().
                                          get_template("deletion_service.json.j2").
                                          render(service_instance=instance),
-                                         exception=ValueError,
                                          headers=headers_so_creator(OnapService.headers))
         return cls(request_id=response["requestReferences"]["requestId"])
 
@@ -144,6 +141,5 @@ class NetworkDeletionRequest(DeletionRequest):  # pylint: disable=too-many-ances
                                          data=jinja_env().
                                          get_template("deletion_network.json.j2").
                                          render(network_instance=instance),
-                                         exception=ValueError,
                                          headers=headers_so_creator(OnapService.headers))
         return cls(request_id=response["requestReferences"]["requestId"])

@@ -12,6 +12,7 @@ from zipfile import ZipFile
 import oyaml as yaml
 
 from onapsdk.utils.jinja import jinja_env
+from onapsdk.exceptions import FileError, ValidationError
 
 from .cds_element import CdsElement
 from .data_dictionary import DataDictionary, DataDictionarySet
@@ -321,9 +322,6 @@ class Workflow(CdsElement):
         Args:
             inputs (dict): Inputs dictionary.
 
-        Raises:
-            AttributeError: Execution returns error.
-
         Returns:
             dict: Response's payload.
 
@@ -350,8 +348,7 @@ class Workflow(CdsElement):
             f"Execute {self.blueprint.metadata.template_name} blueprint {self.name} workflow",
             self.url,
             auth=self.auth,
-            data=json.dumps(execution_service_input),
-            exception=ValueError
+            data=json.dumps(execution_service_input)
         )
         return response["payload"]
 
@@ -441,14 +438,18 @@ class Blueprint(CdsElement):
         """Load blueprint from file.
 
         Raises:
-            FileNotFoundError: File to load blueprint from doesn't exist
+            FileError: File to load blueprint from doesn't exist.
 
         Returns:
             Blueprint: Blueprint object
 
         """
-        with open(cba_file_path, "rb") as cba_file:
-            return Blueprint(cba_file.read())
+        try:
+            with open(cba_file_path, "rb") as cba_file:
+                return Blueprint(cba_file.read())
+        except FileNotFoundError as exc:
+            msg = "The requested file with a blueprint doesn't exist."
+            raise FileError(msg) from exc
 
     def enrich(self) -> "Blueprint":
         """Call CDS API to get enriched blueprint file.
@@ -463,8 +464,7 @@ class Blueprint(CdsElement):
             f"{self.url}/enrich",
             files={"file": self.cba_file_bytes},
             headers={},  # Leave headers empty to fill it correctly by `requests` library
-            auth=self.auth,
-            exception=ValueError
+            auth=self.auth
         )
         return Blueprint(response.content)
 
@@ -476,8 +476,7 @@ class Blueprint(CdsElement):
             f"{self.url}/publish",
             files={"file": self.cba_file_bytes},
             headers={},  # Leave headers empty to fill it correctly by `requests` library
-            auth=self.auth,
-            exception=ValueError
+            auth=self.auth
         )
 
     def deploy(self) -> None:
@@ -488,8 +487,7 @@ class Blueprint(CdsElement):
             f"{self.url}",
             files={"file": self.cba_file_bytes},
             headers={},  # Leave headers empty to fill it correctly by `requests` library
-            auth=self.auth,
-            exception=ValueError
+            auth=self.auth
         )
 
     def save(self, dest_file_path: str) -> None:
@@ -524,7 +522,7 @@ class Blueprint(CdsElement):
             cba_tosca_meta_bytes (bytes): TOSCA.meta file bytes.
 
         Raises:
-            ValueError: File has invalid format.
+            ValidationError: TOSCA Meta file has invalid format.
 
         Returns:
             CbaMetadata: Dataclass with CBA metadata
@@ -532,7 +530,7 @@ class Blueprint(CdsElement):
         """
         meta_dict: dict = yaml.safe_load(cba_tosca_meta_bytes)
         if not isinstance(meta_dict, dict):
-            raise ValueError("Invalid TOSCA Meta file")
+            raise ValidationError("Invalid TOSCA Meta file")
         return CbaMetadata(
             tosca_meta_file_version=meta_dict.get("TOSCA-Meta-File-Version"),
             csar_version=meta_dict.get("CSAR-Version"),

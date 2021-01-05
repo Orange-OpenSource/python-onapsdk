@@ -4,6 +4,7 @@ from unittest import mock
 import pytest
 
 import onapsdk.constants as const
+from onapsdk.exceptions import ResourceNotFound
 from onapsdk.sdc.vl import Vl
 
 
@@ -65,5 +66,5 @@ def test_get_all_vl(mock_send):
 @mock.patch.object(Vl, 'send_message_json')
 def test_create_vl_not_exists(mock_send):
     mock_send.return_value = VLS
-    with pytest.raises(ValueError):
+    with pytest.raises(ResourceNotFound):
         Vl("not_exists")

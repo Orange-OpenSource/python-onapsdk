@@ -57,8 +57,8 @@ class PreloadInformation(Preload):
             cls.send_message_json(\
                 "GET",\
                 "Get SDNC preload information",\
-                f"{cls.base_url}/restconf/operational/GENERIC-RESOURCE-API:preload-information",\
-                exception=ValueError).get('preload-information', {}).get('preload-list', []):
+                f"{cls.base_url}/restconf/operational/GENERIC-RESOURCE-API:preload-information"
+                                 ).get('preload-information', {}).get('preload-list', []):
             yield PreloadInformation(preload_id=preload_information["preload-id"],
                                      preload_type=preload_information["preload-type"],
                                      preload_data=preload_information["preload-data"])
@@ -80,9 +80,6 @@ class NetworkPreload(Preload):
             subnets (Iterable[Subnet], optional): Iterable object of Subnet.
                 Defaults to None.
 
-        Raises:
-            ValueError: Preload request returns HTTP response with error code
-
         """
         cls.send_message_json(
             "POST",
@@ -95,8 +92,7 @@ class NetworkPreload(Preload):
                 network=network,
                 network_instance_name=network_instance_name,
                 subnets=subnets if subnets else []
-            ),
-            exception=ValueError
+            )
         )
 
 
@@ -118,9 +114,6 @@ class VfModulePreload(Preload):
             vnf_parameters (Iterable[InstantiationParameter], optional): Iterable object
                 of InstantiationParameter. Defaults to None.
 
-        Raises:
-            ValueError: Preload request returns HTTP response with error code
-
         """
         vnf_para = []
         if vnf_parameters:
@@ -141,6 +134,5 @@ class VfModulePreload(Preload):
                 vf_module_instance_name=vf_module_instance_name,
                 vf_module=vf_module,
                 vnf_parameters=vnf_para
-            ),
-            exception=ValueError
+            )
         )

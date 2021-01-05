@@ -3,10 +3,9 @@ from collections import namedtuple
 from unittest import mock
 
 import pytest
+from onapsdk.exceptions import APIError, InvalidResponse, ResourceNotFound, StatusError
 
 from onapsdk.sdnc import NetworkPreload, VfModulePreload
-from onapsdk.sdc.service import Service as SdcService
-from onapsdk.so.so_element import OrchestrationRequest
 from onapsdk.so.instantiation import (
     NetworkInstantiation,
     ServiceInstantiation,
@@ -20,7 +19,7 @@ from onapsdk.vid import Vid
 def test_service_ala_carte_instantiation(mock_service_instantiation_send_message):
     mock_sdc_service = mock.MagicMock()
     mock_sdc_service.distributed = False
-    with pytest.raises(ValueError):
+    with pytest.raises(StatusError):
         ServiceInstantiation.\
             instantiate_so_ala_carte(sdc_service=mock_sdc_service,
                                     cloud_region=mock.MagicMock(),
@@ -59,7 +58,7 @@ def test_service_ala_carte_instantiation(mock_service_instantiation_send_message
 def test_service_macro_instantiation(mock_service_instantiation_send_message):
     mock_sdc_service = mock.MagicMock()
     mock_sdc_service.distributed = False
-    with pytest.raises(ValueError):
+    with pytest.raises(StatusError):
         ServiceInstantiation.\
             instantiate_macro(sdc_service=mock_sdc_service,
                               cloud_region=mock.MagicMock(),
@@ -113,15 +112,16 @@ def test_service_instance_aai_service_instance():
                                                 project=mock.MagicMock())
     status_mock = mock.PropertyMock(return_value=ServiceInstantiation.StatusEnum.IN_PROGRESS)
     type(service_instantiation).status = status_mock
-    with pytest.raises(AttributeError):
+    with pytest.raises(StatusError):
         service_instantiation.aai_service_instance
 
     status_mock.return_value = return_value=ServiceInstantiation.StatusEnum.COMPLETED
     assert service_instantiation.aai_service_instance is not None
 
-    customer_mock.get_service_subscription_by_service_type.side_effect = ValueError
-    with pytest.raises(AttributeError):
+    customer_mock.get_service_subscription_by_service_type.side_effect = APIError
+    with pytest.raises(APIError) as err:
         service_instantiation.aai_service_instance
+    assert err.type == APIError
 
 
 @mock.patch.object(VnfInstantiation, "send_message_json")
@@ -247,7 +247,7 @@ def test_network_instantiation_with_cr_and_tenant(mock_network_preload, mock_net
 def test_vnf_instantiation_get_by_vnf_instance_name(mock_sdc_service, mock_send_message_json, mock_send):
     mock_sdc_service.return_value.vnfs = []
     mock_send_message_json.return_value = {}
-    with pytest.raises(ValueError):
+    with pytest.raises(InvalidResponse):
         VnfInstantiation.get_by_vnf_instance_name("test_vnf_instance_name")
     mock_send_message_json.return_value = {
         "requestList": [
@@ -258,7 +258,7 @@ def test_vnf_instantiation_get_by_vnf_instance_name(mock_sdc_service, mock_send_
             }
         ]
     }
-    with pytest.raises(ValueError):
+    with pytest.raises(InvalidResponse):
         VnfInstantiation.get_by_vnf_instance_name("test_vnf_instance_name")
     mock_send_message_json.return_value = {
         "requestList": [
@@ -270,7 +270,7 @@ def test_vnf_instantiation_get_by_vnf_instance_name(mock_sdc_service, mock_send_
             }
         ]
     }
-    with pytest.raises(ValueError):
+    with pytest.raises(InvalidResponse):
         VnfInstantiation.get_by_vnf_instance_name("test_vnf_instance_name")
     mock_send_message_json.return_value = {
         "requestList": [
@@ -282,7 +282,7 @@ def test_vnf_instantiation_get_by_vnf_instance_name(mock_sdc_service, mock_send_
             }
         ]
     }
-    with pytest.raises(ValueError):
+    with pytest.raises(ResourceNotFound):
         VnfInstantiation.get_by_vnf_instance_name("test_vnf_instance_name")
     mock_send_message_json.return_value = {
         "requestList": [
@@ -306,7 +306,7 @@ def test_vnf_instantiation_get_by_vnf_instance_name(mock_sdc_service, mock_send_
             }
         ]
     }
-    with pytest.raises(ValueError):
+    with pytest.raises(ResourceNotFound):
         VnfInstantiation.get_by_vnf_instance_name("test_vnf_instance_name")
     mock_vnf = mock.MagicMock()
     mock_vnf.name = "test_vnf_name"
@@ -336,7 +336,7 @@ def test_vnf_instantiation_get_by_vnf_instance_name(mock_sdc_service, mock_send_
             }
         ]
     }
-    with pytest.raises(ValueError):
+    with pytest.raises(ResourceNotFound):
         VnfInstantiation.get_by_vnf_instance_name("test_vnf_instance_name")
     mock_sdc_service.return_value.vnfs = [mock_vnf]
     mock_send_message_json.return_value = {

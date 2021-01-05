@@ -4,6 +4,7 @@ from typing import Iterable, Iterator
 
 from onapsdk.so.deletion import VnfDeletionRequest
 from onapsdk.so.instantiation import VfModuleInstantiation
+from onapsdk.exceptions import ResourceNotFound
 
 from .instance import Instance
 from .vf_module import VfModuleInstance
@@ -248,7 +249,7 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
         """Vnf associated with that vnf instance.
 
         Raises:
-            AttributeError: Could not find VNF for that VNF instance
+            ResourceNotFound: Could not find VNF for that VNF instance
 
         Returns:
             Vnf: Vnf object associated with vnf instance
@@ -259,7 +260,12 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
                 if vnf.metadata["UUID"] == self.model_version_id:
                     self._vnf = vnf
                     return self._vnf
-            raise AttributeError("Couldn't find VNF for VNF instance")
+
+            msg = (
+                f'Could not find VNF for the VNF instance'
+                f' with model version ID "{self.model_version_id}"'
+            )
+            raise ResourceNotFound(msg)
         return self._vnf
 
     @classmethod

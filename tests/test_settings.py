@@ -6,6 +6,7 @@ import pytest
 
 from onapsdk.configuration import settings, SETTINGS_ENV
 from onapsdk.configuration.loader import SettingsLoader
+from onapsdk.exceptions import ModuleError
 
 
 def test_global_settings():
@@ -34,7 +35,7 @@ def test_settings_load_custom():
 
 
 def test_invalid_custom_settings():
-    """Test if loading invalid custom settings raises ValueError."""
+    """Test if loading invalid custom settings raises ModuleError."""
     os.environ[SETTINGS_ENV] = "non.existings.package"
-    with pytest.raises(ValueError):
+    with pytest.raises(ModuleError):
         SettingsLoader()
