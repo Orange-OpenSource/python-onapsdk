@@ -1,7 +1,7 @@
 """CDS Blueprint Models module."""
 
 from typing import Iterator
-# from onapsdk.exceptions import ResourceNotFound  # for custom exceptions
+from onapsdk.exceptions import ResourceNotFound  # for custom exceptions
 
 from .blueprint import Blueprint
 from .cds_element import CdsElement
@@ -97,8 +97,8 @@ class BlueprintModel(CdsElement):  # pylint: disable=too-many-instance-attribute
                 tags=blueprint_model["blueprintModel"]['tags']
             )
 
-        except ValueError:
-            raise ValueError(f"BlueprintModel blueprint_model_id='{blueprint_model_id} not found")
+        except ResourceNotFound:
+            raise ResourceNotFound(f"BlueprintModel blueprint_model_id='{blueprint_model_id} not found")
 
     @classmethod
     def get_by_name_and_version(cls, blueprint_name: str,
@@ -137,9 +137,9 @@ class BlueprintModel(CdsElement):  # pylint: disable=too-many-instance-attribute
                 tags=blueprint_model["blueprintModel"]['tags']
             )
 
-        except ValueError:
-            raise ValueError(f"BlueprintModel blueprint_name='{blueprint_name}"
-                             f" and blueprint_version='{blueprint_version}' not found")
+        except ResourceNotFound:
+            raise ResourceNotFound(f"BlueprintModel blueprint_name='{blueprint_name}"
+                                   f" and blueprint_version='{blueprint_version}' not found")
 
     @classmethod
     def get_all(cls) -> Iterator["BlueprintModel"]:
