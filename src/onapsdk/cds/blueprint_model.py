@@ -1,7 +1,7 @@
 """CDS Blueprint Models module."""
 
 from typing import Iterator
-# from onapsdk.exceptions import ResourceNotFound  # to custom exceptions
+# from onapsdk.exceptions import ResourceNotFound  # for custom exceptions
 
 from .blueprint import Blueprint
 from .cds_element import CdsElement
@@ -82,10 +82,9 @@ class BlueprintModel(CdsElement):  # pylint: disable=too-many-instance-attribute
                 "GET",
                 "Retrieve blueprint",
                 f"{cls._url}/api/v1/blueprint-model/{blueprint_model_id}",
-                headers={},
                 auth=cls.auth)
 
-            return BlueprintModel(
+            return cls(
                 blueprint_model_id=blueprint_model["blueprintModel"]['id'],
                 artifact_uuid=blueprint_model["blueprintModel"]['artifactUUId'],
                 artifact_type=blueprint_model["blueprintModel"]['artifactType'],
@@ -123,10 +122,9 @@ class BlueprintModel(CdsElement):  # pylint: disable=too-many-instance-attribute
                 "Retrieve blueprint",
                 f"{cls._url}/api/v1/blueprint-model/by-name/{blueprint_name}"
                 f"/version/{blueprint_version}",
-                headers={},
                 auth=cls.auth)
 
-            return BlueprintModel(
+            return cls(
                 blueprint_model_id=blueprint_model["blueprintModel"]['id'],
                 artifact_uuid=blueprint_model["blueprintModel"]['artifactUUId'],
                 artifact_type=blueprint_model["blueprintModel"]['artifactType'],
@@ -155,10 +153,9 @@ class BlueprintModel(CdsElement):  # pylint: disable=too-many-instance-attribute
                 "GET",
                 "Retrieve all blueprints",
                 f"{cls._url}/api/v1/blueprint-model",
-                headers={},
                 auth=cls.auth):
 
-            yield BlueprintModel(
+            yield cls(
                 blueprint_model_id=blueprint_model["blueprintModel"]['id'],
                 artifact_uuid=blueprint_model["blueprintModel"]['artifactUUId'],
                 artifact_type=blueprint_model["blueprintModel"]['artifactType'],
@@ -182,7 +179,6 @@ class BlueprintModel(CdsElement):  # pylint: disable=too-many-instance-attribute
             "GET",
             "Retrieve selected blueprint object",
             f"{self._url}/api/v1/blueprint-model/download/{self.blueprint_model_id}",
-            headers={},
             auth=self.auth)
 
         return Blueprint(cba_file_bytes=cba_package.content)
@@ -197,7 +193,6 @@ class BlueprintModel(CdsElement):  # pylint: disable=too-many-instance-attribute
             "GET",
             "Retrieve and save selected blueprint",
             f"{self._url}/api/v1/blueprint-model/download/{self.blueprint_model_id}",
-            headers={},
             auth=self.auth)
 
         with open(dst_file_path, "wb") as content:
@@ -210,5 +205,4 @@ class BlueprintModel(CdsElement):  # pylint: disable=too-many-instance-attribute
             "DELETE",
             "Delete blueprint",
             f"{self._url}/api/v1/blueprint-model/{self.blueprint_model_id}",
-            headers={},
             auth=self.auth)
