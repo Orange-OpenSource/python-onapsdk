@@ -98,7 +98,8 @@ class BlueprintModel(CdsElement):  # pylint: disable=too-many-instance-attribute
             )
 
         except ResourceNotFound:
-            raise ResourceNotFound(f"BlueprintModel blueprint_model_id='{blueprint_model_id} not found")
+            raise ResourceNotFound(f"BlueprintModel blueprint_model_id='{blueprint_model_id}"
+                                   f" not found")
 
     @classmethod
     def get_by_name_and_version(cls, blueprint_name: str,
