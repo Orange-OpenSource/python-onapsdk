@@ -147,3 +147,16 @@ def test_save_blueprint(mock_send):
         with open(path, "rb") as f:
             assert f.read() == b"test cba - it will never work"
 
+
+@mock.patch.object(CdsElement, 'send_message')
+def test_delete_blueprint(mock_send):
+
+    blueprint_model_6 = BlueprintModel(
+        blueprint_model_id="11111111-2222-3333-4444-555555555555")
+    blueprint_model_6.delete()
+    mock_send.assert_called_once()
+
+    method, description, url = mock_send.call_args[0]
+    assert method == "DELETE"
+    assert description == f"Delete blueprint"
+    assert url == f"{CdsElement._url}/api/v1/blueprint-model/{blueprint_model_6.blueprint_model_id}"
