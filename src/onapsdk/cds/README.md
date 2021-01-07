@@ -27,8 +27,45 @@
 
 ## Generate data dictionary for blueprint
 
-Generated data dictionaries have to be manualy filled for "source-rest" and "source-db" input types.
+Generated data dictionaries have to be manually filled for "source-rest" and "source-db" input types.
 
 ```
 >>> blueprint.get_data_dictionaries().save_to_file("/tmp/dd.json")  # generate data dictionaries for blueprint and save it to "/tmp/dd.json" file
 ```
+
+## Manage Blueprint Models in CDS
+
+### Retrieve Blueprint Models from CDS 
+ - All
+```
+>>> from onapsdk.cds import BlueprintModel
+>>> all_blueprint_models = BlueprintModel.get_all()
+```
+ - Selected by **id** of Blueprint Model
+``` 
+>>> blueprint_model = BlueprintModel.get_by_id(blueprint_model_id='11111111-1111-1111-1111-111111111111')
+>>> blueprint_model
+BlueprintModel(artifact_name='test_name', blueprint_model_id='11111111-1111-1111-1111-111111111111')
+```
+- Selected by **name and version** of Blueprint Model
+```
+>>> blueprint_model = BlueprintModel.get_by_name_and_version(blueprint_name='test_name', blueprint_version='1.0.0')
+>>> blueprint_model
+BlueprintModel(artifact_name='test_name', blueprint_model_id='11111111-1111-1111-1111-111111111111')
+```
+
+### Delete Blueprint Model
+``` 
+>>> blueprint_model.delete()
+```
+
+### Download Blueprint Model 
+``` 
+>>> blueprint_model.save(dst_file_path='/tmp/blueprint.zip')
+```
+
+### Get Blueprint object for Blueprint Model
+``` 
+>>> blueprint = blueprint_model.get_blueprint()
+```
+After that, all operation for blueprint object, like execute blueprint workflow etc. can be executed.
