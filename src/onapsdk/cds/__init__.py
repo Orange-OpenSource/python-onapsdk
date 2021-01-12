@@ -2,4 +2,5 @@
 """ONAP SDK CDS package."""
 
 from .blueprint import Blueprint
+from .blueprint_model import BlueprintModel
 from .data_dictionary import DataDictionarySet
