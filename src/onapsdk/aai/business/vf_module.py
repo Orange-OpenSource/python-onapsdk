@@ -62,10 +62,7 @@ class VfModuleInstance(Instance):  # pylint: disable=too-many-instance-attribute
             selflink (str, optional): Path to the controller object. Defaults to None.
         """
         super().__init__(resource_version=resource_version, model_version_id=model_version_id,
-                         model_invariant_id=model_invariant_id,
-                         persona_model_version=persona_model_version,
-                         widget_model_id=widget_model_id,
-                         widget_model_version=widget_model_version)
+                         model_invariant_id=model_invariant_id)
         self.vnf_instance: "VnfInstance" = vnf_instance
         self.vf_module_id: str = vf_module_id
         self.is_base_vf_module: bool = is_base_vf_module
@@ -77,6 +74,9 @@ class VfModuleInstance(Instance):  # pylint: disable=too-many-instance-attribute
         self.contrail_service_instance_fqdn: str = contrail_service_instance_fqdn
         self.module_index: int = module_index
         self.selflink: str = selflink
+        self.persona_model_version: str = persona_model_version
+        self.widget_model_id: str = widget_model_id
+        self.widget_model_version: str = widget_model_version
 
     def __repr__(self) -> str:
         """Object represetation.

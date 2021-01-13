@@ -90,10 +90,7 @@ class NetworkInstance(Instance):  # pylint: disable=too-many-instance-attributes
         """
         super().__init__(resource_version=resource_version,
                          model_version_id=model_version_id,
-                         model_invariant_id=model_invariant_id,
-                         persona_model_version=persona_model_version,
-                         widget_model_id=widget_model_id,
-                         widget_model_version=widget_model_version)
+                         model_invariant_id=model_invariant_id)
         self.service_instance: "ServiceInstance" = service_instance
         self.network_id: str = network_id
         self.is_bound_to_vpn: bool = is_bound_to_vpn
@@ -116,6 +113,9 @@ class NetworkInstance(Instance):  # pylint: disable=too-many-instance-attributes
         self.selflink: str = selflink
         self.operational_status: str = operational_status
         self.is_trunked: bool = is_trunked
+        self.persona_model_version: str = persona_model_version
+        self.widget_model_id: str = widget_model_id
+        self.widget_model_version: str = widget_model_version
 
     def __repr__(self) -> str:
         """Network instance object representation.

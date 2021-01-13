@@ -8,6 +8,7 @@ from onapsdk.exceptions import StatusError, ParameterError
 
 from .instance import Instance
 from .network import NetworkInstance
+from .pnf import PnfInstance
 from .vnf import VnfInstance
 
 
@@ -79,10 +80,7 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
         """
         super().__init__(resource_version=resource_version,
                          model_invariant_id=model_invariant_id,
-                         model_version_id=model_version_id,
-                         persona_model_version=persona_model_version,
-                         widget_model_id=widget_model_id,
-                         widget_model_version=widget_model_version)
+                         model_version_id=model_version_id)
         self.service_subscription: "ServiceSubscription" = service_subscription
         self.instance_id: str = instance_id
         self.instance_name: str = instance_name
@@ -99,6 +97,9 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
         self.selflink: str = selflink
         self.orchestration_status: str = orchestration_status
         self.input_parameters: str = input_parameters
+        self.persona_model_version: str = persona_model_version
+        self.widget_model_id: str = widget_model_id
+        self.widget_model_version: str = widget_model_version
 
     def __repr__(self) -> str:
         """Service instance object representation.
@@ -133,7 +134,7 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
             Iterator[ Union[NetworkInstance, VnfInstance]]: [description]
 
         """
-        if not relationship_related_to_type in ["l3-network", "generic-vnf"]:
+        if not relationship_related_to_type in ["l3-network", "generic-vnf", "pnf"]:
             msg = (
                 f'Invalid "relationship_related_to_type" value. '
                 f'Provided "{relationship_related_to_type}". '
@@ -184,6 +185,18 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
 
         """
         return self._get_related_instance(NetworkInstance, "l3-network")
+
+    @property
+    def pnfs(self) -> Iterator[PnfInstance]:
+        """Pnfs associated with service instance.
+
+        Returns iterator of PnfInstance representing pnfs instantiated for that service
+
+        Yields:
+            PnfInstance: PnfInstance object
+
+        """
+        return self._get_related_instance(PnfInstance, "pnf")
 
     def add_vnf(self,  # pylint: disable=too-many-arguments
                 vnf: "Vnf",
