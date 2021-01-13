@@ -12,7 +12,7 @@ from zipfile import ZipFile
 import oyaml as yaml
 
 from onapsdk.utils.jinja import jinja_env
-from onapsdk.exceptions import FileError, ValidationError
+from onapsdk.exceptions import FileError, ParameterError, ValidationError
 
 from .cds_element import CdsElement
 from .data_dictionary import DataDictionary, DataDictionarySet
@@ -599,3 +599,20 @@ class Blueprint(CdsElement):
         workflows: dict = entry_definitions_json.get("topology_template", {}).get("workflows", {})
         for workflow_name, workflow_data in workflows.items():
             yield Workflow(workflow_name, workflow_data, self)
+
+    def get_workflow_by_name(self, workflow_name: str) -> Workflow:
+        """Get workflow by name.
+
+        If there is no workflow with given name `ParameterError` is going to be raised.
+
+        Args:
+            workflow_name (str): Name of the workflow
+
+        Returns:
+            Workflow: Workflow with given name
+
+        """
+        try:
+            return next(filter(lambda workflow: workflow.name == workflow_name, self.workflows))
+        except StopIteration:
+            raise ParameterError("Workflow with given name does not exist")
