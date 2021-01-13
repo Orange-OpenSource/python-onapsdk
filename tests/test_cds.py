@@ -11,7 +11,7 @@ from onapsdk.cds.blueprint import Blueprint, Mapping, MappingSet, Workflow
 from onapsdk.cds.blueprint_processor import Blueprintprocessor
 from onapsdk.cds.cds_element import CdsElement
 from onapsdk.cds.data_dictionary import DataDictionary, DataDictionarySet
-from onapsdk.exceptions import FileError, RequestError, ValidationError
+from onapsdk.exceptions import FileError, ParameterError, RequestError, ValidationError
 
 
 DD_1 = {
@@ -276,6 +276,19 @@ def test_blueprint_get_workflows_from_entry_definitions_file():
     assert workflow.steps[0].target == "resource-assignment"
     assert len(workflow.inputs) == 2
     assert len(workflow.outputs) == 1
+
+
+def test_blueprint_get_workflow_by_name():
+    with open(Path(Path(__file__).resolve().parent, "data/vLB_CBA_Python.zip"), "rb") as cba_file:
+        b = Blueprint(cba_file.read())
+    workflow = b.get_workflow_by_name("resource-assignment")
+    assert workflow.name == "resource-assignment"
+    workflow = b.get_workflow_by_name("config-assign")
+    assert workflow.name == "config-assign"
+    workflow = b.get_workflow_by_name("config-deploy")
+    assert workflow.name == "config-deploy"
+    with raises(ParameterError):
+        b.get_workflow_by_name("non-existing-workflow")
 
 
 @patch.object(Workflow, "send_message")
