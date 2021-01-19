@@ -159,10 +159,7 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
         """
         super().__init__(resource_version=resource_version,
                          model_invariant_id=model_invariant_id,
-                         model_version_id=model_version_id,
-                         widget_model_id=widget_model_id,
-                         persona_model_version=persona_model_version,
-                         widget_model_version=widget_model_version)
+                         model_version_id=model_version_id)
         self.service_instance: "ServiceInstance" = service_instance
         self.vnf_id: str = vnf_id
         self.vnf_type: str = vnf_type
@@ -207,6 +204,9 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
         self.ipv4_oam_gateway_address_prefix_length: int = ipv4_oam_gateway_address_prefix_length
         self.vlan_id_outer: int = vlan_id_outer
         self.nm_profile_name: str = nm_profile_name
+        self.persona_model_version: str = persona_model_version
+        self.widget_model_id: str = widget_model_id
+        self.widget_model_version: str = widget_model_version
 
         self._vnf: "Vnf" = None
 
