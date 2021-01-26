@@ -6,6 +6,7 @@ from onapsdk.configuration import settings
 from onapsdk.onap_service import OnapService as Onap
 from onapsdk.sdc.service import Service
 from onapsdk.exceptions import ResourceNotFound
+from onapsdk.utils.headers_creator import headers_clamp_creator
 
 
 class Clamp(Onap):
@@ -13,18 +14,8 @@ class Clamp(Onap):
 
     #class variable
     _base_url = settings.CLAMP_URL
-
-    @classmethod
-    def __init__(cls, cert: tuple = None):
-        """
-        Initialize CLAMP object.
-
-        Args:
-            cert (tuple): certificate required for CLAMP authentification
-
-        """
-        super().__init__(cls)
-        cls.cert = cert
+    name: str = "CLAMP"
+    headers = headers_clamp_creator(Onap.headers)
 
     @classmethod
     def base_url(cls) -> str:
@@ -49,8 +40,7 @@ class Clamp(Onap):
         url = f"{cls.base_url()}/templates/"
         for template in cls.send_message_json('GET',
                                               'Get Loop Templates',
-                                              url,
-                                              cert=cls.cert):
+                                              url):
             if template["modelService"]["serviceDetails"]["name"] == service.name:
                 return template["name"]
         raise ResourceNotFound("Template not found.")
@@ -71,8 +61,7 @@ class Clamp(Onap):
         url = f"{cls.base_url()}/policyToscaModels/"
         policies = cls.send_message_json('GET',
                                          'Get stocked policies',
-                                         url,
-                                         cert=cls.cert)
+                                         url)
         exist_policy = False
         for policy in policies:
             if policy["policyAcronym"] == policy_name:

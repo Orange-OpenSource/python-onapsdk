@@ -17,7 +17,7 @@ def test_Clamp_requirements():
     requests.get("{}/reset".format(Clamp._base_url))
     # no add resource in clamp
     # svc already exists in mock clamp
-    Clamp(cert=('LICENSE',''))
+    Clamp()
     svc = Service(name="service01")
     template_exists = Clamp.check_loop_template(service=svc)
     assert template_exists
@@ -29,8 +29,7 @@ def test_Clamp_requirements():
 def test_Loop_creation():
     """Integration tests for Loop Instance."""
     requests.get("{}/reset".format(Clamp._base_url))
-    # just to mock cert_verify
-    Clamp(cert=('LICENSE',''))
+    Clamp()
     svc = Service(name="service01")
     loop_template = Clamp.check_loop_template(service=svc)
     response = requests.post("{}/reset".format(Clamp._base_url))
@@ -42,7 +41,7 @@ def test_Loop_creation():
 def test_Loop_customization():
     """Integration tests for Loop Instance."""
     requests.get("{}/reset".format(Clamp._base_url))
-    Clamp(cert=('LICENSE',''))
+    Clamp()
     svc = Service(name="service01")
     loop_template = Clamp.check_loop_template(service=svc)
     response = requests.post("{}/reset".format(Clamp._base_url))
