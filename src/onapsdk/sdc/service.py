@@ -18,6 +18,8 @@ import oyaml as yaml
 from requests import Response
 
 import onapsdk.constants as const
+from onapsdk.exceptions import (ParameterError, RequestError, ResourceNotFound,
+                                StatusError, ValidationError)
 from onapsdk.sdc.category_management import ServiceCategory
 from onapsdk.sdc.properties import NestedInput, Property
 from onapsdk.sdc.sdc_resource import SdcResource
@@ -166,7 +168,14 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
         self._vf_modules: list = None
 
     def onboard(self) -> None:
-        """Onboard the Service in SDC."""
+        """Onboard the Service in SDC.
+
+        Raises:
+            StatusError: service has an invalid status
+            ParameterError: no resources, no properties for service
+                in DRAFT status
+
+        """
         # first Lines are equivalent for all onboard functions but it's more
         # readable
         if not self.status:
@@ -176,7 +185,7 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
             self.onboard()
         elif self.status == const.DRAFT:
             if not any([self.resources, self._properties_to_add]):
-                raise ValueError("No resources nor properties were given")
+                raise ParameterError("No resources nor properties were given")
             self.declare_resources_and_properties()
             self.checkin()
             time.sleep(self._time_wait)
@@ -191,7 +200,8 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
         elif self.status == const.DISTRIBUTED:
             self._logger.info("Service %s onboarded", self.name)
         else:
-            self._logger.error("Service has invalid status")
+            self._logger.error("Service has invalid status: %s", self.status)
+            raise StatusError(self.status)
 
     @property
     def distribution_id(self) -> str:
@@ -218,9 +228,6 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
 
         Get tosca template from service tosca model bytes.
 
-        Raises:
-            AttributeError: Tosca model can't be downloaded using HTTP API
-
         Returns:
             str: Tosca template file
 
@@ -236,9 +243,6 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
 
         Send request to get service TOSCA model,
 
-        Raises:
-            AttributeError: Tosca model can't be downloaded using HTTP API
-
         Returns:
             bytes: TOSCA model file bytes
 
@@ -252,8 +256,7 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
                 "GET",
                 "Download Tosca Model for {}".format(self.name),
                 url,
-                headers=headers,
-                exception=AttributeError).content
+                headers=headers).content
         return self._tosca_model
 
     @property
@@ -263,14 +266,14 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
         Load VNFs from service's tosca file
 
         Raises:
-            AttributeError: Service has no TOSCA template
+            ParameterError: Service has no TOSCA template
 
         Returns:
             List[Vnf]: Vnf objects list
 
         """
         if not self.tosca_template:
-            raise AttributeError("Service has no TOSCA template")
+            raise ParameterError("Service has no TOSCA template.")
         if self._vnfs is None:
             self._vnfs = []
             for node_template_name, values in \
@@ -296,14 +299,14 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
         Load PNFs from service's tosca file
 
         Raises:
-            AttributeError: Service has no TOSCA template
+            ParameterError: Service has no TOSCA template
 
         Returns:
             List[Pnf]: Pnf objects list
 
         """
         if not self.tosca_template:
-            raise AttributeError("Service has no TOSCA template")
+            raise ParameterError("Service has no TOSCA template")
         if self._pnfs is None:
             self._pnfs = []
             for node_template_name, values in \
@@ -327,14 +330,14 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
         Load networks from service's tosca file
 
         Raises:
-            AttributeError: Service has no TOSCA template
+            ParameterError: Service has no TOSCA template
 
         Returns:
             List[Network]: Network objects list
 
         """
         if not self.tosca_template:
-            raise AttributeError("Service has no TOSCA template")
+            raise ParameterError("Service has no TOSCA template")
         if self._networks is None:
             self._networks = []
             for node_template_name, values in \
@@ -466,7 +469,7 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
             template = jinja_env().get_template(
                 "add_resource_to_service.json.j2")
             data = template.render(resource=resource,
-                                   resource_type=resource.origin_type.upper())
+                                   resource_type=resource.origin_type)
             result = self.send_message("POST",
                                        "Add {} to service".format(
                                            resource.origin_type),
@@ -566,16 +569,21 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
         url = "{}/services/distribution/{}".format(self._base_create_url(),
                                                    self.distribution_id)
         headers = headers_sdc_creator(SdcResource.headers)
-        result = self.send_message_json("GET",
-                                        "Check distribution for {}".format(
-                                            self.name),
-                                        url,
-                                        headers=headers)
+
         status = {}
         for component in components_needing_distribution():
             status[component] = False
 
-        if result:
+        try:
+            result = self.send_message_json("GET",
+                                            "Check distribution for {}".format(
+                                                self.name),
+                                            url,
+                                            headers=headers)
+        except ResourceNotFound:
+            msg = f"No distributions found for {self.name} of {self.__class__}."
+            self._logger.debug(msg)
+        else:
             status = self._update_components_status(status, result)
 
         for state in status.values():
@@ -615,7 +623,7 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
                                             self.name),
                                         url,
                                         headers=headers)
-        if (result and 'distributionStatusOfServiceList' in result
+        if ('distributionStatusOfServiceList' in result
                 and len(result['distributionStatusOfServiceList']) > 0):
             # API changed and the latest distribution is not added to the end
             # of distributions list but inserted as the first one.
@@ -674,6 +682,9 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
         Verify that object is in right state before launching the action on
         SDC.
 
+        Raises:
+            StatusError: if current status is not the desired status.
+
         Args:
             desired_status (str): the status the object should be
             desired_action (str): the action we want to perform
@@ -685,17 +696,16 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
         self._logger.info("attempting to %s Service %s in SDC", desired_action,
                           self.name)
         if self.status == desired_status and self.created():
-            result = self._action_to_sdc(desired_action,
-                                         action_type=action_type,
-                                         **kwargs)
-            if result:
-                self.load()
+            self._action_to_sdc(desired_action,
+                                action_type=action_type,
+                                **kwargs)
+            self.load()
         elif not self.created():
             self._logger.warning("Service %s in SDC is not created", self.name)
         elif self.status != desired_status:
-            self._logger.warning(("Service %s in SDC is in status %s and it "
-                                  "should be in  status %s"), self.name,
-                                 self.status, desired_status)
+            msg = (f"Service {self.name} in SDC is in status {self.status} "
+                   f"and it should be in status {desired_status}")
+            raise StatusError(msg)
 
     @staticmethod
     def _unzip_csar_file(zip_file: Union[str, BytesIO],
@@ -705,18 +715,23 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
         Unzip Csar File and perform an action on the file.
 
         Raises:
-            AttributeError: CSAR file has no service template
+            ValidationError: CSAR file has no service template
 
         """
+        folder = "Definitions"
+        prefix = "service-"
+        suffix = "-template.yml"
         with ZipFile(zip_file) as myzip:
             service_template = None
             for name in myzip.namelist():
-                if (name[-13:] == "-template.yml"
-                        and name[:20] == "Definitions/service-"):
+                if (name[-13:] == suffix
+                        and name[:20] == f"{folder}/{prefix}"):
                     service_template = name
 
             if not service_template:
-                raise AttributeError("CSAR file has no service template")
+                msg = (f"CSAR file has no service template. "
+                       f"Valid path: {folder}/{prefix}*{suffix}")
+                raise ValidationError(msg)
 
             with myzip.open(service_template) as template_file:
                 function(service_template, template_file)
@@ -753,18 +768,19 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
             the nf unique ID
 
         Raises:
-            AttributeError: Couldn't find NF
+            ResourceNotFound: Couldn't find NF by name.
 
         """
         url = f"{self._base_create_url()}/services/{self.unique_identifier}"
         request_return = self.send_message_json('GET',
                                                 'Get nf unique ID',
                                                 url)
-        if request_return:
-            for instance in filter(lambda x: x["componentName"] == nf_name,
-                                   request_return["componentInstances"]):
-                return instance["uniqueId"]
-        raise AttributeError("Couldn't find NF")
+
+        for instance in filter(lambda x: x["componentName"] == nf_name,
+                               request_return["componentInstances"]):
+            return instance["uniqueId"]
+
+        raise ResourceNotFound(f"NF '{nf_name}'")
 
 
     def add_artifact_to_vf(self, vnf_name: str, artifact_type: str,
@@ -773,6 +789,9 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
         Add artifact to vf.
 
         Add artifact to vf using payload data.
+
+        Raises:
+            RequestError: file upload (POST request) for an artifact fails.
 
         Args:
             vnf_name (str): the vnf which we want to add the artifact
@@ -796,12 +815,11 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
                               'Add artifact to vf',
                               url,
                               headers=headers,
-                              data=data,
-                              exception=ValueError)
-        except ValueError:
+                              data=data)
+        except RequestError as exc:
             self._logger.error(("an error occured during file upload for an Artifact"
                                 "to VNF %s"), vnf_name)
-            raise ValueError("Couldn't upload the artifact")
+            raise exc
 
     def get_component_properties_url(self, component: "Component") -> str:
         """Url to get component's properties.

@@ -37,3 +37,11 @@ Get events from specific topic from DMaap
 
     from onapsdk.dmaap.dmaap import Dmaap
     response = Dmaap.get_events_for_topic("fault")
+
+Get all topics from DMaap
+-------------------------
+
+.. code:: Python
+
+    from onapsdk.dmaap.dmaap import Dmaap
+    response = Dmaap.get_all_topics()

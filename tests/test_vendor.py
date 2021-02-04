@@ -4,6 +4,7 @@
 from unittest import mock
 
 import pytest
+from onapsdk.exceptions import RequestError
 
 from onapsdk.sdc.vendor import Vendor
 import onapsdk.constants as const
@@ -141,7 +142,7 @@ def test_create_issue_in_creation(mock_send, mock_exists):
     vendor = Vendor()
     expected_data = '{\n  "iconRef": "icon",\n  "vendorName": "Generic-Vendor",\n  "description": "vendor"\n}'
     mock_exists.return_value = False
-    mock_send.return_value = {}
+    mock_send.side_effect = RequestError
     vendor.create()
     mock_send.assert_called_once_with("POST", "create Vendor", mock.ANY, data=expected_data)
     assert vendor.created() == False
@@ -191,11 +192,13 @@ def test_submit_certified_NOK(mock_send, mock_load, mock_exists):
     mock_exists.return_value = True
     vendor = Vendor()
     vendor._identifier = "12345"
-    mock_send.return_value = None
+    mock_send.side_effect = RequestError
     expected_data = '{\n\n  "action": "Submit"\n}'
     vendor._status = "Draft"
     vendor._version = "1234"
-    vendor.submit()
+    with pytest.raises(RequestError) as err:
+        vendor.submit()
+    assert err.type == RequestError
     mock_send.assert_called_once_with("PUT", "Submit Vendor", 'https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/onboarding-api/v1.0/vendor-license-models/12345/versions/1234/actions', data=expected_data)
     assert vendor._status != const.CERTIFIED
 

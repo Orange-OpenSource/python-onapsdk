@@ -9,11 +9,19 @@ from abc import ABC
 
 import logging
 import requests
-from requests.adapters import HTTPAdapter
 import urllib3
 from urllib3.util.retry import Retry
 import simplejson.errors
 
+from requests.adapters import HTTPAdapter
+from requests import (  # pylint: disable=redefined-builtin
+    HTTPError, RequestException, ConnectionError
+)
+
+from onapsdk.exceptions import (
+    RequestError, APIError, ResourceNotFound, InvalidResponse,
+    ConnectionFailed
+)
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -65,15 +73,19 @@ class OnapService(ABC):
             action (str): what action are we doing, used in logs strings.
             url (str): the url to use
             exception (Exception, optional): if an error occurs, raise the
-                exception given
+                exception given instead of RequestError
             **kwargs: Arbitrary keyword arguments. any arguments used by
                 requests can be used here.
 
         Raises:
-            exception (Exception): raise the Exception given in args (if given)
+            RequestError: if other exceptions weren't caught or didn't raise,
+                            or if there was an ambiguous exception by a request
+            ResourceNotFound: 404 returned
+            APIError: returned an error code within 400 and 599, except 404
+            ConnectionFailed: connection can't be established
 
         Returns:
-            the request response if OK or None if an error occured
+            the request response if OK
 
         """
         cert = kwargs.pop('cert', None)
@@ -88,6 +100,12 @@ class OnapService(ABC):
                 session.cert = cert
             OnapService._set_basic_auth_if_needed(basic_auth, session)
 
+            cls._logger.debug("[%s][%s] sent header: %s", cls.server, action,
+                              headers)
+            cls._logger.debug("[%s][%s] url used: %s", cls.server, action, url)
+            cls._logger.debug("[%s][%s] data sent: %s", cls.server, action,
+                              data)
+
             response = session.request(method,
                                        url,
                                        headers=headers,
@@ -95,42 +113,53 @@ class OnapService(ABC):
                                        proxies=cls.proxy,
                                        **kwargs)
 
+            cls._logger.info(
+                "[%s][%s] response code: %s",
+                cls.server, action,
+                response.status_code if response is not None else "n/a")
+            cls._logger.debug(
+                "[%s][%s] response: %s",
+                cls.server, action,
+                response.text if response is not None else "n/a")
+
             response.raise_for_status()
-            cls._logger.info("[%s][%s] response code: %s", cls.server, action,
-                             response.status_code)
-            cls._logger.debug("[%s][%s] sent header: %s", cls.server, action,
-                              headers)
-            cls._logger.debug("[%s][%s] url used: %s", cls.server, action, url)
-            cls._logger.debug("[%s][%s] data sent: %s", cls.server, action,
-                              data)
-            cls._logger.debug("[%s][%s] response: %s", cls.server, action,
-                              response.text)
             return response
-        except requests.HTTPError as http_err:
-            cls._logger.error("[%s][%s] response code: %s", cls.server, action,
-                              http_err.response.status_code if http_err.response is not None \
-                                  else "n/a")
-            cls._logger.error("[%s][%s] response: %s", cls.server, action,
-                              http_err.response.text if http_err.response is not None \
-                                  else "n/a")
-        except requests.RequestException as err:
-            cls._logger.error("[%s][%s] Failed to perform: %s", cls.server,
-                              action, err)
-        # We are passing here only if we catched an error
-        cls._logger.error("[%s][%s] sent header: %s", cls.server, action,
-                          headers)
-        cls._logger.error("[%s][%s] url used: %s", cls.server, action, url)
-        cls._logger.error("[%s][%s] data sent: %s", cls.server, action, data)
-        # if specific exception predefined
-        # for the given service, raise it
-        if exception:
-            raise exception
-        return None
+
+        except HTTPError as cause:
+            cls._logger.error("[%s][%s] API returned and error: %s",
+                              cls.server, action, headers)
+
+            msg = f'Code: {cause.response.status_code}. Info: {cause.response.text}.'
+
+            if cause.response.status_code == 404:
+                exc = ResourceNotFound(msg)
+            else:
+                exc = APIError(msg)
+
+            raise exc from cause
+
+        except ConnectionError as cause:
+            cls._logger.error("[%s][%s] Failed to connect: %s", cls.server,
+                              action, cause)
+
+            msg = f"Can't connect to {url}."
+            raise ConnectionFailed(msg) from cause
+
+        except RequestException as cause:
+            cls._logger.error("[%s][%s] Request failed: %s",
+                              cls.server, action, cause)
+
+        if not exception:
+            msg = f"Ambiguous error while requesting {url}."
+            raise RequestError(msg)
+
+        raise exception
 
     @classmethod
     def _set_basic_auth_if_needed(cls, basic_auth, session):
         if basic_auth:
-            session.auth = (basic_auth.get('username'), basic_auth.get('password'))
+            session.auth = (basic_auth.get('username'),
+                            basic_auth.get('password'))
 
     @classmethod
     def send_message_json(cls, method: str, action: str, url: str,
@@ -148,29 +177,44 @@ class OnapService(ABC):
                 requests can be used here.
 
         Raises:
-            exception (Exception): raise the Exception given in args (if given)
+            InvalidResponse: if JSON coudn't be decoded
+            RequestError: if other exceptions weren't caught or didn't raise
+            APIError/ResourceNotFound: send_message() got an HTTP error code
+            ConnectionFailed: connection can't be established
+            RequestError: send_message() raised an ambiguous exception
+
 
         Returns:
-            the response body in dict format if OK or {}
+            the response body in dict format if OK
 
         """
         exception = kwargs.get('exception', None)
         data = kwargs.get('data', None)
         try:
+
+            cls._logger.debug("[%s][%s] sent header: %s", cls.server, action,
+                              cls.headers)
+            cls._logger.debug("[%s][%s] url used: %s", cls.server, action, url)
+            cls._logger.debug("[%s][%s] data sent: %s", cls.server, action,
+                              data)
+
             response = cls.send_message(method, action, url, **kwargs)
+
             if response:
                 return response.json()
-        except simplejson.errors.JSONDecodeError as err:
+
+        except simplejson.errors.JSONDecodeError as cause:
             cls._logger.error("[%s][%s]Failed to decode JSON: %s", cls.server,
-                              action, err)
-            cls._logger.error("[%s][%s] sent header: %s", cls.server, action,
-                              cls.headers)
-            cls._logger.error("[%s][%s] url used: %s", cls.server, action, url)
-            cls._logger.error("[%s][%s] data sent: %s", cls.server, action,
-                              data)
-            if exception:
-                raise exception
-        return {}
+                              action, cause)
+            raise InvalidResponse from cause
+
+        except RequestError as exc:
+            cls._logger.error("[%s][%s] request failed: %s",
+                              cls.server, action, exc)
+            if not exception:
+                exception = exc
+
+        raise exception
 
     @staticmethod
     def __requests_retry_session(retries: int = 10,

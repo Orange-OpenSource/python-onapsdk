@@ -35,17 +35,11 @@ class DefinitionBase(MSB):
         return f"{self.base_url}/{self.rb_name}/{self.rb_version}"
 
     def delete(self) -> None:
-        """Delete Definition Based object.
-
-        Raises:
-            ValueError: request response with HTTP error code
-
-        """
+        """Delete Definition Based object."""
         self.send_message(
             "DELETE",
             f"Delete {self.__class__.__name__}",
-            self.url,
-            exception=ValueError
+            self.url
         )
 
     def upload_artifact(self, package: bytes = None):
@@ -54,9 +48,6 @@ class DefinitionBase(MSB):
         Args:
             package (bytes): Artifact to be uploaded to multicloud-k8s plugin
 
-        Raises:
-            ValueError: request response with HTTP error code
-
         """
         url: str = f"{self.url}/content"
         self.send_message(
@@ -64,8 +55,7 @@ class DefinitionBase(MSB):
             "Upload Artifact content",
             url,
             data=package,
-            headers={},
-            exception=ValueError
+            headers={}
         )
 
 
@@ -97,17 +87,13 @@ class Definition(DefinitionBase):
     def get_all(cls):
         """Get all definitions.
 
-        Raises:
-            ValueError: request response with HTTP error code
-
         Yields:
             Definition: Definition object
 
         """
         for definition in cls.send_message_json("GET",
                                                 "Get definitions",
-                                                cls.base_url,
-                                                exception=ValueError):
+                                                cls.base_url):
             yield cls(
                 definition["rb-name"],
                 definition["rb-version"],
@@ -124,9 +110,6 @@ class Definition(DefinitionBase):
             rb_name (str): definition name
             rb_version (str): definition version
 
-        Raises:
-            ValueError: request response with HTTP error code
-
         Returns:
             Definition: Definition object
 
@@ -135,8 +118,7 @@ class Definition(DefinitionBase):
         definition: dict = cls.send_message_json(
             "GET",
             "Get definition",
-            url,
-            exception=ValueError
+            url
         )
         return cls(
             definition["rb-name"],
@@ -161,9 +143,6 @@ class Definition(DefinitionBase):
             description (str): Definition description
             labels (str): Labels
 
-        Raises:
-            ValueError: request response with HTTP error code
-
         Returns:
             Definition: Created object
 
@@ -181,8 +160,7 @@ class Definition(DefinitionBase):
                 chart_name=chart_name,
                 description=description,
                 labels=labels
-            ),
-            exception=ValueError
+            )
         )
         return cls.get_definition_by_name_version(rb_name, rb_version)
 
@@ -197,9 +175,6 @@ class Definition(DefinitionBase):
             namespace (str): Namespace that service is created in
             kubernetes_version (str): Required Kubernetes version
             release_name (str): Release name
-
-        Raises:
-            ValueError: request response with HTTP error code
 
         Returns:
             Profile: Created object
@@ -220,16 +195,12 @@ class Definition(DefinitionBase):
                                               release_name=release_name,
                                               namespace=namespace,
                                               kubernetes_version=kubernetes_version
-                                          ),
-            exception=ValueError
+                                          )
         )
         return self.get_profile_by_name(profile_name)
 
     def get_all_profiles(self) -> Iterator["Profile"]:
         """Get all profiles.
-
-        Raises:
-            ValueError: request response with HTTP error code
 
         Yields:
             Profile: Profile object
@@ -239,8 +210,7 @@ class Definition(DefinitionBase):
 
         for profile in self.send_message_json("GET",
                                               "Get profiles",
-                                              url,
-                                              exception=ValueError):
+                                              url):
             yield Profile(
                 profile["rb-name"],
                 profile["rb-version"],
@@ -257,9 +227,6 @@ class Definition(DefinitionBase):
         Args:
             profile_name (str): profile name
 
-        Raises:
-            ValueError: request response with HTTP error code
-
         Returns:
             Profile: Profile object
 
@@ -269,8 +236,7 @@ class Definition(DefinitionBase):
         profile: dict = self.send_message_json(
             "GET",
             "Get profile",
-            url,
-            exception=ValueError
+            url
         )
         return Profile(
             profile["rb-name"],
@@ -285,9 +251,6 @@ class Definition(DefinitionBase):
     def get_all_configuration_templates(self):
         """Get all configuration templates.
 
-        Raises:
-            ValueError: request response with HTTP error code
-
         Yields:
             ConfigurationTemplate: ConfigurationTemplate object
 
@@ -296,8 +259,7 @@ class Definition(DefinitionBase):
 
         for template in self.send_message_json("GET",
                                                "Get configuration templates",
-                                               url,
-                                               exception=ValueError):
+                                               url):
             yield ConfigurationTemplate(
                 self.rb_name,
                 self.rb_version,
@@ -313,9 +275,6 @@ class Definition(DefinitionBase):
             template_name (str): Name of the template
             description (str): Description
 
-        Raises:
-            ValueError: request response with HTTP error code
-
         Returns:
             ConfigurationTemplate: Created object
 
@@ -330,8 +289,7 @@ class Definition(DefinitionBase):
                                           "template.json.j2").render(
                                               template_name=template_name,
                                               description=description
-                                          ),
-            exception=ValueError
+                                          )
         )
 
         return self.get_configuration_template_by_name(template_name)
@@ -342,9 +300,6 @@ class Definition(DefinitionBase):
         Args:
             template_name (str): Name of the template
 
-        Raises:
-            ValueError: request response with HTTP error code
-
         Returns:
             ConfigurationTemplate: object
 
@@ -354,8 +309,7 @@ class Definition(DefinitionBase):
         template: dict = self.send_message_json(
             "GET",
             "Get Configuration template",
-            url,
-            exception=ValueError
+            url
         )
         return ConfigurationTemplate(
             self.rb_name,

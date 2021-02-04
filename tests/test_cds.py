@@ -3,14 +3,15 @@ import json
 import os.path
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from unittest.mock import MagicMock, patch, PropertyMock
+from unittest.mock import MagicMock, patch, PropertyMock, mock_open
 
 from pytest import raises
 
-from onapsdk.cds.blueprint import Blueprint, CbaMetadata, Mapping, MappingSet, Workflow
+from onapsdk.cds.blueprint import Blueprint, Mapping, MappingSet, Workflow
 from onapsdk.cds.blueprint_processor import Blueprintprocessor
 from onapsdk.cds.cds_element import CdsElement
 from onapsdk.cds.data_dictionary import DataDictionary, DataDictionarySet
+from onapsdk.exceptions import FileError, ParameterError, RequestError, ValidationError
 
 
 DD_1 = {
@@ -72,8 +73,8 @@ def test_blueprint_enrichment(send_message_mock):
     blueprint.enrich()
     send_message_mock.assert_called_once()
     send_message_mock.reset_mock()
-    send_message_mock.return_value = None
-    with raises(AttributeError):
+    send_message_mock.side_effect = RequestError
+    with raises(RequestError):
         blueprint.enrich()
 
 
@@ -99,6 +100,19 @@ def test_blueprint_load_from_file():
         blueprint = Blueprint.load_from_file(path)
         assert blueprint.cba_file_bytes == b"test cba - it will never work"
 
+def test_blueprint_load_from_file_file_error():
+
+    with TemporaryDirectory() as tmpdirname, \
+        patch("__main__.open", new_callable=mock_open) as mo, \
+        raises(FileError) as exc:
+
+        path = os.path.join(tmpdirname, "nonexistent_file.zip")
+        mo.side_effect = FileNotFoundError
+
+        Blueprint.load_from_file(path)
+
+    assert exc.type == FileError
+
 
 def test_blueprint_save():
     blueprint = Blueprint(b"test cba - it will never work")
@@ -111,9 +125,10 @@ def test_blueprint_save():
 
 def test_blueprint_read_cba_metadata():
     b = Blueprint(b"test cba - it will never work")
-    with raises(ValueError):
+    with raises(ValidationError) as exc:
         b.get_cba_metadata(b"Invalid")
         b.get_cba_metadata(b"123: 456")
+    assert exc.type is ValidationError
 
     cba_metadata = b.get_cba_metadata(vLB_CBA_Python_meta_bytes)
     assert cba_metadata.tosca_meta_file_version == "1.0.0"
@@ -156,8 +171,11 @@ def test_blueprint_generate_data_dictionary_set():
 @patch.object(CdsElement, "_url", new_callable=PropertyMock)
 def test_data_dictionary(cds_element_url_property_mock):
     cds_element_url_property_mock.return_value = "http://127.0.0.1"
-    with raises(ValueError):
+
+    with raises(ValidationError) as exc:
         DataDictionary({})
+    assert exc.type is ValidationError
+
     dd = DataDictionary({}, fix_schema=False)
     assert dd.url == "http://127.0.0.1/api/v1/dictionary"
     assert dd.data_dictionary_json == {}
@@ -201,11 +219,24 @@ def test_data_dictionary_set_save_to_file_load_from_file():
         dd_2 = DataDictionarySet.load_from_file(path)
         assert dd.dd_set == dd_2.dd_set
 
+def test_data_dictionary_load_from_file_file_error():
+
+    with TemporaryDirectory() as tmpdirname, \
+        patch("__main__.open", new_callable=mock_open) as mo, \
+        raises(FileError) as exc:
+
+        path = os.path.join(tmpdirname, "nonexistent_file.zip")
+        mo.side_effect = FileNotFoundError
+
+        DataDictionarySet.load_from_file(path)
+
+    assert exc.type == FileError
+
 
 def test_mapping():
     m1 = Mapping(name="test",
                  mapping_type="string",
-                 dictionary_name="test_dictionary_name", 
+                 dictionary_name="test_dictionary_name",
                  dictionary_sources=["dictionary_source_1"])
 
     m2 = Mapping(name="test", mapping_type="string", dictionary_name="test_dictionary_name", dictionary_sources=["dictionary_source_2"])
@@ -222,7 +253,7 @@ def test_mapping_set():
     assert len(ms) == 0
     m1 = Mapping(name="test",
                  mapping_type="string",
-                 dictionary_name="test_dictionary_name", 
+                 dictionary_name="test_dictionary_name",
                  dictionary_sources=["dictionary_source_1"])
 
     m2 = Mapping(name="test", mapping_type="string", dictionary_name="test_dictionary_name", dictionary_sources=["dictionary_source_2"])
@@ -245,6 +276,19 @@ def test_blueprint_get_workflows_from_entry_definitions_file():
     assert workflow.steps[0].target == "resource-assignment"
     assert len(workflow.inputs) == 2
     assert len(workflow.outputs) == 1
+
+
+def test_blueprint_get_workflow_by_name():
+    with open(Path(Path(__file__).resolve().parent, "data/vLB_CBA_Python.zip"), "rb") as cba_file:
+        b = Blueprint(cba_file.read())
+    workflow = b.get_workflow_by_name("resource-assignment")
+    assert workflow.name == "resource-assignment"
+    workflow = b.get_workflow_by_name("config-assign")
+    assert workflow.name == "config-assign"
+    workflow = b.get_workflow_by_name("config-deploy")
+    assert workflow.name == "config-deploy"
+    with raises(ParameterError):
+        b.get_workflow_by_name("non-existing-workflow")
 
 
 @patch.object(Workflow, "send_message")

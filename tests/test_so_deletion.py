@@ -2,7 +2,6 @@ from unittest import mock
 
 import pytest
 
-from onapsdk.so.so_element import OrchestrationRequest
 from onapsdk.so.deletion import (
     ServiceDeletionRequest,
     VfModuleDeletionRequest,

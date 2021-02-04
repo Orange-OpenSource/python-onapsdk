@@ -3,6 +3,8 @@ import importlib
 import os
 from typing import Any
 
+from onapsdk.exceptions import ModuleError, SettingsError
+
 from . import global_settings
 
 
@@ -25,7 +27,7 @@ class SettingsLoader:
         Load global settings and optionally load custom one.
 
         Raises:
-            ValueError: If ONAP_PYTHON_SDK_SETTINGS environment variable
+            ModuleError: If ONAP_PYTHON_SDK_SETTINGS environment variable
                 is set and module can't be imported.
 
         """
@@ -40,7 +42,8 @@ class SettingsLoader:
             try:
                 module = importlib.import_module(settings_env_value)
             except ModuleNotFoundError:
-                raise ValueError("Can't import custom settings. Is it under PYTHONPATH?")
+                msg = "Can't import custom settings. Is it under PYTHONPATH?"
+                raise ModuleError(msg)
             self.filter_and_set(module)
 
     def __getattribute__(self, name: str) -> Any:
@@ -54,7 +57,7 @@ class SettingsLoader:
             name (str): Attribute's name
 
         Raises:
-            AttributeError: Attribute not found
+            SettingsError: a setting is not found by the key.
 
         Returns:
             Any: Attribute's value
@@ -64,7 +67,8 @@ class SettingsLoader:
             try:
                 return self._settings[name]
             except KeyError as exc:
-                raise AttributeError(exc)
+                msg = f"Requested setting {exc.args[0]} does not exist."
+                raise SettingsError(msg) from exc
         return super().__getattribute__(name)
 
     def __setattr__(self, name: str, value: Any) -> None:

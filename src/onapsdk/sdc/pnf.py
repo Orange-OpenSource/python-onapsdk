@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Pnf module."""
 from typing import Dict, List, Union
+from onapsdk.exceptions import ParameterError
 
 from onapsdk.sdc.sdc_resource import SdcResource
 from onapsdk.sdc.properties import NestedInput, Property
@@ -49,7 +50,7 @@ class Pnf(SdcResource):
     def create(self) -> None:
         """Create the PNF in SDC if not already existing."""
         if not self.vsp and not self.vendor:
-            raise ValueError("Neither Vsp nor vendor was given")
+            raise ParameterError("Neither Vsp nor Vendor provided.")
         self._create("pnf_create.json.j2",
                      name=self.name,
                      vsp=self.vsp,

@@ -5,10 +5,11 @@ from unittest import mock
 
 import pytest
 
-from onapsdk.aai.business import Customer, ServiceSubscription, ServiceInstance
+from onapsdk.aai.business import Customer, ServiceSubscription
 from onapsdk.aai.cloud_infrastructure import CloudRegion, Tenant
 from onapsdk.msb.multicloud import Multicloud
 from onapsdk.sdc.service import Service as SdcService
+from onapsdk.exceptions import ParameterError, ResourceNotFound
 
 
 SIMPLE_CUSTOMER = {
@@ -313,9 +314,9 @@ def test_customer_service_subscription_cloud_region(mock_cloud_region, mock_send
     mock_send_serv_sub.return_value = {}
     relationships = list(service_subscription.relationships)
     assert len(relationships) == 0
-    with pytest.raises(AttributeError):
+    with pytest.raises(ParameterError):
         service_subscription.cloud_region
-    with pytest.raises(AttributeError):
+    with pytest.raises(ParameterError):
         service_subscription.tenant
 
     mock_cloud_region.return_value = CLOUD_REGION
@@ -327,8 +328,8 @@ def test_customer_service_subscription_cloud_region(mock_cloud_region, mock_send
     assert cloud_region.cloud_region_id == "RegionOne"
     assert cloud_region.cloud_type == "openstack"
 
-    mock_cloud_region.side_effect = ValueError
-    with pytest.raises(AttributeError):
+    mock_cloud_region.side_effect = ResourceNotFound
+    with pytest.raises(ParameterError):
         service_subscription.tenant
     mock_cloud_region.side_effect = [CLOUD_REGION, TENANT]
     tenant = service_subscription.tenant
@@ -399,7 +400,7 @@ def test_customer_subscribe_service(mock_send_message, mock_send_message_json):
                         subscriber_type="test_subscriber_type")
     service = SdcService("test_service")
     service._unique_uuid = "1234"
-    mock_send_message_json.side_effect = (ValueError, SERVICE_SUBSCRIPTION)
+    mock_send_message_json.side_effect = (ResourceNotFound, SERVICE_SUBSCRIPTION)
     customer.subscribe_service(service)
 
 

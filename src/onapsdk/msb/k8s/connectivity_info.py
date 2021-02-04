@@ -42,8 +42,7 @@ class ConnectivityInfo(MSB):
         connectivity_info: dict = cls.send_message_json(
             "GET",
             "Get Connectivity Info",
-            url,
-            exception=ValueError
+            url
         )
         return cls(
             connectivity_info["cloud-region"],
@@ -58,8 +57,7 @@ class ConnectivityInfo(MSB):
         self.send_message(
             "DELETE",
             "Delete Connectivity Info",
-            url,
-            exception=ValueError
+            url
         )
 
     @classmethod
@@ -73,9 +71,6 @@ class ConnectivityInfo(MSB):
             cloud_region_id (str): Cloud region ID
             cloud_owner (str): Cloud owner name
             kubeconfig (bytes): kubernetes cluster kubeconfig file
-
-        Raises:
-            ValueError: request response with HTTP error code
 
         Returns:
             ConnectivityInfo: Created object
@@ -92,7 +87,6 @@ class ConnectivityInfo(MSB):
             url,
             files={"file": kubeconfig,
                    "metadata": (None, json_file)},
-            headers={},
-            exception=ValueError
+            headers={}
         )
         return cls.get_connectivity_info_by_region_id(cloud_region_id)

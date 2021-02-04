@@ -125,3 +125,49 @@ Upload data dictionary set
 .. code:: Python
 
     dd_set.upload()
+
+Retrieve Blueprint Models from CDS
+--------------------------
+
+#. All
+
+.. code:: Python
+
+    from onapsdk.cds import BlueprintModel
+    all_blueprint_models = BlueprintModel.get_all()
+
+#. Selected by id of Blueprint Model
+
+.. code:: Python
+
+    blueprint_model = BlueprintModel.get_by_id(blueprint_model_id='11111111-1111-1111-1111-111111111111')
+
+#. Selected by name and version of Blueprint Model
+
+.. code:: Python
+
+    blueprint_model = BlueprintModel.get_by_name_and_version(blueprint_name='test_name', blueprint_version='1.0.0')
+
+Delete Blueprint Model
+--------------------------
+
+.. code:: Python
+
+    blueprint_model.delete()
+
+Download Blueprint Model
+--------------------------
+
+.. code:: Python
+
+    blueprint_model.save(dst_file_path='/tmp/blueprint.zip')
+
+
+Get Blueprint object for Blueprint Model
+--------------------------
+
+After that, all operation for blueprint object, like execute blueprint workflow etc. can be executed.
+
+.. code:: Python
+
+    blueprint = blueprint_model.get_blueprint()

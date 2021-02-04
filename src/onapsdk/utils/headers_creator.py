@@ -201,3 +201,20 @@ def headers_sdc_artifact_upload(base_header: Dict[str, str], data: str):
     content = base64.b64encode(md5_content.encode('ascii')).decode('UTF-8')
     headers["Content-MD5"] = content
     return headers
+
+def headers_clamp_creator(base_header: Dict[str, str]):
+    """
+    Create the right headers for CLAMP generic type.
+
+        base_header (Dict[str, str]): the base header to use
+        data (str): payload data used to create an md5 content header
+
+    Returns:
+        Dict[str, str]: the needed headers
+
+    """
+    headers = base_header.copy()
+    headers["Authorization"] = \
+        "Basic ZGVtbzpkZW1vMTIzNDU2IQ=="
+    headers["X-ECOMP-InstanceID"] = "onapsdk"
+    return headers

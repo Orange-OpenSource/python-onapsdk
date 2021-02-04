@@ -82,9 +82,6 @@ class Service(AaiElement):
             service_id (str): service ID
             service_description (str): service description
 
-        Raises:
-            ValueError: Creation request returns HTTP error code
-
         """
         cls.send_message(
             "PUT",
@@ -96,8 +93,7 @@ class Service(AaiElement):
             .render(
                 service_id=service_id,
                 service_description=service_description
-            ),
-            exception=ValueError
+            )
         )
 
 

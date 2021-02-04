@@ -7,6 +7,7 @@ import logging
 import pytest
 
 import onapsdk.constants as const
+from onapsdk.exceptions import ParameterError, RequestError, ResourceNotFound
 from onapsdk.onap_service import OnapService
 from onapsdk.sdc.component import Component
 from onapsdk.sdc.properties import ComponentProperty, Input, NestedInput, Property
@@ -154,14 +155,16 @@ def test__status_setter():
 
 @mock.patch.object(Vf, 'created')
 @mock.patch.object(Vf, 'send_message_json')
-def test__deep_load_no_response(mock_send, mock_created):
+def test__deep_load_request_error(mock_send, mock_created):
     mock_created.return_value = True
     vf = Vf()
     vf.identifier = "1234"
     vf._version = "4567"
     vf._status = const.CHECKED_IN
-    mock_send.return_value = {}
-    vf.deep_load()
+    mock_send.side_effect = RequestError
+    with pytest.raises(RequestError) as err:
+        vf.deep_load()
+    assert err.type == RequestError
     assert vf._unique_identifier is None
     mock_send.assert_called_once_with('GET', 'Deep Load Vf',
                                       "{}/sdc1/feProxy/rest/v1/screen?excludeTypes=VFCMT&excludeTypes=Configuration".format(vf.base_front_url),
@@ -326,7 +329,7 @@ def test_declare_input(mock_nested, mock_own, mock_is_own):
     sdc_resource = SdcResource()
     prop = Property(name="test", property_type="test")
     mock_is_own.return_value = False
-    with pytest.raises(ValueError):
+    with pytest.raises(ParameterError):
         sdc_resource.declare_input(prop)
     mock_is_own.return_value = True
     sdc_resource.declare_input(prop)
@@ -366,7 +369,7 @@ def test_get_input(mock_inputs):
     ]
     assert sdc_resource.get_input("test")
     assert sdc_resource.get_input("test2")
-    with pytest.raises(AttributeError):
+    with pytest.raises(ResourceNotFound):
         sdc_resource.get_input("test3")
 
 @mock.patch.object(SdcResource, "components", new_callable=mock.PropertyMock)
@@ -391,7 +394,7 @@ def test_get_component(mock_components):
         )
     ]
     assert sdc_resource.get_component(SdcResource(name="test"))
-    with pytest.raises(AttributeError):
+    with pytest.raises(ResourceNotFound):
         sdc_resource.get_component(SdcResource(name="test2"))
 
 def test_component_properties():
@@ -457,7 +460,7 @@ def test_component_property_set_value(mock_component_properties):
             component=component
         )
     ]
-    with pytest.raises(AttributeError):
+    with pytest.raises(ParameterError):
         component.get_property(property_name="non_exists")
     prop1 = component.get_property(property_name="test_property")
     assert prop1.name == "test_property"
@@ -467,3 +470,10 @@ def test_component_property_set_value(mock_component_properties):
 
     prop1.value = "123"
     mock_sdc_resource.send_message_json.assert_called_once()
+
+@mock.patch.object(SdcResource, "_action_to_sdc")
+def test_sdc_resource_checkout(mock_action_to_sdc):
+    mock_action_to_sdc.return_value = None
+    sdc_resource = SdcResource()
+    sdc_resource.checkout()
+    mock_action_to_sdc.assert_called_once_with(const.CHECKOUT, "lifecycleState")

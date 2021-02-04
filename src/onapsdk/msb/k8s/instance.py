@@ -82,17 +82,13 @@ class Instance(MSB):
     def get_all(cls) -> Iterator["Instance"]:
         """Get all instantiated Kubernetes resources.
 
-        Raises:
-            ValueError: request response with HTTP error code
-
         Yields:
             Instantiation: Instantiation object
 
         """
         for resource in cls.send_message_json("GET",
                                               "Get Kubernetes resources",
-                                              cls.base_url,
-                                              exception=ValueError):
+                                              cls.base_url):
             yield cls(
                 instance_id=resource["id"],
                 namespace=resource["namespace"],
@@ -106,9 +102,6 @@ class Instance(MSB):
         Args:
             instance_id (str): instance ID
 
-        Raises:
-            ValueError: request response with HTTP error code
-
         Returns:
             Instantiation: Instantiation object
 
@@ -117,8 +110,7 @@ class Instance(MSB):
         resource: dict = cls.send_message_json(
             "GET",
             "Get Kubernetes resource by id",
-            url,
-            exception=ValueError
+            url
         )
         return cls(
             instance_id=resource["id"],
@@ -146,9 +138,6 @@ class Instance(MSB):
             override_values (dict): List of optional override values
             labels (dict): List of optional labels
 
-        Raises:
-            ValueError: request response with HTTP error code
-
         Returns:
             Instance: Created object
 
@@ -169,8 +158,7 @@ class Instance(MSB):
                 rb_version=rb_version,
                 override_values=override_values,
                 labels=labels),
-            headers={},
-            exception=ValueError
+            headers={}
         )
         return cls(
             instance_id=response["id"],
@@ -181,15 +169,9 @@ class Instance(MSB):
         )
 
     def delete(self) -> None:
-        """Delete Instance object.
-
-        Raises:
-            ValueError: request response with HTTP error code
-
-        """
+        """Delete Instance object."""
         self.send_message(
             "DELETE",
             f"Delete {self.instance_id} instance",
-            self.url,
-            exception=ValueError
+            self.url
         )
