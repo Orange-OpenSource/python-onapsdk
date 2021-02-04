@@ -57,6 +57,12 @@ Verify that packages are accessible:
 
 You can then start working with library functions as needed.
 
+New ONAP component package
+--------------------------
+
+When you create a new ONAP component package and wants to use Jinja templates you need to create `templates` directory
+to store them in a newly created package. Furthermore you need to add a `PackageLoader` in `utils.jinja` module.
+
 Testing
 -------
 

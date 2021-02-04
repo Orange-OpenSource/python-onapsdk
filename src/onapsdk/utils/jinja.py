@@ -2,12 +2,11 @@
 # SPDX-License-Identifier: Apache-2.0
 """Jinja module."""
 
-from jinja2 import Environment, PackageLoader, select_autoescape
+from jinja2 import Environment, PackageLoader, select_autoescape, ChoiceLoader
 
 
 def jinja_env() -> Environment:
-    """
-    Create Jinja environment.
+    """Create Jinja environment.
 
     jinja_env allow to fetch simply jinja templates where they are.
     by default jinja engine will look for templates in `templates` directory of
@@ -25,4 +24,16 @@ def jinja_env() -> Environment:
 
     """
     return Environment(autoescape=select_autoescape(['html', 'htm', 'xml']),
-                       loader=PackageLoader('onapsdk'))
+                       loader=ChoiceLoader([
+                           PackageLoader("onapsdk.aai"),
+                           PackageLoader("onapsdk.cds"),
+                           PackageLoader("onapsdk.clamp"),
+                           PackageLoader("onapsdk.msb"),
+                           PackageLoader("onapsdk.nbi"),
+                           PackageLoader("onapsdk.sdc"),
+                           PackageLoader("onapsdk.sdnc"),
+                           PackageLoader("onapsdk.sdnc"),
+                           PackageLoader("onapsdk.so"),
+                           PackageLoader("onapsdk.ves"),
+                           PackageLoader("onapsdk.vid")
+                       ]))
