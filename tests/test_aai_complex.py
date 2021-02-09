@@ -84,3 +84,15 @@ def test_cloud_region_link_to_complex(mock_add_rel):
     assert relationship.related_link == (f"aai/v13/cloud-infrastructure/complexes/"
                                          f"complex/test_location_id")
     assert len(relationship.relationship_data) == 2
+
+
+@mock.patch.object(Complex, "send_message_json")
+def test_complex_get_by_physical_location_id(mock_send_message_json):
+    """Test complex get_by_physical_location_id url creation."""
+    Complex.get_by_physical_location_id("test")
+    assert mock_send_message_json.called_once_with(
+        "GET",
+        "Get complex with physical location id: test",
+        f"{Complex.base_url}{Complex.api_version}/cloud-infrastructure/"
+        f"complexes/complex/test"
+    )

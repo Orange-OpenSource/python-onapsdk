@@ -4,7 +4,7 @@
 import pytest
 from unittest import mock
 
-from onapsdk.aai.aai_element import AaiElement
+from onapsdk.aai.aai_element import AaiElement, Relationship
 from onapsdk.exceptions import ResourceNotFound, RelationshipNotFound
 
 @mock.patch.object(AaiElement, "send_message_json")
@@ -23,3 +23,16 @@ def test_relationship_not_found(mock_send, mock_url):
     assert exc.type == RelationshipNotFound
 
     mock_send.assert_called_once()
+
+
+def test_relationship_get_relationship_data():
+    r = Relationship(
+        related_to="test",
+        related_link="test",
+        relationship_data=[{
+            "relationship-key": "test",
+            "relationship-value": "test"
+        }]
+    )
+    assert r.get_relationship_data("invalid key") is None
+    assert r.get_relationship_data("test") == "test"
