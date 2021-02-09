@@ -176,7 +176,7 @@ class CloudRegion(AaiElement):  # pylint: disable=too-many-instance-attributes
             )
 
     @classmethod
-    def get_by_id(cls, cloud_owner, cloud_region_id: str) -> "CloudRegion":
+    def get_by_id(cls, cloud_owner: str, cloud_region_id: str) -> "CloudRegion":
         """Get CloudRegion object by cloud_owner and cloud-region-id field value.
 
         This method calls A&AI cloud region API filtering them by cloud_owner and
@@ -303,8 +303,8 @@ class CloudRegion(AaiElement):  # pylint: disable=too-many-instance-attributes
         )
         return (
             AvailabilityZone(
-                name=availability_zone.get("name"),
-                hypervisor_type=availability_zone.get("hypervisor-type"),
+                name=availability_zone["availability-zone-name"],
+                hypervisor_type=availability_zone["hypervisor-type"],
                 operational_status=availability_zone.get("operational-status"),
                 resource_version=availability_zone.get("resource-version")
             )
