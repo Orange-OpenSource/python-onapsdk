@@ -1,5 +1,5 @@
 """A&AI Complex module."""
-from typing import Iterator
+from typing import Any, Dict, Iterator
 from urllib.parse import urlencode
 
 from onapsdk.utils.jinja import jinja_env
@@ -188,22 +188,57 @@ class Complex(AaiElement):  # pylint: disable=too-many-instance-attributes
         for complex_json in cls.send_message_json("GET",
                                                   "get cloud regions",
                                                   url).get("complex", []):
-            yield Complex(
-                name=complex_json.get("complex-name"),
-                physical_location_id=complex_json["physical-location-id"],
-                data_center_code=complex_json.get("data-center-code"),
-                identity_url=complex_json.get("identity-url"),
-                resource_version=complex_json.get("resource-version"),
-                physical_location_type=complex_json.get("physical-location-type"),
-                street1=complex_json.get("street1"),
-                street2=complex_json.get("street2"),
-                city=complex_json.get("city"),
-                state=complex_json.get("state"),
-                postal_code=complex_json.get("postal-code"),
-                country=complex_json.get("country"),
-                region=complex_json.get("region"),
-                latitude=complex_json.get("latitude"),
-                longitude=complex_json.get("longitude"),
-                elevation=complex_json.get("elevation"),
-                lata=complex_json.get("lata"),
-            )
+            yield cls.create_from_api_response(complex_json)
+
+    @classmethod
+    def get_by_physical_location_id(cls, physical_location_id: str) -> "Complex":
+        """Get complex by physical location id.
+
+        Args:
+            physical_location_id (str): Physical location id of Complex
+
+        Returns:
+            Complex: Complex object
+
+        Raises:
+            ResourceNotFound: Complex with given physical location id not found
+
+        """
+        response = cls.send_message_json("GET",
+                                         "Get complex with physical location id: "
+                                         f"{physical_location_id}",
+                                         f"{cls.base_url}{cls.api_version}/cloud-infrastructure/"
+                                         f"complexes/complex/{physical_location_id}")
+        return cls.create_from_api_response(response)
+
+    @classmethod
+    def create_from_api_response(cls,
+                                 api_response: Dict[str, Any]) -> "Complex":
+        """Create complex object using given A&AI API response JSON.
+
+        Args:
+            api_response (Dict[str, Any]): Complex A&AI API response
+
+        Returns:
+            Complex: Complex object created from given response
+
+        """
+        return cls(
+            name=api_response.get("complex-name"),
+            physical_location_id=api_response["physical-location-id"],
+            data_center_code=api_response.get("data-center-code"),
+            identity_url=api_response.get("identity-url"),
+            resource_version=api_response.get("resource-version"),
+            physical_location_type=api_response.get("physical-location-type"),
+            street1=api_response.get("street1"),
+            street2=api_response.get("street2"),
+            city=api_response.get("city"),
+            state=api_response.get("state"),
+            postal_code=api_response.get("postal-code"),
+            country=api_response.get("country"),
+            region=api_response.get("region"),
+            latitude=api_response.get("latitude"),
+            longitude=api_response.get("longitude"),
+            elevation=api_response.get("elevation"),
+            lata=api_response.get("lata")
+        )
