@@ -27,6 +27,25 @@ class Relationship:
     relationship_label: str = ""
     related_to_property: List[Dict[str, str]] = field(default_factory=list)
 
+    def get_relationship_data(self, relationship_key: str) -> Optional[str]:
+        """Get relationship data for given relationship key.
+
+        From list of relationship data get the value for
+            given key
+
+        Args:
+            relationship_key (str): Key to get relationship data value
+
+        Returns:
+            Optional[str]: Relationship value or None if relationship data
+                with provided ket doesn't exist
+
+        """
+        for data in self.relationship_data:
+            if data["relationship-key"] == relationship_key:
+                return data["relationship-value"]
+        return None
+
 
 class AaiElement(OnapService):
     """Mother Class of all A&AI elements."""
