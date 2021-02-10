@@ -1,6 +1,6 @@
 """AAI business module."""
 from dataclasses import dataclass
-from typing import Iterator
+from typing import Iterable, Iterator, Optional
 from urllib.parse import urlencode
 
 from onapsdk.sdc.service import Service as SdcService
@@ -457,7 +457,8 @@ class Customer(AaiElement):
     def create(cls,
                global_customer_id: str,
                subscriber_name: str,
-               subscriber_type: str) -> "Customer":
+               subscriber_type: str,
+               services_to_subscribe: Optional[Iterable[SdcService]] = None) -> "Customer":
         """Create customer.
 
         Args:
@@ -467,6 +468,9 @@ class Customer(AaiElement):
                 to retrieve a customer.
             subscriber_type (str): Subscriber type, a way to provide
                 VID with only the INFRA customers.
+            services_to_subscribe (Optional[Iterable[SdcService]], optional): Iterable
+                of services for which service subscription should be created for newly
+                created customer. Defaults to None.
 
         Returns:
             Customer: Customer object.
@@ -486,6 +490,7 @@ class Customer(AaiElement):
                 global_customer_id=global_customer_id,
                 subscriber_name=subscriber_name,
                 subscriber_type=subscriber_type,
+                services_to_subscribe=services_to_subscribe
             ),
         )
         response: dict = cls.send_message_json(
@@ -568,3 +573,15 @@ class Customer(AaiElement):
             )
         )
         return self.get_service_subscription_by_service_type(service.name)
+
+    def delete(self) -> None:
+        """Delete customer.
+
+        Sends request to A&AI to delete customer object.
+
+        """
+        self.send_message(
+            "DELETE",
+            "Delete customer",
+            self.url
+        )

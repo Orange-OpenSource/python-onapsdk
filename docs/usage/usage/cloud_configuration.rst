@@ -131,6 +131,13 @@ Create customer service subscription
     customer = Customer.get_by_global_customer_id(GLOBAL_CUSTOMER_ID)
     customer.subscribe_service(service)
 
+    # Service subscriptions can be also created during Customer
+    # creation
+    from onapsdk.aai.business import Customer
+    from onapsdk.service import Service
+    service = Service(name="myService")
+    customer = Customer.create(GLOBAL_CUSTOMER_ID, GLOBAL_CUSTOMER_ID, "INFRA", services_to_subscribe=[service])
+
 Connect service subscription to cloud region and tenant
 -------------------------------------------------------
 
