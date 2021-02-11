@@ -415,7 +415,7 @@ AVAILABILITY_ZONE = {
 AVAILABILITY_ZONES = {
     "availability-zone":[
         {
-            "name":"OPNFV LaaS",
+            "availability-zone-name":"OPNFV LaaS",
             "hypervisor-type":"1234",
             "operational-status":"working",
             "resource-version":"version1.0"
