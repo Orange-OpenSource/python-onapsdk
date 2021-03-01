@@ -359,6 +359,24 @@ def test_customer_create(mock_send_json, mock_send):
     assert customer.subscriber_type == "INFRA"
     assert customer.resource_version is not None
 
+    customer = Customer.create("generic", "generic", "INFRA", services_to_subscribe=[mock.MagicMock])
+    assert customer.global_customer_id == "generic"
+    assert customer.subscriber_name == "generic"
+    assert customer.subscriber_type == "INFRA"
+    assert customer.resource_version is not None
+
+
+@mock.patch.object(Customer, "send_message")
+def test_customer_delete(mock_send):
+    """Test Customer's delete method."""
+    customer = Customer("test", "test", "test", "test")
+    customer.delete()
+    mock_send.assert_called_once_with(
+        "DELETE",
+        "Delete customer",
+        customer.url
+    )
+
 
 def test_customer_url():
     """Test Customer's url property."""
