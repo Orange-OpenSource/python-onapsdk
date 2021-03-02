@@ -274,7 +274,7 @@ def test_status_no_load_no_created(mock_exists):
 def test_status_status_is_certified_in_SDC(mock_vsp_items):
     vsp = Vsp()
     vsp.identifier = "1234"
-    mock_vsp_items.return_value={'results':[{'status': const.CERTIFIED}]}
+    mock_vsp_items.return_value={'results':[{'status': const.CERTIFIED}], 'listCount': 1}
     vsp._status = "Draft"
     assert vsp.status == const.CERTIFIED
 
@@ -284,7 +284,7 @@ def test_status_status_is_certified_in_SDC(mock_vsp_items):
 def test_status_version_is_not_dirty(mock_vsp_items, mock_vsp_items_version, mock_vsp_details):
     vsp = Vsp()
     vsp.identifier = "1234"
-    mock_vsp_items.return_value={'results':[{'status': const.DRAFT}]}
+    mock_vsp_items.return_value={'results':[{'status': const.DRAFT}], 'listCount': 1}
     mock_vsp_items_version.return_value={"state": {'dirty': False}}
     mock_vsp_details.return_value={'validationData': "true"}
     assert vsp.status == const.COMMITED
@@ -296,7 +296,7 @@ def test_status_version_is_dirty_has_validation_data(mock_vsp_items, mock_vsp_it
                                      mock_vsp_details):
     vsp = Vsp()
     vsp.identifier = "1234"
-    mock_vsp_items.return_value={'results':[{'status': const.DRAFT}]}
+    mock_vsp_items.return_value={'results':[{'status': const.DRAFT}], 'listCount': 1}
     mock_vsp_items_version.return_value={"state": {'dirty': True}}
     mock_vsp_details.return_value={'validationData': {'some': 'thing'}}
     assert vsp.status == const.VALIDATED
@@ -308,7 +308,7 @@ def test_status_version_is_dirty_no_validation_data_no_state(mock_vsp_items, moc
                                      mock_vsp_details):
     vsp = Vsp()
     vsp.identifier = "1234"
-    mock_vsp_items.return_value={'results':[{'status': const.DRAFT}]}
+    mock_vsp_items.return_value={'results':[{'status': const.DRAFT}], 'listCount': 1}
     mock_vsp_items_version.return_value={"status": {'dirty': False}}
     mock_vsp_details.return_value={'no_validationData': {'some': 'thing'}}
     assert vsp.status == const.DRAFT
@@ -320,7 +320,7 @@ def test_status_version_is_dirty_no_validation_data_but_state(mock_vsp_items, mo
                                      mock_vsp_details):
     vsp = Vsp()
     vsp.identifier = "1234"
-    mock_vsp_items.return_value={'results':[{'status': const.DRAFT}]}
+    mock_vsp_items.return_value={'results':[{'status': const.DRAFT}], 'listCount': 1}
     mock_vsp_items_version.return_value={"state": {'dirty': True}}
     mock_vsp_details.return_value={'no_validationData': {'some': 'thing'}}
     assert vsp.status == const.DRAFT
@@ -332,7 +332,7 @@ def test_status_version_is_dirty_no_validation_data_but_networkPackageName(mock_
                                      mock_vsp_details):
     vsp = Vsp()
     vsp.identifier = "1234"
-    mock_vsp_items.return_value={'results':[{'status': const.DRAFT}]}
+    mock_vsp_items.return_value={'results':[{'status': const.DRAFT}], 'listCount': 1}
     mock_vsp_items_version.return_value={"state": {'dirty': True}}
     mock_vsp_details.return_value={'no_validationData': {'some': 'thing'}, 'networkPackageName': 'ubuntu16'}
     assert vsp.status == const.UPLOADED

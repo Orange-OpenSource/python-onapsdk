@@ -242,7 +242,7 @@ class Vsp(SdcElement): # pylint: disable=too-many-instance-attributes
 
         """
         item_details = self._get_item_details()
-        if (item_details
+        if (item_details and item_details["listCount"]
                 and item_details['results'][-1]['status'] == const.CERTIFIED):
             self._status = const.CERTIFIED
         else:
