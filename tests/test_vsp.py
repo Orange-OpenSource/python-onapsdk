@@ -623,9 +623,7 @@ def test_onboard_vsp_upload_package(mock_create, mock_upload_package,
     getter_mock = mock.Mock(wraps=Vsp.status.fget)
     mock_status = Vsp.status.getter(getter_mock)
     with mock.patch.object(Vsp, 'status', mock_status):
-        getter_mock.side_effect = [const.DRAFT, const.DRAFT, const.APPROVED,
-                               const.APPROVED, const.APPROVED, const.APPROVED,
-                               const.APPROVED, None]
+        getter_mock.side_effect = [const.DRAFT, const.APPROVED, None]
         vsp = Vsp(package="yes")
         vsp.onboard()
         mock_create.assert_not_called()
@@ -647,9 +645,7 @@ def test_onboard_new_vsp_validate(mock_create, mock_upload_package,
     getter_mock = mock.Mock(wraps=Vsp.status.fget)
     mock_status = Vsp.status.getter(getter_mock)
     with mock.patch.object(Vsp, 'status', mock_status):
-        getter_mock.side_effect = [const.UPLOADED, const.UPLOADED, const.UPLOADED,
-                               const.APPROVED, const.APPROVED, const.APPROVED,
-                               const.APPROVED, const.APPROVED, None]
+        getter_mock.side_effect = [const.UPLOADED, const.APPROVED, None]
         vsp = Vsp()
         vsp.onboard()
         mock_create.assert_not_called()
@@ -671,10 +667,7 @@ def test_onboard_new_vsp_commit(mock_create, mock_upload_package,
     getter_mock = mock.Mock(wraps=Vsp.status.fget)
     mock_status = Vsp.status.getter(getter_mock)
     with mock.patch.object(Vsp, 'status', mock_status):
-        getter_mock.side_effect = [const.VALIDATED, const.VALIDATED,
-                               const.VALIDATED, const.VALIDATED, const.APPROVED,
-                               const.APPROVED, const.APPROVED, const.APPROVED,
-                               const.APPROVED, None]
+        getter_mock.side_effect = [const.VALIDATED, const.APPROVED, None]
         vsp = Vsp()
         vsp.onboard()
         mock_create.assert_not_called()
@@ -696,10 +689,7 @@ def test_onboard_new_vsp_submit(mock_create, mock_upload_package,
     getter_mock = mock.Mock(wraps=Vsp.status.fget)
     mock_status = Vsp.status.getter(getter_mock)
     with mock.patch.object(Vsp, 'status', mock_status):
-        getter_mock.side_effect = [const.COMMITED, const.COMMITED, const.COMMITED,
-                               const.COMMITED, const.COMMITED, const.APPROVED,
-                               const.APPROVED, const.APPROVED, const.APPROVED,
-                               const.APPROVED, None]
+        getter_mock.side_effect = [const.COMMITED, const.APPROVED, None]
         vsp = Vsp()
         vsp.onboard()
         mock_create.assert_not_called()
@@ -722,11 +712,7 @@ def test_onboard_new_vsp_create_csar(mock_create,
     getter_mock = mock.Mock(wraps=Vsp.status.fget)
     mock_status = Vsp.status.getter(getter_mock)
     with mock.patch.object(Vsp, 'status', mock_status):
-        getter_mock.side_effect = [const.CERTIFIED, const.CERTIFIED,
-                               const.CERTIFIED, const.CERTIFIED,
-                               const.CERTIFIED, const.CERTIFIED, const.APPROVED,
-                               const.APPROVED, const.APPROVED, const.APPROVED,
-                               const.APPROVED, None]
+        getter_mock.side_effect = [const.CERTIFIED, const.APPROVED, None]
         vsp = Vsp()
         vsp.onboard()
         mock_create.assert_not_called()
@@ -751,17 +737,8 @@ def test_onboard_whole_vsp(mock_load, mock_created, mock_create,
     getter_mock = mock.Mock(wraps=Vsp.status.fget)
     mock_status = Vsp.status.getter(getter_mock)
     with mock.patch.object(Vsp, 'status', mock_status):
-        getter_mock.side_effect = [None, const.DRAFT, const.DRAFT, const.UPLOADED,
-                               const.UPLOADED, const.UPLOADED, const.VALIDATED,
-                               const.VALIDATED, const.VALIDATED,
-                               const.VALIDATED, const.COMMITED, const.COMMITED,
-                               const.COMMITED, const.COMMITED, const.COMMITED,
-                               const.CERTIFIED, const.CERTIFIED,
-                               const.CERTIFIED, const.CERTIFIED,
-                               const.CERTIFIED, const.CERTIFIED,
-                               const.CERTIFIED, const.CERTIFIED,
-                               const.CERTIFIED, const.CERTIFIED,
-                               const.CERTIFIED, const.CERTIFIED, None]
+        getter_mock.side_effect = [None, const.DRAFT, const.UPLOADED, const.VALIDATED,
+                               const.COMMITED, const.CERTIFIED, None]
         vendor = Vendor()
         vsp = Vsp(vendor=vendor, package="yes")
         vsp.onboard()

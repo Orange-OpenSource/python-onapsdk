@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # SPDX-License-Identifier: Apache-2.0
 """VSP module."""
-from typing import Any
+from typing import Any, Optional
 from typing import BinaryIO
 from typing import Callable
 from typing import Dict
@@ -54,26 +54,27 @@ class Vsp(SdcElement): # pylint: disable=too-many-instance-attributes
 
     def onboard(self) -> None:
         """Onboard the VSP in SDC."""
-        if not self.status:
-            if not self.vendor:
+        status: Optional[str] = self.status
+        if not status:
+            if not self._vendor:
                 raise ParameterError("No Vendor provided.")
             self.create()
             self.onboard()
-        elif self.status == const.DRAFT:
+        elif status == const.DRAFT:
             if not self.package:
                 raise ParameterError("No file/package provided.")
             self.upload_package(self.package)
             self.onboard()
-        elif self.status == const.UPLOADED:
+        elif status == const.UPLOADED:
             self.validate()
             self.onboard()
-        elif self.status == const.VALIDATED:
+        elif status == const.VALIDATED:
             self.commit()
             self.onboard()
-        elif self.status == const.COMMITED:
+        elif status == const.COMMITED:
             self.submit()
             self.onboard()
-        elif self.status == const.CERTIFIED:
+        elif status == const.CERTIFIED:
             self.create_csar()
 
     def create(self) -> None:
@@ -122,7 +123,7 @@ class Vsp(SdcElement): # pylint: disable=too-many-instance-attributes
     @property
     def vendor(self) -> Vendor:
         """Return and lazy load the vendor."""
-        if self.created() and not self._vendor:
+        if not self._vendor and self.created():
             details = self._get_vsp_details()
             if details:
                 self._vendor = Vendor(name=details['vendorName'])
@@ -295,8 +296,6 @@ class Vsp(SdcElement): # pylint: disable=too-many-instance-attributes
         vsp = Vsp(values['name'])
         vsp.identifier = values['id']
         vsp.vendor = Vendor(name=values['vendorName'])
-        vsp.load_status()
-        cls._logger.info("status of VSP %s: %s", vsp.name, vsp.status)
         return vsp
 
     def _really_submit(self) -> None:
