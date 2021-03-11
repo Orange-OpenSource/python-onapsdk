@@ -2,12 +2,13 @@
 # -*- coding: utf-8 -*-
 # SPDX-License-Identifier: Apache-2.0
 """VSP module."""
+import json
 from typing import Any, Optional
 from typing import BinaryIO
 from typing import Callable
 from typing import Dict
 
-from onapsdk.exceptions import ParameterError
+from onapsdk.exceptions import APIError, ParameterError
 from onapsdk.sdc.sdc_element import SdcElement
 from onapsdk.sdc.vendor import Vendor
 import onapsdk.constants as const
@@ -146,27 +147,34 @@ class Vsp(SdcElement): # pylint: disable=too-many-instance-attributes
         """Set value for csar uuid."""
         self._csar_uuid = csar_uuid
 
-    def _upload_action(self, package_to_upload: BinaryIO = None):
+    def _upload_action(self, package_to_upload: BinaryIO):
         """Do upload for real."""
-        if package_to_upload:
-            url = "{}/{}/{}/orchestration-template-candidate".format(
-                self._base_url(), Vsp._sdc_path(), self._version_path())
-            headers = self.headers.copy()
-            headers.pop("Content-Type")
-            headers["Accept-Encoding"] = "gzip, deflate"
-            data = {'upload': package_to_upload}
-            upload_result = self.send_message('POST',
-                                              'upload ZIP for Vsp',
-                                              url,
-                                              headers=headers,
-                                              files=data)
-            if upload_result:
-                self._logger.info("Files for Vsp %s have been uploaded",
-                                  self.name)
-            else:
+        url = "{}/{}/{}/orchestration-template-candidate".format(
+            self._base_url(), Vsp._sdc_path(), self._version_path())
+        headers = self.headers.copy()
+        headers.pop("Content-Type")
+        headers["Accept-Encoding"] = "gzip, deflate"
+        data = {'upload': package_to_upload}
+        upload_result = self.send_message('POST',
+                                          'upload ZIP for Vsp',
+                                          url,
+                                          headers=headers,
+                                          files=data)
+        if upload_result:
+            # TODO https://jira.onap.org/browse/SDC-3505  pylint: disable=W0511
+            response_json = json.loads(upload_result.text)
+            if response_json["status"] != "Success":
                 self._logger.error(
                     "an error occured during file upload for Vsp %s",
                     self.name)
+                raise APIError(response_json)
+            # End TODO https://jira.onap.org/browse/SDC-3505
+            self._logger.info("Files for Vsp %s have been uploaded",
+                              self.name)
+        else:
+            self._logger.error(
+                "an error occured during file upload for Vsp %s",
+                self.name)
 
     def _validate_action(self):
         """Do validate for real."""
