@@ -36,6 +36,14 @@ onapsdk.aai.business.owning\_entity module
    :undoc-members:
    :show-inheritance:
 
+onapsdk.aai.business.pnf module
+-------------------------------
+
+.. automodule:: onapsdk.aai.business.pnf
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 onapsdk.aai.business.service module
 -----------------------------------
 
@@ -59,7 +67,6 @@ onapsdk.aai.business.vnf module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

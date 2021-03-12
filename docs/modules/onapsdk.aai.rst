@@ -29,7 +29,6 @@ onapsdk.aai.service\_design\_and\_creation module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 

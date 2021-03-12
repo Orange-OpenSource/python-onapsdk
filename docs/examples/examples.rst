@@ -10,3 +10,4 @@ Real life script examples
    e2e_net_instantiation
    e2e_artifact_upload
    e2e_basicvm_nomulticloud_instantiation
+   k8s_plugin_usage

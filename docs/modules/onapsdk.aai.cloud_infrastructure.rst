@@ -28,7 +28,6 @@ onapsdk.aai.cloud\_infrastructure.tenant module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 
