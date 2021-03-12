@@ -4,6 +4,14 @@ onapsdk.sdc package
 Submodules
 ----------
 
+onapsdk.sdc.category\_management module
+---------------------------------------
+
+.. automodule:: onapsdk.sdc.category_management
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 onapsdk.sdc.component module
 ----------------------------
 
@@ -83,7 +91,6 @@ onapsdk.sdc.vsp module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------
