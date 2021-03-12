@@ -1,21 +1,21 @@
-onapsdk.clamp package
+onapsdk.dmaap package
 =====================
 
 Submodules
 ----------
 
-onapsdk.clamp.clamp\_element module
------------------------------------
+onapsdk.dmaap.dmaap module
+--------------------------
 
-.. automodule:: onapsdk.clamp.clamp_element
+.. automodule:: onapsdk.dmaap.dmaap
    :members:
    :undoc-members:
    :show-inheritance:
 
-onapsdk.clamp.loop\_instance module
+onapsdk.dmaap.dmaap\_service module
 -----------------------------------
 
-.. automodule:: onapsdk.clamp.loop_instance
+.. automodule:: onapsdk.dmaap.dmaap_service
    :members:
    :undoc-members:
    :show-inheritance:
@@ -23,7 +23,7 @@ onapsdk.clamp.loop\_instance module
 Module contents
 ---------------
 
-.. automodule:: onapsdk.clamp
+.. automodule:: onapsdk.dmaap
    :members:
    :undoc-members:
    :show-inheritance:

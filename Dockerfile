@@ -1,19 +1,17 @@
-FROM alpine:3.12
+FROM python:3.9-alpine3.12
 
-ARG PIP_TAG=20.1.1
+ARG PIP_TAG=21.0.1
 
 WORKDIR /opt/chained-ci-mqtt-trigger-master
 
 COPY . .
 
-RUN apk add --no-cache libressl\
-                       py3-pip \
-                       python3 &&\
-    apk add --no-cache --virtual .build-deps build-base \
-                                             git \
+ENV CRYPTOGRAPHY_DONT_BUILD_RUST=1
+
+RUN apk add --no-cache --virtual .build-deps gcc \
+                                             musl-dev \
                                              libffi-dev \
-                                             libressl-dev \
-                                             python3-dev &&\
-    pip3 install --no-cache-dir --upgrade pip==$PIP_TAG && \
-    pip3 install --no-cache-dir . &&\
+                                             openssl-dev && \
+    pip install --no-cache-dir --upgrade pip==$PIP_TAG && \
+    pip install --no-cache-dir . && \
     apk del .build-deps

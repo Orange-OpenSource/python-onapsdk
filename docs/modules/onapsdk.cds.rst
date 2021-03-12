@@ -12,6 +12,22 @@ onapsdk.cds.blueprint module
    :undoc-members:
    :show-inheritance:
 
+onapsdk.cds.blueprint\_model module
+-----------------------------------
+
+.. automodule:: onapsdk.cds.blueprint_model
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+onapsdk.cds.blueprint\_processor module
+---------------------------------------
+
+.. automodule:: onapsdk.cds.blueprint_processor
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 onapsdk.cds.cds\_element module
 -------------------------------
 
@@ -27,7 +43,6 @@ onapsdk.cds.data\_dictionary module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

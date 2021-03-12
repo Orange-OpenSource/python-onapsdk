@@ -6,7 +6,7 @@ import json
 
 import pytest
 import requests
-from onapsdk.exceptions import ParameterError, RequestError
+from onapsdk.exceptions import APIError, ParameterError, RequestError
 
 from onapsdk.sdc.vsp import Vsp
 from onapsdk.sdc.vendor import Vendor
@@ -274,7 +274,7 @@ def test_status_no_load_no_created(mock_exists):
 def test_status_status_is_certified_in_SDC(mock_vsp_items):
     vsp = Vsp()
     vsp.identifier = "1234"
-    mock_vsp_items.return_value={'results':[{'status': const.CERTIFIED}]}
+    mock_vsp_items.return_value={'results':[{'status': const.CERTIFIED}], 'listCount': 1}
     vsp._status = "Draft"
     assert vsp.status == const.CERTIFIED
 
@@ -284,7 +284,7 @@ def test_status_status_is_certified_in_SDC(mock_vsp_items):
 def test_status_version_is_not_dirty(mock_vsp_items, mock_vsp_items_version, mock_vsp_details):
     vsp = Vsp()
     vsp.identifier = "1234"
-    mock_vsp_items.return_value={'results':[{'status': const.DRAFT}]}
+    mock_vsp_items.return_value={'results':[{'status': const.DRAFT}], 'listCount': 1}
     mock_vsp_items_version.return_value={"state": {'dirty': False}}
     mock_vsp_details.return_value={'validationData': "true"}
     assert vsp.status == const.COMMITED
@@ -296,7 +296,7 @@ def test_status_version_is_dirty_has_validation_data(mock_vsp_items, mock_vsp_it
                                      mock_vsp_details):
     vsp = Vsp()
     vsp.identifier = "1234"
-    mock_vsp_items.return_value={'results':[{'status': const.DRAFT}]}
+    mock_vsp_items.return_value={'results':[{'status': const.DRAFT}], 'listCount': 1}
     mock_vsp_items_version.return_value={"state": {'dirty': True}}
     mock_vsp_details.return_value={'validationData': {'some': 'thing'}}
     assert vsp.status == const.VALIDATED
@@ -308,7 +308,7 @@ def test_status_version_is_dirty_no_validation_data_no_state(mock_vsp_items, moc
                                      mock_vsp_details):
     vsp = Vsp()
     vsp.identifier = "1234"
-    mock_vsp_items.return_value={'results':[{'status': const.DRAFT}]}
+    mock_vsp_items.return_value={'results':[{'status': const.DRAFT}], 'listCount': 1}
     mock_vsp_items_version.return_value={"status": {'dirty': False}}
     mock_vsp_details.return_value={'no_validationData': {'some': 'thing'}}
     assert vsp.status == const.DRAFT
@@ -320,7 +320,7 @@ def test_status_version_is_dirty_no_validation_data_but_state(mock_vsp_items, mo
                                      mock_vsp_details):
     vsp = Vsp()
     vsp.identifier = "1234"
-    mock_vsp_items.return_value={'results':[{'status': const.DRAFT}]}
+    mock_vsp_items.return_value={'results':[{'status': const.DRAFT}], 'listCount': 1}
     mock_vsp_items_version.return_value={"state": {'dirty': True}}
     mock_vsp_details.return_value={'no_validationData': {'some': 'thing'}}
     assert vsp.status == const.DRAFT
@@ -332,7 +332,7 @@ def test_status_version_is_dirty_no_validation_data_but_networkPackageName(mock_
                                      mock_vsp_details):
     vsp = Vsp()
     vsp.identifier = "1234"
-    mock_vsp_items.return_value={'results':[{'status': const.DRAFT}]}
+    mock_vsp_items.return_value={'results':[{'status': const.DRAFT}], 'listCount': 1}
     mock_vsp_items_version.return_value={"state": {'dirty': True}}
     mock_vsp_details.return_value={'no_validationData': {'some': 'thing'}, 'networkPackageName': 'ubuntu16'}
     assert vsp.status == const.UPLOADED
@@ -466,10 +466,22 @@ def test_upload_not_OK(mock_send, mock_status):
     vsp = Vsp()
     vsp._status = const.DRAFT
     mock_send.return_value = None
-    expected_data = '{\n\n  "action": "Create_Package"\n}'
     vsp._version = "1234"
     vsp._identifier = "12345"
     vsp.upload_package('data')
+    mock_send.assert_called_once_with('POST', 'upload ZIP for Vsp', "https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/onboarding-api/v1.0/vendor-software-products/12345/versions/1234/orchestration-template-candidate", files={'upload': 'data'}, headers={'Accept': 'application/json', 'USER_ID': 'cs0008', 'Authorization': 'Basic YWFpOktwOGJKNFNYc3pNMFdYbGhhazNlSGxjc2UyZ0F3ODR2YW9HR21KdlV5MlU=', 'X-ECOMP-InstanceID': 'onapsdk', 'Accept-Encoding': 'gzip, deflate'})
+
+@mock.patch.object(Vsp, 'load_status')
+@mock.patch.object(Vsp, 'send_message')
+def test_upload_error_in_response(mock_send, mock_status):
+    """Don't update status if submission NOK."""
+    vsp = Vsp()
+    vsp._status = const.DRAFT
+    mock_send.return_value = mock.MagicMock(text='{"status": "Failure"}')
+    vsp._version = "1234"
+    vsp._identifier = "12345"
+    with pytest.raises(APIError):
+        vsp.upload_package('data')
     mock_send.assert_called_once_with('POST', 'upload ZIP for Vsp', "https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/onboarding-api/v1.0/vendor-software-products/12345/versions/1234/orchestration-template-candidate", files={'upload': 'data'}, headers={'Accept': 'application/json', 'USER_ID': 'cs0008', 'Authorization': 'Basic YWFpOktwOGJKNFNYc3pNMFdYbGhhazNlSGxjc2UyZ0F3ODR2YW9HR21KdlV5MlU=', 'X-ECOMP-InstanceID': 'onapsdk', 'Accept-Encoding': 'gzip, deflate'})
 
 @mock.patch.object(Vsp, 'load_status')
@@ -478,8 +490,7 @@ def test_upload_OK(mock_send, mock_status):
     """Don't update status if submission NOK."""
     vsp = Vsp()
     vsp._status = const.DRAFT
-    mock_send.return_value = True
-    expected_data = '{\n\n  "action": "Create_Package"\n}'
+    mock_send.return_value = mock.MagicMock(text='{"status": "Success"}')
     vsp._version = "1234"
     vsp._identifier = "12345"
     vsp.upload_package('data')
@@ -623,9 +634,7 @@ def test_onboard_vsp_upload_package(mock_create, mock_upload_package,
     getter_mock = mock.Mock(wraps=Vsp.status.fget)
     mock_status = Vsp.status.getter(getter_mock)
     with mock.patch.object(Vsp, 'status', mock_status):
-        getter_mock.side_effect = [const.DRAFT, const.DRAFT, const.APPROVED,
-                               const.APPROVED, const.APPROVED, const.APPROVED,
-                               const.APPROVED, None]
+        getter_mock.side_effect = [const.DRAFT, const.APPROVED, None]
         vsp = Vsp(package="yes")
         vsp.onboard()
         mock_create.assert_not_called()
@@ -647,9 +656,7 @@ def test_onboard_new_vsp_validate(mock_create, mock_upload_package,
     getter_mock = mock.Mock(wraps=Vsp.status.fget)
     mock_status = Vsp.status.getter(getter_mock)
     with mock.patch.object(Vsp, 'status', mock_status):
-        getter_mock.side_effect = [const.UPLOADED, const.UPLOADED, const.UPLOADED,
-                               const.APPROVED, const.APPROVED, const.APPROVED,
-                               const.APPROVED, const.APPROVED, None]
+        getter_mock.side_effect = [const.UPLOADED, const.APPROVED, None]
         vsp = Vsp()
         vsp.onboard()
         mock_create.assert_not_called()
@@ -671,10 +678,7 @@ def test_onboard_new_vsp_commit(mock_create, mock_upload_package,
     getter_mock = mock.Mock(wraps=Vsp.status.fget)
     mock_status = Vsp.status.getter(getter_mock)
     with mock.patch.object(Vsp, 'status', mock_status):
-        getter_mock.side_effect = [const.VALIDATED, const.VALIDATED,
-                               const.VALIDATED, const.VALIDATED, const.APPROVED,
-                               const.APPROVED, const.APPROVED, const.APPROVED,
-                               const.APPROVED, None]
+        getter_mock.side_effect = [const.VALIDATED, const.APPROVED, None]
         vsp = Vsp()
         vsp.onboard()
         mock_create.assert_not_called()
@@ -696,10 +700,7 @@ def test_onboard_new_vsp_submit(mock_create, mock_upload_package,
     getter_mock = mock.Mock(wraps=Vsp.status.fget)
     mock_status = Vsp.status.getter(getter_mock)
     with mock.patch.object(Vsp, 'status', mock_status):
-        getter_mock.side_effect = [const.COMMITED, const.COMMITED, const.COMMITED,
-                               const.COMMITED, const.COMMITED, const.APPROVED,
-                               const.APPROVED, const.APPROVED, const.APPROVED,
-                               const.APPROVED, None]
+        getter_mock.side_effect = [const.COMMITED, const.APPROVED, None]
         vsp = Vsp()
         vsp.onboard()
         mock_create.assert_not_called()
@@ -722,11 +723,7 @@ def test_onboard_new_vsp_create_csar(mock_create,
     getter_mock = mock.Mock(wraps=Vsp.status.fget)
     mock_status = Vsp.status.getter(getter_mock)
     with mock.patch.object(Vsp, 'status', mock_status):
-        getter_mock.side_effect = [const.CERTIFIED, const.CERTIFIED,
-                               const.CERTIFIED, const.CERTIFIED,
-                               const.CERTIFIED, const.CERTIFIED, const.APPROVED,
-                               const.APPROVED, const.APPROVED, const.APPROVED,
-                               const.APPROVED, None]
+        getter_mock.side_effect = [const.CERTIFIED, const.APPROVED, None]
         vsp = Vsp()
         vsp.onboard()
         mock_create.assert_not_called()
@@ -751,17 +748,8 @@ def test_onboard_whole_vsp(mock_load, mock_created, mock_create,
     getter_mock = mock.Mock(wraps=Vsp.status.fget)
     mock_status = Vsp.status.getter(getter_mock)
     with mock.patch.object(Vsp, 'status', mock_status):
-        getter_mock.side_effect = [None, const.DRAFT, const.DRAFT, const.UPLOADED,
-                               const.UPLOADED, const.UPLOADED, const.VALIDATED,
-                               const.VALIDATED, const.VALIDATED,
-                               const.VALIDATED, const.COMMITED, const.COMMITED,
-                               const.COMMITED, const.COMMITED, const.COMMITED,
-                               const.CERTIFIED, const.CERTIFIED,
-                               const.CERTIFIED, const.CERTIFIED,
-                               const.CERTIFIED, const.CERTIFIED,
-                               const.CERTIFIED, const.CERTIFIED,
-                               const.CERTIFIED, const.CERTIFIED,
-                               const.CERTIFIED, const.CERTIFIED, None]
+        getter_mock.side_effect = [None, const.DRAFT, const.UPLOADED, const.VALIDATED,
+                               const.COMMITED, const.CERTIFIED, None]
         vendor = Vendor()
         vsp = Vsp(vendor=vendor, package="yes")
         vsp.onboard()

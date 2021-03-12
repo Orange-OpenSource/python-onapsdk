@@ -176,7 +176,7 @@ class CloudRegion(AaiElement):  # pylint: disable=too-many-instance-attributes
             )
 
     @classmethod
-    def get_by_id(cls, cloud_owner, cloud_region_id: str) -> "CloudRegion":
+    def get_by_id(cls, cloud_owner: str, cloud_region_id: str) -> "CloudRegion":
         """Get CloudRegion object by cloud_owner and cloud-region-id field value.
 
         This method calls A&AI cloud region API filtering them by cloud_owner and
@@ -303,8 +303,8 @@ class CloudRegion(AaiElement):  # pylint: disable=too-many-instance-attributes
         )
         return (
             AvailabilityZone(
-                name=availability_zone.get("name"),
-                hypervisor_type=availability_zone.get("hypervisor-type"),
+                name=availability_zone["availability-zone-name"],
+                hypervisor_type=availability_zone["hypervisor-type"],
                 operational_status=availability_zone.get("operational-status"),
                 resource_version=availability_zone.get("resource-version")
             )
@@ -348,6 +348,29 @@ class CloudRegion(AaiElement):  # pylint: disable=too-many-instance-attributes
             )
             for esr_system_info in response.get("esr-system-info", [])
         )
+
+    @property
+    def complex(self) -> Optional[Complex]:
+        """Complex related with cloud region.
+
+        Returns:
+            Optional[Complex]: Complex object related with CloudRegion or None if
+                CloudRegion has no relationship with any Complex
+
+        """
+        for relationship in self.relationships:
+            if relationship.related_to == "complex":
+                physical_location_id: Optional[str] = relationship.get_relationship_data(
+                    "complex.physical-location-id"
+                )
+                if physical_location_id is not None:
+                    return Complex.get_by_physical_location_id(
+                        physical_location_id
+                    )
+                self._logger.error("Invalid Complex relationship!")
+                return None
+        self._logger.debug("Cloud region %s has no related complex", self.cloud_region_id)
+        return None
 
     def add_tenant(self, tenant_id: str, tenant_name: str, tenant_context: str = None) -> None:
         """Add tenant to cloud region.

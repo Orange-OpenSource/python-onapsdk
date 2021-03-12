@@ -28,7 +28,6 @@ onapsdk.so.so\_element module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 

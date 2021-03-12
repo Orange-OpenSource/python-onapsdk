@@ -1,5 +1,15 @@
 {
     "global-customer-id": "{{ global_customer_id }}",
     "subscriber-name": "{{ subscriber_name }}",
-    "subscriber-type": "{{ subscriber_type }}"
+    "subscriber-type": "{{ subscriber_type }}"{% if services_to_subscribe %},
+    "service-subscriptions": {
+        "service-subscription": [
+        {% for service_to_subscribe in services_to_subscribe %}
+        {
+                "service-type": "{{ service_to_subscribe.name }}"
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+        ]
+    }
+    {% endif %}
 }

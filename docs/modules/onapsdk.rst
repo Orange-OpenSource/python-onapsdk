@@ -11,10 +11,15 @@ Subpackages
    onapsdk.cds
    onapsdk.clamp
    onapsdk.configuration
+   onapsdk.dmaap
+   onapsdk.msb
+   onapsdk.nbi
    onapsdk.sdc
    onapsdk.sdnc
    onapsdk.so
    onapsdk.utils
+   onapsdk.ves
+   onapsdk.vid
 
 Submodules
 ----------
@@ -27,34 +32,10 @@ onapsdk.constants module
    :undoc-members:
    :show-inheritance:
 
-onapsdk.esr module
-------------------
-
-.. automodule:: onapsdk.esr
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-onapsdk.msb module
-------------------
-
-.. automodule:: onapsdk.msb
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-onapsdk.multicloud module
+onapsdk.exceptions module
 -------------------------
 
-.. automodule:: onapsdk.multicloud
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-onapsdk.nbi module
-------------------
-
-.. automodule:: onapsdk.nbi
+.. automodule:: onapsdk.exceptions
    :members:
    :undoc-members:
    :show-inheritance:
@@ -74,15 +55,6 @@ onapsdk.version module
    :members:
    :undoc-members:
    :show-inheritance:
-
-onapsdk.vid module
-------------------
-
-.. automodule:: onapsdk.vid
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 
 Module contents
 ---------------

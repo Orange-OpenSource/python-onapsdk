@@ -744,3 +744,16 @@ def test_model_get_all(mock_send_message_json):
     assert model_1.model_type == "generic"
     assert model_1.resource_version == "1561218640404"
     mock_send_message_json.assert_called_with("GET", 'Get A&AI sdc models', mock.ANY)
+
+
+@mock.patch.object(CloudRegion, "send_message_json")
+@mock.patch.object(Complex, "get_by_physical_location_id")
+def test_cloud_region_complex_property(mock_complex_get_by_physical_location_id, mock_send):
+    """Test cloud region complex property."""
+    mock_send.return_value = {}
+    cloud_region = CloudRegion(cloud_owner="tester", cloud_region_id="test",
+                               orchestration_disabled=True, in_maint=False)
+    assert cloud_region.complex is None
+    mock_send.return_value = CLOUD_REGION_RELATIONSHIP
+    assert cloud_region.complex is not None
+    assert mock_complex_get_by_physical_location_id.called_once_with("integration_test_complex")

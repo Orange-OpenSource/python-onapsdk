@@ -44,7 +44,6 @@ onapsdk.utils.tosca\_file\_handler module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 

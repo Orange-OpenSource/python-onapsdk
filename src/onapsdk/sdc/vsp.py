@@ -2,12 +2,13 @@
 # -*- coding: utf-8 -*-
 # SPDX-License-Identifier: Apache-2.0
 """VSP module."""
-from typing import Any
+import json
+from typing import Any, Optional
 from typing import BinaryIO
 from typing import Callable
 from typing import Dict
 
-from onapsdk.exceptions import ParameterError
+from onapsdk.exceptions import APIError, ParameterError
 from onapsdk.sdc.sdc_element import SdcElement
 from onapsdk.sdc.vendor import Vendor
 import onapsdk.constants as const
@@ -54,26 +55,27 @@ class Vsp(SdcElement): # pylint: disable=too-many-instance-attributes
 
     def onboard(self) -> None:
         """Onboard the VSP in SDC."""
-        if not self.status:
-            if not self.vendor:
+        status: Optional[str] = self.status
+        if not status:
+            if not self._vendor:
                 raise ParameterError("No Vendor provided.")
             self.create()
             self.onboard()
-        elif self.status == const.DRAFT:
+        elif status == const.DRAFT:
             if not self.package:
                 raise ParameterError("No file/package provided.")
             self.upload_package(self.package)
             self.onboard()
-        elif self.status == const.UPLOADED:
+        elif status == const.UPLOADED:
             self.validate()
             self.onboard()
-        elif self.status == const.VALIDATED:
+        elif status == const.VALIDATED:
             self.commit()
             self.onboard()
-        elif self.status == const.COMMITED:
+        elif status == const.COMMITED:
             self.submit()
             self.onboard()
-        elif self.status == const.CERTIFIED:
+        elif status == const.CERTIFIED:
             self.create_csar()
 
     def create(self) -> None:
@@ -122,7 +124,7 @@ class Vsp(SdcElement): # pylint: disable=too-many-instance-attributes
     @property
     def vendor(self) -> Vendor:
         """Return and lazy load the vendor."""
-        if self.created() and not self._vendor:
+        if not self._vendor and self.created():
             details = self._get_vsp_details()
             if details:
                 self._vendor = Vendor(name=details['vendorName'])
@@ -145,27 +147,34 @@ class Vsp(SdcElement): # pylint: disable=too-many-instance-attributes
         """Set value for csar uuid."""
         self._csar_uuid = csar_uuid
 
-    def _upload_action(self, package_to_upload: BinaryIO = None):
+    def _upload_action(self, package_to_upload: BinaryIO):
         """Do upload for real."""
-        if package_to_upload:
-            url = "{}/{}/{}/orchestration-template-candidate".format(
-                self._base_url(), Vsp._sdc_path(), self._version_path())
-            headers = self.headers.copy()
-            headers.pop("Content-Type")
-            headers["Accept-Encoding"] = "gzip, deflate"
-            data = {'upload': package_to_upload}
-            upload_result = self.send_message('POST',
-                                              'upload ZIP for Vsp',
-                                              url,
-                                              headers=headers,
-                                              files=data)
-            if upload_result:
-                self._logger.info("Files for Vsp %s have been uploaded",
-                                  self.name)
-            else:
+        url = "{}/{}/{}/orchestration-template-candidate".format(
+            self._base_url(), Vsp._sdc_path(), self._version_path())
+        headers = self.headers.copy()
+        headers.pop("Content-Type")
+        headers["Accept-Encoding"] = "gzip, deflate"
+        data = {'upload': package_to_upload}
+        upload_result = self.send_message('POST',
+                                          'upload ZIP for Vsp',
+                                          url,
+                                          headers=headers,
+                                          files=data)
+        if upload_result:
+            # TODO https://jira.onap.org/browse/SDC-3505  pylint: disable=W0511
+            response_json = json.loads(upload_result.text)
+            if response_json["status"] != "Success":
                 self._logger.error(
                     "an error occured during file upload for Vsp %s",
                     self.name)
+                raise APIError(response_json)
+            # End TODO https://jira.onap.org/browse/SDC-3505
+            self._logger.info("Files for Vsp %s have been uploaded",
+                              self.name)
+        else:
+            self._logger.error(
+                "an error occured during file upload for Vsp %s",
+                self.name)
 
     def _validate_action(self):
         """Do validate for real."""
@@ -242,7 +251,7 @@ class Vsp(SdcElement): # pylint: disable=too-many-instance-attributes
 
         """
         item_details = self._get_item_details()
-        if (item_details
+        if (item_details and item_details["listCount"]
                 and item_details['results'][-1]['status'] == const.CERTIFIED):
             self._status = const.CERTIFIED
         else:
@@ -295,8 +304,6 @@ class Vsp(SdcElement): # pylint: disable=too-many-instance-attributes
         vsp = Vsp(values['name'])
         vsp.identifier = values['id']
         vsp.vendor = Vendor(name=values['vendorName'])
-        vsp.load_status()
-        cls._logger.info("status of VSP %s: %s", vsp.name, vsp.status)
         return vsp
 
     def _really_submit(self) -> None:
