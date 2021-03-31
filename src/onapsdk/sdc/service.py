@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from io import BytesIO, TextIOWrapper
 from os import makedirs
-from typing import Dict, List, Callable, Union, Any, BinaryIO
+from typing import Dict, List, Callable, Optional, Union, Any, BinaryIO
 from zipfile import ZipFile, BadZipFile
 
 import oyaml as yaml
@@ -125,8 +125,8 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
     def __init__(self, name: str = None, version: str = None, sdc_values: Dict[str, str] = None,  # pylint: disable=too-many-arguments
                  resources: List[SdcResource] = None, properties: List[Property] = None,
                  inputs: List[Union[Property, NestedInput]] = None,
-                 instantiation_type: ServiceInstantiationType = \
-                     ServiceInstantiationType.A_LA_CARTE,
+                 instantiation_type: Optional[ServiceInstantiationType] = \
+                     None,
                  category: str = None):
         """
         Initialize service object.
@@ -156,7 +156,7 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
             self.distribution_status = sdc_values['distributionStatus']
             self.category_name = sdc_values["category"]
         self.resources = resources or []
-        self.instantiation_type: ServiceInstantiationType = instantiation_type
+        self._instantiation_type: Optional[ServiceInstantiationType] = instantiation_type
         self._distribution_id: str = None
         self._distributed: bool = False
         self._resource_type: str = "services"
@@ -411,6 +411,17 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
                 f"{self.unique_identifier}/filteredDataByParams?include=properties")
 
     @property
+    def metadata_url(self) -> str:
+        """Metadata url.
+
+        Returns:
+            str: Service metadata url
+
+        """
+        return (f"{self._base_create_url()}/services/"
+                f"{self.unique_identifier}/filteredDataByParams?include=metadata")
+
+    @property
     def resource_inputs_url(self) -> str:
         """Service inputs url.
 
@@ -445,6 +456,27 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
 
         """
         return "ServiceProxy"
+
+    @property
+    def instantiation_type(self) -> ServiceInstantiationType:
+        """Service instantiation type.
+
+        One of `ServiceInstantiationType` enum value.
+
+        Returns:
+            ServiceInstantiationType: Service instantiation type
+
+        """
+        if not self._instantiation_type:
+            if not self.created():
+                self._instantiation_type = ServiceInstantiationType.A_LA_CARTE
+            else:
+                response: str = self.send_message_json("GET",
+                                                       f"Get service {self.name} metadata",
+                                                       self.metadata_url)["metadata"]\
+                                                                         ["instantiationType"]
+                self._instantiation_type = ServiceInstantiationType(response)
+        return self._instantiation_type
 
     def create(self) -> None:
         """Create the Service in SDC if not already existing."""
