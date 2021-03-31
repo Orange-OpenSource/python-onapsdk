@@ -113,14 +113,25 @@ class SdcResource(SdcOnboardable, ABC):  # pylint: disable=too-many-instance-att
                                           headers=headers)
 
         for resource in response[self._sdc_path()]:
-            if resource["uuid"] == self.identifier:
-                self._logger.debug("Resource %s found in %s list",
-                                   resource["name"], self._sdc_path())
-                self.unique_identifier = resource["uniqueId"]
-                self._category_name = resource["categories"][0]["name"]
-                subcategories = resource["categories"][0].get("subcategories", [{}])
-                self._subcategory_name = None if subcategories is None else \
-                    subcategories[0].get("name")
+            if resource["invariantUUID"] == self.unique_uuid:
+                if resource["uuid"] == self.identifier:
+                    self._logger.debug("Resource %s found in %s list",
+                                       resource["name"], self._sdc_path())
+                    self.unique_identifier = resource["uniqueId"]
+                    self._category_name = resource["categories"][0]["name"]
+                    subcategories = resource["categories"][0].get("subcategories", [{}])
+                    self._subcategory_name = None if subcategories is None else \
+                        subcategories[0].get("name")
+                    return
+                if self._sdc_path() == "services":
+                    for dependency in self.send_message_json("GET",
+                                                             "Get service dependecies",
+                                                             f"{self._base_create_url()}/services/"
+                                                             f"{resource['uniqueId']}/"
+                                                             "dependencies"):
+                        if dependency["version"] == self.version:
+                            self.unique_identifier = resource["uniqueId"]
+                            return
 
     def _generate_action_subpath(self, action: str) -> str:
         """

@@ -5,7 +5,7 @@
 from os import path
 from pathlib import Path
 from unittest import mock
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, PropertyMock
 import shutil
 
 import oyaml as yaml
@@ -276,7 +276,10 @@ def test_distribution_id_setter():
 
 @mock.patch.object(Service, '_create')
 @mock.patch.object(Service, "category", new_callable=mock.PropertyMock)
-def test_create(mock_category, mock_create):
+@mock.patch.object(Service, "exists")
+def test_create(mock_exists, mock_category, mock_create):
+    mock_exists.return_value = False
+
     svc = Service()
     svc.create()
     mock_create.assert_called_once_with("service_create.json.j2",
@@ -1129,3 +1132,30 @@ def test_service_category(mock_resource_category, mock_created):
 def test_service_origin_type():
     service = Service(name="test")
     assert service.origin_type == "ServiceProxy"
+
+@mock.patch.object(Service, "unique_identifier", new_callable=PropertyMock)
+def test_service_metadata_url(mock_uniquie_identifier):
+    mock_uniquie_identifier.return_value = "1233"
+    service = Service(name="test")
+    assert service.metadata_url == f"{service._base_create_url()}/services/1233/filteredDataByParams?include=metadata"
+
+
+@mock.patch.object(Service, "created")
+@mock.patch.object(Service, "send_message_json")
+@mock.patch.object(Service, "metadata_url", new_callable=PropertyMock)
+def test_service_instantiation_type(mock_metadata_url, mock_send_message_json, mock_created):
+    mock_created.return_value = False
+    service = Service(name="test")
+    assert service.instantiation_type == ServiceInstantiationType.A_LA_CARTE
+
+    service = Service(name="test", instantiation_type=ServiceInstantiationType.MACRO)
+    assert service.instantiation_type == ServiceInstantiationType.MACRO
+
+    mock_created.return_value = True
+    mock_send_message_json.return_value = {"metadata": {"instantiationType": "A-la-carte"}}
+    service = Service(name="test")
+    assert service.instantiation_type == ServiceInstantiationType.A_LA_CARTE
+
+    mock_send_message_json.return_value = {"metadata": {"instantiationType": "Macro"}}
+    service = Service(name="test")
+    assert service.instantiation_type == ServiceInstantiationType.MACRO
