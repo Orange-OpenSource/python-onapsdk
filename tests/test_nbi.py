@@ -96,6 +96,24 @@ SERVICES = [
 ]
 
 
+SERVICES_CUSTOMER = [
+    {
+        "id":"6a855390-7c39-4fe4-b164-2029b09de57d",
+        "name":"test7",
+        "serviceSpecification":{
+            "name":"testService9",
+            "id":"125727ad-8660-423e-b4a1-99cd4a749f45"
+        },
+        "relatedParty":{
+            "role":"ONAPcustomer",
+            "id":"test_customer"
+        },
+        "href":"service/6a855390-7c39-4fe4-b164-2029b09de57d"
+    }
+]
+
+
+
 SERVICE_ORDERS = [
     {
         "id":"5e9d6d98ae76af6b04e4df9a",
@@ -359,6 +377,21 @@ def test_service_get_all(mock_service_specification_get_by_id,
 
     service._service_specification_id = None
     assert service.service_specification is None
+
+    mock_service_send_message.return_value = SERVICES_CUSTOMER
+    services_list = list(Service.get_all(customer_id="test_customer"))
+    assert len(services_list) == 1
+
+    service = services_list[0]
+
+    assert service.name == "test7"
+    assert service.service_id == "6a855390-7c39-4fe4-b164-2029b09de57d"
+    assert service._service_specification_name == "testService9"
+    assert service._service_specification_id == "125727ad-8660-423e-b4a1-99cd4a749f45"
+    assert service._customer_id == "test_customer"
+    assert service.customer_role == "ONAPcustomer"
+    assert service.href == "service/6a855390-7c39-4fe4-b164-2029b09de57d"
+
 
 
 @mock.patch.object(ServiceOrder, "send_message_json")

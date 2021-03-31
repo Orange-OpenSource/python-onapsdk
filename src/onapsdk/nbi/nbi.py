@@ -13,13 +13,14 @@ from onapsdk.onap_service import OnapService
 from onapsdk.utils import get_zulu_time_isoformat
 from onapsdk.utils.jinja import jinja_env
 from onapsdk.utils.mixins import WaitForFinishMixin
+from onapsdk.configuration import settings
 
 
 class Nbi(OnapService, ABC):
     """NBI base class."""
 
-    base_url = "https://nbi.api.simpledemo.onap.org:30274"
-    api_version = "/nbi/api/v4"
+    base_url = settings.NBI_URL
+    api_version = settings.NBI_API_VERSION
 
     @classmethod
     def is_status_ok(cls) -> bool:
@@ -177,8 +178,11 @@ class Service(Nbi):
                 f"customer_role={self.customer_role})")
 
     @classmethod
-    def get_all(cls) -> Iterator["Service"]:
-        """Get all services.
+    def get_all(cls, customer_id: str = 'generic') -> Iterator["Service"]:
+        """Get all services for selected customer.
+
+        Args:
+            customer_id (str): Global customer ID
 
         Yields:
             Service: Service object
@@ -186,7 +190,8 @@ class Service(Nbi):
         """
         for service in cls.send_message_json("GET",
                                              "Get service instances from NBI",
-                                             f"{cls.base_url}{cls.api_version}/service"):
+                                             f"{cls.base_url}{cls.api_version}/service?"
+                                             f"relatedParty.id={customer_id}"):
             yield cls(service.get("name"),
                       service.get("id"),
                       service.get("serviceSpecification", {}).get("name"),
