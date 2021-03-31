@@ -120,7 +120,9 @@ class OnapService(ABC):
             cls._logger.debug(
                 "[%s][%s] response: %s",
                 cls.server, action,
-                response.text if response is not None else "n/a")
+                response.text if (response is not None and
+                                  response.headers.get("Content-Type", "") == \
+                                      "application/json") else "n/a")
 
             response.raise_for_status()
             return response
