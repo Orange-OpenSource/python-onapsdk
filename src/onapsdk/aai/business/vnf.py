@@ -334,8 +334,9 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
                       cloud_region: "CloudRegion" = None,
                       tenant: "Tenant" = None,
                       vf_module_instance_name: str = None,
-                      vnf_parameters: Iterable["InstantiationParameter"] = None)\
-                           -> "VfModuleInstantiation":
+                      vnf_parameters: Iterable["InstantiationParameter"] = None,
+                      use_preload: bool = True
+                      ) -> "VfModuleInstantiation":
         """Instantiate vf module for that VNF instance.
 
         Args:
@@ -350,7 +351,9 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
                 TO USE IT!.
             vf_module_instance_name (str, optional): VfModule instance name. Defaults to None.
             vnf_parameters (Iterable[InstantiationParameter], optional): InstantiationParameter
-                to use for preloading. Defaults to None.
+                to use for preloading or to be passed as "userParams". Defaults to None.
+            use_preload (bool, optional): Based on this flag InstantiationParameters are passed
+                in preload or as "userParam" in the request. Defaults to True
 
         Returns:
             VfModuleInstantiation: VfModuleInstantiation request object
@@ -362,7 +365,8 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
             cloud_region=cloud_region,
             tenant=tenant,
             vf_module_instance_name=vf_module_instance_name,
-            vnf_parameters=vnf_parameters
+            vnf_parameters=vnf_parameters,
+            use_preload=use_preload
         )
 
     def delete(self) -> "VnfDeletionRequest":
