@@ -148,8 +148,8 @@ class VfModuleInstantiation(Instantiation):  # pytest: disable=too-many-ancestor
                               cloud_region: "CloudRegion" = None,
                               tenant: "Tenant" = None,
                               vf_module_instance_name: str = None,
-                              vnf_parameters: Iterable["InstantiationParameter"] = None
-                              ) -> "VfModuleInstantiation":
+                              vnf_parameters: Iterable["InstantiationParameter"] = None,
+                              use_preload: bool = True) -> "VfModuleInstantiation":
         """Instantiate VF module.
 
         Iterate throught vf modules from service Tosca file and instantiate vf modules.
@@ -172,7 +172,10 @@ class VfModuleInstantiation(Instantiation):  # pytest: disable=too-many-ancestor
                 "Python_ONAP_SDK_vf_module_service_instance_{str(uuid4())}".
                 Defaults to None.
             vnf_parameters (Iterable[InstantiationParameter], optional): Parameters which are
-                going to be used in preload upload for vf modules. Defaults to None.
+                going to be used in preload upload for vf modules or passed in "userParams".
+                Defaults to None.
+            use_preload (bool, optional): This flag determines whether instantiation parameters
+                are used as preload or "userParams" content. Defaults to True
 
         Yields:
             Iterator[VfModuleInstantiation]: VfModuleInstantiation class object.
@@ -182,12 +185,14 @@ class VfModuleInstantiation(Instantiation):  # pytest: disable=too-many-ancestor
         if vf_module_instance_name is None:
             vf_module_instance_name = \
                 f"Python_ONAP_SDK_vf_module_instance_{str(uuid4())}"
-        VfModulePreload.upload_vf_module_preload(
-            vnf_instance,
-            vf_module_instance_name,
-            vf_module,
-            vnf_parameters
-        )
+        if use_preload:
+            VfModulePreload.upload_vf_module_preload(
+                vnf_instance,
+                vf_module_instance_name,
+                vf_module,
+                vnf_parameters
+            )
+            vnf_parameters = None
         response: dict = cls.send_message_json(
             "POST",
             (f"Instantiate {sdc_service.name} "
@@ -204,7 +209,8 @@ class VfModuleInstantiation(Instantiation):  # pytest: disable=too-many-ancestor
                     vnf_instance.service_instance.service_subscription.cloud_region,
                 tenant=tenant or \
                     vnf_instance.service_instance.service_subscription.tenant,
-                vnf_instance=vnf_instance
+                vnf_instance=vnf_instance,
+                vf_module_parameters=vnf_parameters or []
             ),
             headers=headers_so_creator(OnapService.headers)
         )
@@ -343,7 +349,9 @@ class VnfInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-many-a
                               platform_object: "Platform",
                               cloud_region: "CloudRegion" = None,
                               tenant: "Tenant" = None,
-                              vnf_instance_name: str = None) -> "VnfInstantiation":
+                              vnf_instance_name: str = None,
+                              vnf_parameters: Iterable["InstantiationParameter"] = None
+                              ) -> "VnfInstantiation":
         """Instantiate Vnf using a'la carte method.
 
         Args:
@@ -359,6 +367,8 @@ class VnfInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-many-a
                 THAT PROPERTY WILL BE REQUIRED IN ONE OF THE FUTURE RELEASE. REFACTOR YOUR CODE
                 TO USE IT!.
             vnf_instance_name (str, optional): Vnf instance name. Defaults to None.
+            vnf_parameters (Iterable[InstantiationParameter], optional): Instantiation parameters
+                that are sent in the request. Defaults to None
 
         Returns:
             VnfInstantiation: VnfInstantiation object
@@ -384,7 +394,8 @@ class VnfInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-many-a
                 tenant=tenant or aai_service_instance.service_subscription.tenant,
                 line_of_business=line_of_business_object,
                 platform=platform_object,
-                service_instance=aai_service_instance
+                service_instance=aai_service_instance,
+                vnf_parameters=vnf_parameters or []
             ),
             headers=headers_so_creator(OnapService.headers)
         )

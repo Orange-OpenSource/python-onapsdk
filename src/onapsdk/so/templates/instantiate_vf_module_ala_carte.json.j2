@@ -17,7 +17,14 @@
             "modelCustomizationName": "{{ vf_module.metadata["vfModuleModelName"] }}"
         },
         "requestParameters": {
-            "userParams": [],
+            "userParams": [
+                {% for parameter in vf_module_parameters %}
+                {
+                    "name": "{{ parameter.name }}",
+                    "value": "{{ parameter.value }}"
+                }{% if not loop.last %},{% endif %}
+                {% endfor %}
+            ],
             "testApi": "GR_API",
             "usePreload": true
         },

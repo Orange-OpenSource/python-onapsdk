@@ -1,6 +1,6 @@
 """Service instance module."""
 
-from typing import Iterator, Type, Union
+from typing import Iterator, Type, Union, Iterable
 
 from onapsdk.so.deletion import ServiceDeletionRequest
 from onapsdk.so.instantiation import NetworkInstantiation, VnfInstantiation
@@ -204,7 +204,8 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
                 platform: "Platform",
                 cloud_region: "CloudRegion" = None,
                 tenant: "Tenant" = None,
-                vnf_instance_name: str = None) -> "VnfInstantiation":
+                vnf_instance_name: str = None,
+                vnf_parameters: Iterable["InstantiationParameter"] = None) -> "VnfInstantiation":
         """Add vnf into service instance.
 
         Instantiate VNF.
@@ -225,6 +226,8 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
                 If no value is provided it's going to be
                 "Python_ONAP_SDK_vnf_instance_{str(uuid4())}".
                 Defaults to None.
+            vnf_parameters (Iterable[InstantiationParameter], optional): InstantiationParameter to
+                be passed as "userParams". Defaults to None.
 
         Raises:
             StatusError: Service orchestration status is not "Active".
@@ -245,7 +248,8 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
             platform,
             cloud_region=cloud_region,
             tenant=tenant,
-            vnf_instance_name=vnf_instance_name
+            vnf_instance_name=vnf_instance_name,
+            vnf_parameters=vnf_parameters
         )
 
     def add_network(self,  # pylint: disable=too-many-arguments

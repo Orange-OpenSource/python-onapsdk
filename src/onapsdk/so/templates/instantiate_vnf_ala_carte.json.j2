@@ -28,7 +28,14 @@
             "modelCustomizationName": "{{ vnf.name }}"
         },
         "requestParameters": {
-            "userParams": [],
+            "userParams": [
+                {% for parameter in vnf_parameters %}
+                {
+                    "name": "{{ parameter.name }}",
+                    "value": "{{ parameter.value }}"
+                }{% if not loop.last %},{% endif %}
+                {% endfor %}
+            ],
             "aLaCarte": true,
             "testApi": "GR_API"
         },
