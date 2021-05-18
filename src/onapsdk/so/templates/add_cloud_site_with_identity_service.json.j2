@@ -1,0 +1,22 @@
+{
+            "id": "{{ cloud_region_id }}",
+            "region_id": "{{ cloud_region_id }}",
+            "aic_version": "2.5",
+            "clli": "{{ complex_id }}",
+            "orchestrator": "{{ orchestrator }}",
+            "identityService": {
+                "id": "{{ identity_service.identity_id }}",
+                "identityServerTypeAsString": "{{ identity_service.server_type_as_string }}",
+                "hibernateLazyInitializer": {{ identity_service.hibernate_lazy_initializer }},
+                "identity_url": "{{ identity_service.url }}",
+                "mso_id": "{{ identity_service.mso_id }}",
+                "mso_pass": "{{ identity_service.mso_pass }}",
+                "project_domain_name": "{{ identity_service.project_domain_name }}",
+                "user_domain_name": "{{ identity_service.user_domain_name }}",
+                "admin_tenant": "{{ identity_service.admin_tenant }}",
+                "member_role": "{{ identity_service.member_role }}",
+                "tenant_metadata": "{{ identity_service.tenant_metadata }}",
+                "identity_server_type": "{{ identity_service.identity_server_type }}",
+                "identity_authentication_type": "{{ identity_service.identity_authentication_type }}"
+            }
+}
