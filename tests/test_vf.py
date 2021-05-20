@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Test vf module."""
 
+import json
 from unittest import mock
 from unittest.mock import MagicMock
 from pathlib import Path
@@ -9,7 +10,7 @@ from pathlib import Path
 import pytest
 
 import onapsdk.constants as const
-from onapsdk.exceptions import ParameterError, StatusError, RequestError
+from onapsdk.exceptions import ParameterError, StatusError, RequestError, ValidationError
 from onapsdk.sdc.category_management import ResourceCategory
 from onapsdk.sdc.properties import Property
 from onapsdk.sdc.sdc_resource import SdcResource
@@ -415,3 +416,24 @@ def test_vf_category(mock_resource_category, mock_created):
     mock_created.return_value = True
     _ = vf.category
     mock_resource_category.assert_called_once_with(name="test", subcategory="test")
+
+@mock.patch.object(Vf, "send_message_json")
+def test_update_vsp(mock_send):
+
+    vf = Vf(name="test")
+    vf._unique_identifier = "123"
+    vsp = MagicMock()
+    vsp.csar_uuid = "122333"
+    vsp.version = "1.0"
+    with pytest.raises(ValidationError):
+        vf.update_vsp(vsp)
+    mock_send.reset_mock()
+    mock_send.return_value = {
+        "csarUUID": "322111",
+        "csarVersion": "0.1"
+    }
+    vf.update_vsp(vsp)
+    assert mock_send.call_count == 2
+    mock_call_kwargs_data = json.loads(mock_send.mock_calls[-1][2]["data"])  # Get kward from `unittest.mock.call` tuple
+    assert mock_call_kwargs_data["csarUUID"] == "122333"
+    assert mock_call_kwargs_data["csarVersion"] == "1.0"
