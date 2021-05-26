@@ -321,29 +321,6 @@ class SdcOnboardable(SDC, ABC):
                                  data=data,
                                  **kwargs)
 
-    def _get_item_details(self) -> Dict[str, Any]:
-        """
-        Get item details.
-
-        Returns:
-            Dict[str, Any]: the description of the item
-
-        """
-        if self.created():
-            url = "{}/items/{}/versions".format(self._base_url(),
-                                                self.identifier)
-            return self.send_message_json('GET', 'get item', url)
-        return {}
-
-    def _get_item_version_details(self) -> Dict[Any, Any]:
-        """Get vsp item details."""
-        if self.created() and self.version:
-            url = "{}/items/{}/versions/{}".format(self._base_url(),
-                                                   self.identifier,
-                                                   self.version)
-            return self.send_message_json('GET', 'get item version', url)
-        return {}
-
     @abstractmethod
     def update_informations_from_sdc(self, details: Dict[str, Any]) -> None:
         """

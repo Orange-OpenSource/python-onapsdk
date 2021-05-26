@@ -3,8 +3,6 @@
 """Test SdcElement module."""
 from unittest import mock
 
-import pytest
-
 from onapsdk.onap_service import OnapService
 from onapsdk.sdc.sdc_element import SdcElement
 from onapsdk.sdc.vendor import Vendor
@@ -37,8 +35,8 @@ def test__get_item_details_not_created(mock_send, mock_created):
 def test__get_item_details_created(mock_send):
     vsp = Vsp()
     vsp.identifier = "1234"
-    mock_send.return_value = {'return': 'value'}
-    assert vsp._get_item_details() == {'return': 'value'}
+    mock_send.return_value = {'results': [{"creationTime": "2"}, {"creationTime": "3"}], "listCount": 2}
+    assert vsp._get_item_details() == {"creationTime": "3"}
     mock_send.assert_called_once_with('GET', 'get item', "{}/items/1234/versions".format(vsp._base_url()))
 
 @mock.patch.object(Vsp, 'created')
@@ -49,19 +47,19 @@ def test__get_items_version_details_not_created(mock_send, mock_created):
     assert vsp._get_item_version_details() == {}
     mock_send.assert_not_called()
 
-@mock.patch.object(Vendor, 'load')
-@mock.patch.object(Vendor, 'send_message_json')
+@mock.patch.object(Vsp, 'load')
+@mock.patch.object(Vsp, 'send_message_json')
 def test__get_items_version_details_no_version(mock_send, mock_load):
-    vendor = Vendor()
-    vendor.identifier = "1234"
-    assert vendor._get_item_version_details() == {}
+    vsp = Vsp()
+    vsp.identifier = "1234"
+    assert vsp._get_item_version_details() == {}
     mock_send.assert_not_called()
 
-@mock.patch.object(Vendor, 'send_message_json')
+@mock.patch.object(Vsp, 'send_message_json')
 def test__get_items_version_details(mock_send):
-    vendor = Vendor()
-    vendor.identifier = "1234"
-    vendor._version = "4567"
+    vsp = Vsp()
+    vsp.identifier = "1234"
+    vsp._version = "4567"
     mock_send.return_value = {'return': 'value'}
-    assert vendor._get_item_version_details() == {'return': 'value'}
-    mock_send.assert_called_once_with('GET', 'get item version', "{}/items/1234/versions/4567".format(vendor._base_url()))
+    assert vsp._get_item_version_details() == {'return': 'value'}
+    mock_send.assert_called_once_with('GET', 'get item version', "{}/items/1234/versions/4567".format(vsp._base_url()))

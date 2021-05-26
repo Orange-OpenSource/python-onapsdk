@@ -26,6 +26,22 @@ You will need the package of the VSP to onboard.
    vsp = Vsp(name="myVSP", vendor=vendor, package=open(PATH_TO_PACKAGE, 'rb'))
    vsp.onboard()
 
+Create new VSP version
+----------------------
+
+You will need the package of the VSP to update.
+
+.. code:: Python
+
+   from onapsdk.sdc.vendor import Vendor
+   from onapsdk.sdc.vsp import Vsp
+
+   # We assume here that the Vendor has been already onboarded
+   vsp = Vsp(name="myVSP")
+   vsp.create_new_version()
+   vsp.update_package(open(PATH_TO_PACKAGE, 'rb'))
+   vsp.onboard()
+
 Onboard a VF
 ------------
 

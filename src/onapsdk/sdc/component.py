@@ -140,3 +140,11 @@ class Component:  # pylint: disable=too-many-instance-attributes
                     property=property_obj
                 )
         )
+
+    def delete(self) -> None:
+        """Delete component."""
+        self.sdc_resource.send_message_json(
+            "DELETE",
+            f"Delete {self.name} component",
+            f"{self.parent_sdc_resource.resource_inputs_url}/resourceInstance/{self.unique_id}"
+        )
