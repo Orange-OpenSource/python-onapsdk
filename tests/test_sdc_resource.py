@@ -12,6 +12,7 @@ from onapsdk.onap_service import OnapService
 from onapsdk.sdc.component import Component
 from onapsdk.sdc.properties import ComponentProperty, Input, NestedInput, Property
 from onapsdk.sdc.sdc_resource import SdcResource
+from onapsdk.sdc.service import Service
 from onapsdk.sdc.vf import Vf
 from onapsdk.utils.headers_creator import headers_sdc_tester
 from onapsdk.utils.headers_creator import headers_sdc_creator
@@ -69,47 +70,6 @@ def test_class_variables():
             "USER_ID": "cs0008",
             "X-ECOMP-InstanceID": "onapsdk"
         }
-
-@mock.patch.object(Vf, 'created')
-@mock.patch.object(Vf, 'send_message_json')
-def test__get_item_details_not_created(mock_send, mock_created):
-    vf = Vf()
-    mock_created.return_value = False
-    assert vf._get_item_details() == {}
-    mock_send.assert_not_called()
-
-@mock.patch.object(Vf, 'send_message_json')
-def test__get_item_details_created(mock_send):
-    vf = Vf()
-    vf.identifier = "1234"
-    mock_send.return_value = {'return': 'value'}
-    assert vf._get_item_details() == {'return': 'value'}
-    mock_send.assert_called_once_with('GET', 'get item', "{}/items/1234/versions".format(vf._base_url()))
-
-@mock.patch.object(Vf, 'created')
-@mock.patch.object(Vf, 'send_message_json')
-def test__get_items_version_details_not_created(mock_send, mock_created):
-    vf = Vf()
-    mock_created.return_value = False
-    assert vf._get_item_version_details() == {}
-    mock_send.assert_not_called()
-
-@mock.patch.object(Vf, 'load')
-@mock.patch.object(Vf, 'send_message_json')
-def test__get_items_version_details_no_version(mock_send, mock_load):
-    vf = Vf()
-    vf.identifier = "1234"
-    assert vf._get_item_version_details() == {}
-    mock_send.assert_not_called()
-
-@mock.patch.object(Vf, 'send_message_json')
-def test__get_items_version_details(mock_send):
-    vf = Vf()
-    vf.identifier = "1234"
-    vf._version = "4567"
-    mock_send.return_value = {'return': 'value'}
-    assert vf._get_item_version_details() == {'return': 'value'}
-    mock_send.assert_called_once_with('GET', 'get item version', "{}/items/1234/versions/4567".format(vf._base_url()))
 
 @mock.patch.object(Vf, 'load')
 def test__unique_uuid_no_load(mock_load):
@@ -176,9 +136,10 @@ def test__deep_load_response_OK(mock_send, mock_created):
     mock_created.return_value = True
     vf = Vf()
     vf.identifier = "5689"
+    vf.unique_uuid = "1234"
     vf._version = "4567"
     vf._status = const.CHECKED_IN
-    mock_send.return_value = {'resources': [{'uuid': '5689', 'name': 'test', 'uniqueId': '71011', 'categories': [{'name': 'test', 'subcategories': [{'name': 'test_subcategory'}]}]}]}
+    mock_send.return_value = {'resources': [{'uuid': '5689', 'name': 'test', 'uniqueId': '71011', 'invariantUUID': '1234', 'categories': [{'name': 'test', 'subcategories': [{'name': 'test_subcategory'}]}]}]}
     vf.deep_load()
     assert vf.unique_identifier == "71011"
     assert vf._category_name == "test"
@@ -187,15 +148,29 @@ def test__deep_load_response_OK(mock_send, mock_created):
                                       "{}/sdc1/feProxy/rest/v1/screen?excludeTypes=VFCMT&excludeTypes=Configuration".format(vf.base_front_url),
                                       headers=headers_sdc_creator(vf.headers))
 
+@mock.patch.object(Service, 'created')
+@mock.patch.object(Service, 'send_message_json')
+def test__deep_load_response_OK_dependency(mock_send, mock_created):
+    mock_created.return_value = True
+    vf = Service()
+    vf.identifier = "4321"
+    vf.unique_uuid = "1234"
+    vf._version = "4567"
+    vf._status = const.CHECKED_IN
+    mock_send.side_effect = [{'services': [{'uuid': '5689', 'name': 'test', 'uniqueId': '71011', 'invariantUUID': '1234', 'categories': [{'name': 'test', 'subcategories': [{'name': 'test_subcategory'}]}]}]}, [{'version': '4567', 'uniqueId': '71011'}]]
+    vf.deep_load()
+    assert vf.unique_identifier == "71011"
+
 @mock.patch.object(Vf, 'created')
 @mock.patch.object(Vf, 'send_message_json')
 def test__deep_load_response_NOK(mock_send, mock_created):
     mock_created.return_value = True
     vf = Vf()
     vf.identifier = "5678"
+    vf.unique_uuid = "1234"
     vf._version = "4567"
     vf._status = const.CHECKED_IN
-    mock_send.return_value = {'resources': [{'uuid': '5689', 'name': 'test', 'uniqueId': '71011'}]}
+    mock_send.return_value = {'resources': [{'uuid': '5689', 'name': 'test', 'uniqueId': '71011', 'invariantUUID': '1234', }]}
     vf.deep_load()
     assert vf._unique_identifier is None
     mock_send.assert_called_once_with('GET', 'Deep Load Vf',
@@ -208,9 +183,10 @@ def test__deep_load_response_OK_under_cert(mock_send, mock_created):
     mock_created.return_value = True
     vf = Vf()
     vf.identifier = "5689"
+    vf.unique_uuid = "1234"
     vf._version = "4567"
     vf._status = const.UNDER_CERTIFICATION
-    mock_send.return_value = {'resources': [{'uuid': '5689', 'name': 'test', 'uniqueId': '71011', 'categories': [{'name': 'test', 'subcategories': [{'name': 'test_subcategory'}]}]}]}
+    mock_send.return_value = {'resources': [{'uuid': '5689', 'name': 'test', 'uniqueId': '71011', 'invariantUUID': '1234', 'categories': [{'name': 'test', 'subcategories': [{'name': 'test_subcategory'}]}]}]}
     vf.deep_load()
     assert vf.unique_identifier == "71011"
     assert vf._category_name == "test"
@@ -225,9 +201,10 @@ def test__deep_load_response_NOK_under_cert(mock_send, mock_created):
     mock_created.return_value = True
     vf = Vf()
     vf.identifier = "5678"
+    vf.unique_uuid = "1234"
     vf._version = "4567"
     vf._status = const.UNDER_CERTIFICATION
-    mock_send.return_value = {'resources': [{'uuid': '5689', 'name': 'test', 'uniqueId': '71011'}]}
+    mock_send.return_value = {'resources': [{'uuid': '5689', 'name': 'test', 'invariantUUID': '1234', 'uniqueId': '71011'}]}
     vf.deep_load()
     assert vf._unique_identifier is None
     mock_send.assert_called_once_with('GET', 'Deep Load Vf',

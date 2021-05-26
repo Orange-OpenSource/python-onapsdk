@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 # SPDX-License-Identifier: Apache-2.0
 """Vf module."""
-from typing import Dict, List, Union
-from onapsdk.exceptions import ParameterError
+import json
+from typing import Any, Dict, List, Union
+from onapsdk.exceptions import ParameterError, ValidationError
 
 from onapsdk.sdc.sdc_resource import SdcResource
 from onapsdk.sdc.properties import NestedInput, Property
@@ -59,3 +60,34 @@ class Vf(SdcResource):
         """Really submit the SDC Vf in order to enable it."""
         self._action_to_sdc(const.CERTIFY, "lifecycleState")
         self.load()
+
+    def update_vsp(self, vsp: Vsp) -> None:
+        """Update Vsp.
+
+        Update VSP UUID and version for Vf object.
+
+        Args:
+            vsp (Vsp): Object to be used in Vf
+
+        Raises:
+            ValidationError: Vf object request has invalid structure.
+
+        """
+        resource_data: Dict[str, Any] = self.send_message_json(
+            "GET",
+            "Get VF data to update VSP",
+            self.resource_inputs_url
+        )
+        if not all([key_name in resource_data for key_name in ["csarUUID", "csarVersion"]]):
+            raise ValidationError(
+                "Resource has no csarUUID and csarVersion properties - couldn't update VSP")
+        resource_data.update({
+            "csarUUID": vsp.csar_uuid,
+            "csarVersion": vsp.version
+        })
+        self.send_message_json(
+            "PUT",
+            "Update vsp data",
+            self.resource_inputs_url,
+            data=json.dumps(resource_data)
+        )

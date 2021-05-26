@@ -98,6 +98,19 @@ class Vsp(SdcElement): # pylint: disable=too-many-instance-attributes
                      self._upload_action,
                      package_to_upload=package_to_upload)
 
+    def update_package(self, package_to_upload: BinaryIO) -> None:
+        """
+        Upload given zip file into SDC as artifacts for this Vsp.
+
+        Args:
+            package_to_upload (file): the zip file to upload
+
+        """
+        self._action("update package",
+                     const.COMMITED,
+                     self._upload_action,
+                     package_to_upload=package_to_upload)
+
     def validate(self) -> None:
         """Validate the artifacts uploaded."""
         self._action("validate", const.UPLOADED, self._validate_action)
@@ -146,6 +159,15 @@ class Vsp(SdcElement): # pylint: disable=too-many-instance-attributes
     def csar_uuid(self, csar_uuid: str) -> None:
         """Set value for csar uuid."""
         self._csar_uuid = csar_uuid
+
+    def _get_item_version_details(self) -> Dict[Any, Any]:
+        """Get vsp item details."""
+        if self.created() and self.version:
+            url = "{}/items/{}/versions/{}".format(self._base_url(),
+                                                   self.identifier,
+                                                   self.version)
+            return self.send_message_json('GET', 'get item version', url)
+        return {}
 
     def _upload_action(self, package_to_upload: BinaryIO):
         """Do upload for real."""
@@ -251,8 +273,7 @@ class Vsp(SdcElement): # pylint: disable=too-many-instance-attributes
 
         """
         item_details = self._get_item_details()
-        if (item_details and item_details["listCount"]
-                and item_details['results'][-1]['status'] == const.CERTIFIED):
+        if (item_details and item_details['status'] == const.CERTIFIED):
             self._status = const.CERTIFIED
         else:
             self._check_status_not_certified()
@@ -319,3 +340,21 @@ class Vsp(SdcElement): # pylint: disable=too-many-instance-attributes
     def _sdc_path(cls) -> None:
         """Give back the end of SDC path."""
         return cls.VSP_PATH
+
+    def create_new_version(self) -> None:
+        """Create new version of VSP.
+
+        Create a new major version of VSP so it would be possible to
+            update a package or do some changes in VSP.
+
+        """
+        self._logger.debug("Create new version of %s VSP", self.name)
+        self.send_message_json("POST",
+                               "Create new VSP version",
+                               (f"{self._base_url()}/items/{self.identifier}/"
+                                f"versions/{self.version}"),
+                               data=json.dumps({
+                                   "creationMethod": "major",
+                                   "description": "New VSP version"
+                               }))
+        self.load()

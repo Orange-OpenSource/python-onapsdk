@@ -11,7 +11,7 @@ from onapsdk.exceptions import ModuleError
 
 def test_global_settings():
     """Test global settings."""
-    assert len(settings._settings) == 14
+    assert len(settings._settings) == 16
     assert settings.AAI_URL == "https://aai.api.sparky.simpledemo.onap.org:30233"
     assert settings.CDS_URL == "http://portal.api.simpledemo.onap.org:30449"
     assert settings.SDNC_URL == "https://sdnc.api.simpledemo.onap.org:30267"
@@ -23,6 +23,7 @@ def test_global_settings():
     assert settings.CLAMP_URL == "https://clamp.api.simpledemo.onap.org:30258"
     assert settings.VES_URL == "http://ves.api.simpledemo.onap.org:30417"
     assert settings.DMAAP_URL   == "http://dmaap.api.simpledemo.onap.org:3904"
+    assert settings.NBI_URL == "https://nbi.api.simpledemo.onap.org:30274"
 
 
 def test_settings_load_custom():

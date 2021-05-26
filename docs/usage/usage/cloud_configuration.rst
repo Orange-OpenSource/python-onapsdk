@@ -156,3 +156,22 @@ Connect service subscription to cloud region and tenant
     )
     tenant = next(cloud_region.tenants)
     service_subscription.link_to_cloud_region_and_tenant(cloud_region, tenant)
+
+Add Cloud SIte entry to SO Catalog DB
+-------------------------------------------------------
+
+.. code:: Python
+
+    from onapsdk.so.so_db_adapter import IdentityService, SoDbAdapter
+
+    identity_service = IdentityService(identity_id="mc_test_identity_1_KEYSTONE",
+                                       url="http://test:5000/v3",
+                                       mso_id="test_user",
+                                       mso_pass="test_password_encrypted",
+                                       roject_domain_name="Default",
+                                       user_domain_name="Default",
+                                       identity_server_type="KEYSTONE_V3")
+    response = SoDbAdapter.add_cloud_site(cloud_region_id="test_region_1",
+                                          complex_id="test_clli_1",
+                                          identity_service=identity_service,
+                                          orchestrator="NULL")
