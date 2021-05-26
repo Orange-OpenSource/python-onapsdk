@@ -117,7 +117,7 @@ def test_exists_exists(mock_get_all):
 @mock.patch.object(Vsp, 'send_message_json')
 def test_load_created(mock_send, mock_get_all):
     mock_send.return_value = {'results':
-        [{'status': 'state_one', 'id': "5678", 'vendorName': 'vspOne'}]}
+        [{'status': 'state_one', 'id': "5678", 'vendorName': 'vspOne'}], "listCount": 1}
     vsp = Vsp(name="one")
     vsp.identifier = "1234"
     vsp.load()
@@ -130,7 +130,7 @@ def test_load_created(mock_send, mock_get_all):
 @mock.patch.object(Vsp, 'send_message_json')
 def test_load_not_created(mock_send, mock_get_all):
     mock_send.return_value = {'results':
-        [{'status': 'state_one', 'id': "5678", 'vendorName': 'vspOne'}]}
+        [{'status': 'state_one', 'id': "5678", 'vendorName': 'vspOne'}], "listCount": 1}
     vsp = Vsp(name="one")
     vsp.load()
     mock_get_all.return_value = []
@@ -274,7 +274,7 @@ def test_status_no_load_no_created(mock_exists):
 def test_status_status_is_certified_in_SDC(mock_vsp_items):
     vsp = Vsp()
     vsp.identifier = "1234"
-    mock_vsp_items.return_value={'results':[{'status': const.CERTIFIED}], 'listCount': 1}
+    mock_vsp_items.return_value={'status': const.CERTIFIED}
     vsp._status = "Draft"
     assert vsp.status == const.CERTIFIED
 
@@ -284,7 +284,7 @@ def test_status_status_is_certified_in_SDC(mock_vsp_items):
 def test_status_version_is_not_dirty(mock_vsp_items, mock_vsp_items_version, mock_vsp_details):
     vsp = Vsp()
     vsp.identifier = "1234"
-    mock_vsp_items.return_value={'results':[{'status': const.DRAFT}], 'listCount': 1}
+    mock_vsp_items.return_value={'status': const.DRAFT}
     mock_vsp_items_version.return_value={"state": {'dirty': False}}
     mock_vsp_details.return_value={'validationData': "true"}
     assert vsp.status == const.COMMITED
@@ -296,7 +296,7 @@ def test_status_version_is_dirty_has_validation_data(mock_vsp_items, mock_vsp_it
                                      mock_vsp_details):
     vsp = Vsp()
     vsp.identifier = "1234"
-    mock_vsp_items.return_value={'results':[{'status': const.DRAFT}], 'listCount': 1}
+    mock_vsp_items.return_value={'status': const.DRAFT}
     mock_vsp_items_version.return_value={"state": {'dirty': True}}
     mock_vsp_details.return_value={'validationData': {'some': 'thing'}}
     assert vsp.status == const.VALIDATED
@@ -308,7 +308,7 @@ def test_status_version_is_dirty_no_validation_data_no_state(mock_vsp_items, moc
                                      mock_vsp_details):
     vsp = Vsp()
     vsp.identifier = "1234"
-    mock_vsp_items.return_value={'results':[{'status': const.DRAFT}], 'listCount': 1}
+    mock_vsp_items.return_value={'status': const.DRAFT}
     mock_vsp_items_version.return_value={"status": {'dirty': False}}
     mock_vsp_details.return_value={'no_validationData': {'some': 'thing'}}
     assert vsp.status == const.DRAFT
@@ -320,7 +320,7 @@ def test_status_version_is_dirty_no_validation_data_but_state(mock_vsp_items, mo
                                      mock_vsp_details):
     vsp = Vsp()
     vsp.identifier = "1234"
-    mock_vsp_items.return_value={'results':[{'status': const.DRAFT}], 'listCount': 1}
+    mock_vsp_items.return_value={'status': const.DRAFT}
     mock_vsp_items_version.return_value={"state": {'dirty': True}}
     mock_vsp_details.return_value={'no_validationData': {'some': 'thing'}}
     assert vsp.status == const.DRAFT
@@ -332,7 +332,7 @@ def test_status_version_is_dirty_no_validation_data_but_networkPackageName(mock_
                                      mock_vsp_details):
     vsp = Vsp()
     vsp.identifier = "1234"
-    mock_vsp_items.return_value={'results':[{'status': const.DRAFT}], 'listCount': 1}
+    mock_vsp_items.return_value={'status': const.DRAFT}
     mock_vsp_items_version.return_value={"state": {'dirty': True}}
     mock_vsp_details.return_value={'no_validationData': {'some': 'thing'}, 'networkPackageName': 'ubuntu16'}
     assert vsp.status == const.UPLOADED
@@ -759,3 +759,29 @@ def test_onboard_whole_vsp(mock_load, mock_created, mock_create,
         mock_commit.assert_called_once()
         mock_submit.assert_called_once()
         mock_create_csar.assert_called_once()
+
+
+@mock.patch.object(Vsp, "status", new_callable=mock.PropertyMock)
+@mock.patch.object(Vsp, '_upload_action')
+def test_update_package(mock_upload, mock_status):
+    mock_status.return_value = const.DRAFT
+    vsp = Vsp(vendor=mock.MagicMock())
+    vsp.update_package("new")
+    mock_upload.assert_not_called()
+    mock_status.return_value = const.COMMITED
+    vsp.update_package("new")
+    mock_upload.assert_called_once()
+
+
+@mock.patch.object(Vsp, "send_message_json")
+@mock.patch.object(Vsp, 'load')
+def test_create_new_version(mock_load, mock_send):
+    vsp = Vsp(vendor=mock.MagicMock())
+    vsp._identifier = "1232"
+    vsp._version = "4321"
+    vsp.create_new_version()
+    mock_load.assert_called_once()
+    mock_send.assert_called_once_with("POST",
+                                      "Create new VSP version",
+                                      "https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/onboarding-api/v1.0/items/1232/versions/4321",
+                                      data='{"creationMethod": "major", "description": "New VSP version"}')
