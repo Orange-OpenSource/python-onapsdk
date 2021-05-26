@@ -130,7 +130,7 @@ class SdcResource(SdcOnboardable, ABC):  # pylint: disable=too-many-instance-att
                                                              f"{resource['uniqueId']}/"
                                                              "dependencies"):
                         if dependency["version"] == self.version:
-                            self.unique_identifier = resource["uniqueId"]
+                            self.unique_identifier = dependency["uniqueId"]
                             return
 
     def _generate_action_subpath(self, action: str) -> str:

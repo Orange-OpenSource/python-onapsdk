@@ -71,47 +71,6 @@ def test_class_variables():
             "X-ECOMP-InstanceID": "onapsdk"
         }
 
-@mock.patch.object(Vf, 'created')
-@mock.patch.object(Vf, 'send_message_json')
-def test__get_item_details_not_created(mock_send, mock_created):
-    vf = Vf()
-    mock_created.return_value = False
-    assert vf._get_item_details() == {}
-    mock_send.assert_not_called()
-
-@mock.patch.object(Vf, 'send_message_json')
-def test__get_item_details_created(mock_send):
-    vf = Vf()
-    vf.identifier = "1234"
-    mock_send.return_value = {'return': 'value'}
-    assert vf._get_item_details() == {'return': 'value'}
-    mock_send.assert_called_once_with('GET', 'get item', "{}/items/1234/versions".format(vf._base_url()))
-
-@mock.patch.object(Vf, 'created')
-@mock.patch.object(Vf, 'send_message_json')
-def test__get_items_version_details_not_created(mock_send, mock_created):
-    vf = Vf()
-    mock_created.return_value = False
-    assert vf._get_item_version_details() == {}
-    mock_send.assert_not_called()
-
-@mock.patch.object(Vf, 'load')
-@mock.patch.object(Vf, 'send_message_json')
-def test__get_items_version_details_no_version(mock_send, mock_load):
-    vf = Vf()
-    vf.identifier = "1234"
-    assert vf._get_item_version_details() == {}
-    mock_send.assert_not_called()
-
-@mock.patch.object(Vf, 'send_message_json')
-def test__get_items_version_details(mock_send):
-    vf = Vf()
-    vf.identifier = "1234"
-    vf._version = "4567"
-    mock_send.return_value = {'return': 'value'}
-    assert vf._get_item_version_details() == {'return': 'value'}
-    mock_send.assert_called_once_with('GET', 'get item version', "{}/items/1234/versions/4567".format(vf._base_url()))
-
 @mock.patch.object(Vf, 'load')
 def test__unique_uuid_no_load(mock_load):
     vf = Vf()

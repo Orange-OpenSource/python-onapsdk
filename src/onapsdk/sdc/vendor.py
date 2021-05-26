@@ -69,7 +69,7 @@ class Vendor(SdcElement):
             details (Dict[str, Any]): dict from SDC
 
         """
-        self._status = details['results'][-1]['status']
+        self._status = details['status']
 
     @classmethod
     def import_from_sdc(cls, values: Dict[str, Any]) -> 'Vendor':
