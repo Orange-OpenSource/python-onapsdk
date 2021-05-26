@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 # SPDX-License-Identifier: Apache-2.0
 """SDC Element module."""
-from typing import Any, Dict, List
 from abc import ABC, abstractmethod
+from operator import itemgetter
+from typing import Any, Dict, List
 
 from onapsdk.sdc import SdcOnboardable
 import onapsdk.constants as const
@@ -15,12 +16,30 @@ class SdcElement(SdcOnboardable, ABC):
     ACTION_TEMPLATE = 'sdc_element_action.json.j2'
     ACTION_METHOD = 'PUT'
 
+    def _get_item_details(self) -> Dict[str, Any]:
+        """
+        Get item details.
+
+        Returns:
+            Dict[str, Any]: the description of the item
+
+        """
+        if self.created():
+            url = "{}/items/{}/versions".format(self._base_url(),
+                                                self.identifier)
+            results: Dict[str, Any] = self.send_message_json('GET', 'get item', url)
+            if results["listCount"] > 1:
+                items: List[Dict[str, Any]] = results["results"]
+                return sorted(items, key=itemgetter("creationTime"), reverse=True)[0]
+            return results["results"][0]
+        return {}
+
     def load(self) -> None:
         """Load Object information from SDC."""
         vsp_details = self._get_item_details()
         if vsp_details:
             self._logger.debug("details found, updating")
-            self.version = vsp_details['results'][-1]['id']
+            self.version = vsp_details['id']
             self.update_informations_from_sdc(vsp_details)
         else:
             # exists() method check if exists AND update identifier
