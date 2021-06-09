@@ -95,10 +95,11 @@ class AaiElement(OnapService):
 
         """
         try:
-            for relationship in self.send_message_json("GET",
-                                                       "Get object relationships",
-                                                       f"{self.url}/relationship-list")\
-                                                        .get("relationship", []):
+            generator = self.send_message_json("GET",
+                                               "Get object relationships",
+                                               f"{self.url}/relationship-list")\
+                                                   .get("relationship", [])
+            for relationship in generator:
                 yield Relationship(
                     related_to=relationship.get("related-to"),
                     relationship_label=relationship.get("relationship-label"),
