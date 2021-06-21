@@ -4,7 +4,7 @@
 """SDC Element module."""
 from abc import ABC, abstractmethod
 from operator import itemgetter
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from onapsdk.sdc import SdcOnboardable
 import onapsdk.constants as const
@@ -15,6 +15,11 @@ class SdcElement(SdcOnboardable, ABC):
 
     ACTION_TEMPLATE = 'sdc_element_action.json.j2'
     ACTION_METHOD = 'PUT'
+
+    def __init__(self, name: str = None) -> None:
+        """Initialize the object."""
+        super().__init__(name=name)
+        self.human_readable_version: Optional[str] = None
 
     def _get_item_details(self) -> Dict[str, Any]:
         """
@@ -40,6 +45,7 @@ class SdcElement(SdcOnboardable, ABC):
         if vsp_details:
             self._logger.debug("details found, updating")
             self.version = vsp_details['id']
+            self.human_readable_version = vsp_details["name"]
             self.update_informations_from_sdc(vsp_details)
         else:
             # exists() method check if exists AND update identifier

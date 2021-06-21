@@ -117,7 +117,7 @@ def test_exists_exists(mock_get_all):
 @mock.patch.object(Vsp, 'send_message_json')
 def test_load_created(mock_send, mock_get_all):
     mock_send.return_value = {'results':
-        [{'status': 'state_one', 'id': "5678", 'vendorName': 'vspOne'}], "listCount": 1}
+        [{'status': 'state_one', 'id': "5678", 'vendorName': 'vspOne', 'name': "1.0"}], "listCount": 1}
     vsp = Vsp(name="one")
     vsp.identifier = "1234"
     vsp.load()
@@ -130,7 +130,7 @@ def test_load_created(mock_send, mock_get_all):
 @mock.patch.object(Vsp, 'send_message_json')
 def test_load_not_created(mock_send, mock_get_all):
     mock_send.return_value = {'results':
-        [{'status': 'state_one', 'id': "5678", 'vendorName': 'vspOne'}], "listCount": 1}
+        [{'status': 'state_one', 'id': "5678", 'vendorName': 'vspOne', 'name': "1.0"}], "listCount": 1}
     vsp = Vsp(name="one")
     vsp.load()
     mock_get_all.return_value = []
@@ -171,7 +171,8 @@ def test_create_issue_in_creation(mock_send, mock_exists):
     expected_data = '{\n  "name": "ONAP-test-VSP",\n  "description": "vendor software product",\n  "icon": "icon",\n  "category": "resourceNewCategory.generic",\n  "subCategory": "resourceNewCategory.generic.abstract",\n  "vendorName": "Generic-Vendor",\n  "vendorId": "1232",\n  "licensingData": {},\n  "onboardingMethod": "NetworkPackage"\n}'
     mock_exists.return_value = False
     mock_send.side_effect = RequestError
-    vsp.create()
+    with pytest.raises(RequestError) as exc:
+        vsp.create()
     mock_send.assert_called_once_with("POST", "create Vsp", 'https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/onboarding-api/v1.0/vendor-software-products', data=expected_data)
     assert vsp.created() == False
 
