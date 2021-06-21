@@ -3,6 +3,7 @@
 """Test vf module."""
 
 import json
+import time
 from unittest import mock
 from unittest.mock import MagicMock
 from pathlib import Path
@@ -424,13 +425,16 @@ def test_update_vsp(mock_send):
     vf._unique_identifier = "123"
     vsp = MagicMock()
     vsp.csar_uuid = "122333"
-    vsp.version = "1.0"
-    with pytest.raises(ValidationError):
-        vf.update_vsp(vsp)
-    mock_send.reset_mock()
+    vsp.human_readable_version = "1.0"
     mock_send.return_value = {
         "csarUUID": "322111",
-        "csarVersion": "0.1"
+        "csarVersion": "0.1",
+        "tags": [],
+        "categories": [],
+        "allVersions": [],
+        "archived": False,
+        "creationDate": int(time.time()),
+        "lastUpdateDate": int(time.time()),
     }
     vf.update_vsp(vsp)
     assert mock_send.call_count == 2
