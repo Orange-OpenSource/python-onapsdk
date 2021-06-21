@@ -93,7 +93,7 @@ class Complex(AaiElement):  # pylint: disable=too-many-instance-attributes
 
         """
         return (f"{self.base_url}{self.api_version}/cloud-infrastructure/complexes/complex/"
-                f"{self.physical_location_id}?resource-version={self.resource_version}")
+                f"{self.physical_location_id}")
 
     @classmethod
     def create(cls,  # pylint: disable=too-many-locals
