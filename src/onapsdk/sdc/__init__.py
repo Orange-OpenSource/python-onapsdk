@@ -276,10 +276,11 @@ class SdcOnboardable(SDC, ABC):
                                                            type(self).__name__),
                                                        url,
                                                        data=data)
-            except RequestError:
+            except RequestError as exc:
                 self._logger.error(
                     "an error occured during creation of %s %s in SDC",
                     type(self).__name__, self.name)
+                raise exc
             else:
                 self._logger.info("%s %s is created in SDC",
                                   type(self).__name__, self.name)
