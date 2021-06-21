@@ -1,0 +1,21 @@
+{
+    "sp-partner-id": "{{ sp_partner_id }}"
+    {% if url %}
+    , "url": "{{ url }}"
+    {% endif %}
+    {% if callsource %}
+    , "callsource": "{{ callsource }}"
+    {% endif %}
+    {% if operational_status %}
+    , "operational-status": "{{ operational_status }}"
+    {% endif %}
+    {% if model_customization_id %}
+    , "model-customization-id": "{{ model_customization_id }}"
+    {% endif %}
+    {% if model_invariant_id %}
+    , "model-invariant-id": "{{ model_invariant_id }}"
+    {% endif %}
+    {% if model_version_id %}
+    , "model-version-id": "{{ model_version_id }}"
+    {% endif %}
+}

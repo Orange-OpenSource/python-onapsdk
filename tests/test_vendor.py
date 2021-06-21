@@ -104,7 +104,7 @@ def test_exists_exists(mock_get_all):
 @mock.patch.object(Vendor, 'send_message_json')
 def test_load_created(mock_send, mock_get_all):
     mock_send.return_value = {'results':
-        [{'status': 'state_one', 'id': "5678"}], "listCount": 1}
+        [{'status': 'state_one', 'id': "5678", "name": "1.0"}], "listCount": 1}
     vendor = Vendor(name="one")
     vendor.identifier = "1234"
     vendor.load()
@@ -117,7 +117,7 @@ def test_load_created(mock_send, mock_get_all):
 @mock.patch.object(Vendor, 'send_message_json')
 def test_load_not_created(mock_send, mock_get_all):
     mock_send.return_value = {'results':
-        [{'status': 'state_one', 'id': "5678"}], "listCount": 1}
+        [{'status': 'state_one', 'id': "5678", "name": "1.0"}], "listCount": 1}
     vendor = Vendor(name="one")
     vendor.load()
     mock_get_all.return_value = []
@@ -143,7 +143,8 @@ def test_create_issue_in_creation(mock_send, mock_exists):
     expected_data = '{\n  "iconRef": "icon",\n  "vendorName": "Generic-Vendor",\n  "description": "vendor"\n}'
     mock_exists.return_value = False
     mock_send.side_effect = RequestError
-    vendor.create()
+    with pytest.raises(RequestError) as exc:
+        vendor.create()
     mock_send.assert_called_once_with("POST", "create Vendor", mock.ANY, data=expected_data)
     assert vendor.created() == False
 

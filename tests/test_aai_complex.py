@@ -39,15 +39,15 @@ def test_complex(mock_send_message):
     assert cmplx.name == "test_complex_name"
     assert cmplx.physical_location_id == "test_location_id"
     assert cmplx.url == (f"{Complex.base_url}{Complex.api_version}/cloud-infrastructure/"
-                         "complexes/complex/test_location_id?resource-version=1234")
+                         "complexes/complex/test_location_id")
 
     cmplx2 = Complex.create(name="test_complex_name",
                             physical_location_id="test_location_id")
-    mock_send_message.assert_called_once()    
+    mock_send_message.assert_called_once()
     assert cmplx2.name == "test_complex_name"
     assert cmplx2.physical_location_id == "test_location_id"
     assert cmplx2.url == (f"{Complex.base_url}{Complex.api_version}/cloud-infrastructure/"
-                         "complexes/complex/test_location_id?resource-version=")
+                         "complexes/complex/test_location_id")
     method, _, url = mock_send_message.call_args[0]
     assert method == "PUT"
     assert url == (f"{Complex.base_url}{Complex.api_version}/cloud-infrastructure/"

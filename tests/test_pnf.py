@@ -194,7 +194,8 @@ def test_create_issue_in_creation(mock_category, mock_send, mock_exists):
     rc.type=None
     rc.icons=None
     mock_category.return_value = rc
-    pnf.create()
+    with pytest.raises(RequestError) as exc:
+        pnf.create()
     mock_send.assert_called_once_with("POST", "create Pnf", 'https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/rest/v1/catalog/resources', data=expected_data)
     assert not pnf.created()
 
