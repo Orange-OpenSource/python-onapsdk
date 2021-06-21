@@ -193,7 +193,8 @@ def test_create_issue_in_creation(mock_category, mock_send, mock_exists):
     rc.type=None
     rc.icons=None
     mock_category.return_value = rc
-    vf.create()
+    with pytest.raises(RequestError) as exc:
+        vf.create()
     mock_send.assert_called_once_with("POST", "create Vf", 'https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/rest/v1/catalog/resources', data=expected_data)
     assert not vf.created()
 

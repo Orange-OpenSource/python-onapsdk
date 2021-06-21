@@ -171,7 +171,8 @@ def test_create_issue_in_creation(mock_send, mock_exists):
     expected_data = '{\n  "name": "ONAP-test-VSP",\n  "description": "vendor software product",\n  "icon": "icon",\n  "category": "resourceNewCategory.generic",\n  "subCategory": "resourceNewCategory.generic.abstract",\n  "vendorName": "Generic-Vendor",\n  "vendorId": "1232",\n  "licensingData": {},\n  "onboardingMethod": "NetworkPackage"\n}'
     mock_exists.return_value = False
     mock_send.side_effect = RequestError
-    vsp.create()
+    with pytest.raises(RequestError) as exc:
+        vsp.create()
     mock_send.assert_called_once_with("POST", "create Vsp", 'https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/onboarding-api/v1.0/vendor-software-products', data=expected_data)
     assert vsp.created() == False
 
