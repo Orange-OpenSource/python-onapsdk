@@ -104,7 +104,7 @@ def test_exists_exists(mock_get_all):
 @mock.patch.object(Vendor, 'send_message_json')
 def test_load_created(mock_send, mock_get_all):
     mock_send.return_value = {'results':
-        [{'status': 'state_one', 'id': "5678"}], "listCount": 1}
+        [{'status': 'state_one', 'id': "5678", "name": "1.0"}], "listCount": 1}
     vendor = Vendor(name="one")
     vendor.identifier = "1234"
     vendor.load()
@@ -117,7 +117,7 @@ def test_load_created(mock_send, mock_get_all):
 @mock.patch.object(Vendor, 'send_message_json')
 def test_load_not_created(mock_send, mock_get_all):
     mock_send.return_value = {'results':
-        [{'status': 'state_one', 'id': "5678"}], "listCount": 1}
+        [{'status': 'state_one', 'id': "5678", "name": "1.0"}], "listCount": 1}
     vendor = Vendor(name="one")
     vendor.load()
     mock_get_all.return_value = []
