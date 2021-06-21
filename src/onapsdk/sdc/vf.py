@@ -2,13 +2,13 @@
 # -*- coding: utf-8 -*-
 # SPDX-License-Identifier: Apache-2.0
 """Vf module."""
-import json
 from typing import Any, Dict, List, Union
-from onapsdk.exceptions import ParameterError, ValidationError
 
+from onapsdk.exceptions import ParameterError
 from onapsdk.sdc.sdc_resource import SdcResource
 from onapsdk.sdc.properties import NestedInput, Property
 from onapsdk.sdc.vsp import Vsp
+from onapsdk.utils.jinja import jinja_env
 import onapsdk.constants as const
 
 
@@ -78,16 +78,13 @@ class Vf(SdcResource):
             "Get VF data to update VSP",
             self.resource_inputs_url
         )
-        if not all([key_name in resource_data for key_name in ["csarUUID", "csarVersion"]]):
-            raise ValidationError(
-                "Resource has no csarUUID and csarVersion properties - couldn't update VSP")
-        resource_data.update({
-            "csarUUID": vsp.csar_uuid,
-            "csarVersion": vsp.version
-        })
         self.send_message_json(
             "PUT",
             "Update vsp data",
             self.resource_inputs_url,
-            data=json.dumps(resource_data)
+            data=jinja_env()
+            .get_template("vf_vsp_update.json.j2")
+            .render(resource_data=resource_data,
+                    csarUUID=vsp.csar_uuid,
+                    csarVersion=vsp.human_readable_version)
         )
