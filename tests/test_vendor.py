@@ -143,7 +143,8 @@ def test_create_issue_in_creation(mock_send, mock_exists):
     expected_data = '{\n  "iconRef": "icon",\n  "vendorName": "Generic-Vendor",\n  "description": "vendor"\n}'
     mock_exists.return_value = False
     mock_send.side_effect = RequestError
-    vendor.create()
+    with pytest.raises(RequestError) as exc:
+        vendor.create()
     mock_send.assert_called_once_with("POST", "create Vendor", mock.ANY, data=expected_data)
     assert vendor.created() == False
 
