@@ -2,10 +2,9 @@
 # -*- coding: utf-8 -*-
 # SPDX-License-Identifier: Apache-2.0
 """ONAP Service module."""
-from typing import Dict
-from typing import Union
-from typing import Any
 from abc import ABC
+from dataclasses import dataclass, field
+from typing import Any, Callable, Dict, Iterator, List, Optional, Union
 
 import logging
 import requests
@@ -41,8 +40,30 @@ class OnapService(ABC):
             strings. For example, 'SDC' is the nickame for SDC server.
         headers (Dict[str, str]): the headers dictionnary to use.
         proxy (Dict[str, str]): the proxy configuration if needed.
+        permanent_headers (Optional[Dict[str, str]]): optional dictionary of
+            headers which could be set by the user and which are **always**
+            added into sended request. Unlike the `headers`, which could be
+            overrided on `send_message` call these headers are constant.
 
     """
+
+    @dataclass
+    class PermanentHeadersCollection:
+        """Collection to store permanent headers."""
+
+        ph_dict: Dict[str, Any] = field(default_factory=dict)
+        ph_call: List[Callable] = field(default_factory=list)
+
+        def __iter__(self) -> Iterator[Dict[str, any]]:
+            """Iterate through the headers.
+
+            For dictionary based headers just return the dict and
+            for the callables iterate through the list of them,
+            call them and yield the result.
+            """
+            yield self.ph_dict
+            for ph_call in self.ph_call:
+                yield ph_call()
 
     _logger: logging.Logger = logging.getLogger(__qualname__)
     server: str = None
@@ -51,6 +72,7 @@ class OnapService(ABC):
         "Accept": "application/json",
     }
     proxy: Dict[str, str] = None
+    permanent_headers: PermanentHeadersCollection = PermanentHeadersCollection()
 
     def __init_subclass__(cls):
         """Subclass initialization.
@@ -62,8 +84,9 @@ class OnapService(ABC):
 
     def __init__(self) -> None:
         """Initialize the service."""
+
     @classmethod
-    def send_message(cls, method: str, action: str, url: str,
+    def send_message(cls, method: str, action: str, url: str,  # pylint: disable=too-many-locals
                      **kwargs) -> Union[requests.Response, None]:
         """
         Send a message to an ONAP service.
@@ -91,7 +114,10 @@ class OnapService(ABC):
         cert = kwargs.pop('cert', None)
         basic_auth: Dict[str, str] = kwargs.pop('basic_auth', None)
         exception = kwargs.pop('exception', None)
-        headers = kwargs.pop('headers', cls.headers)
+        headers = kwargs.pop('headers', cls.headers).copy()
+        if OnapService.permanent_headers:
+            for header in OnapService.permanent_headers:
+                headers.update(header)
         data = kwargs.get('data', None)
         try:
             # build the request with the requested method
@@ -191,14 +217,7 @@ class OnapService(ABC):
 
         """
         exception = kwargs.get('exception', None)
-        data = kwargs.get('data', None)
         try:
-
-            cls._logger.debug("[%s][%s] sent header: %s", cls.server, action,
-                              cls.headers)
-            cls._logger.debug("[%s][%s] url used: %s", cls.server, action, url)
-            cls._logger.debug("[%s][%s] data sent: %s", cls.server, action,
-                              data)
 
             response = cls.send_message(method, action, url, **kwargs)
 
@@ -263,3 +282,29 @@ class OnapService(ABC):
 
         """
         OnapService.proxy = proxy
+
+    @staticmethod
+    def set_header(header: Optional[Union[Dict[str, Any], Callable]] = None) -> None:
+        """Set the header which will be always send on request.
+
+        The header can be:
+            * dictionary - will be used same dictionary for each request
+            * callable - a method which is going to be called every time on request
+              creation. Could be useful if you need to connect with ONAP through some API
+              gateway and you need to take care about authentication. The callable shouldn't
+              require any parameters
+            * None - reset headers
+
+        Args:
+            header (Optional[Union[Dict[str, Any], Callable]]): header to set. Defaults to None
+
+        """
+        if not header:
+            OnapService._logger.debug("Reset headers")
+            OnapService.permanent_headers = OnapService.PermanentHeadersCollection()
+            return
+        if callable(header):
+            OnapService.permanent_headers.ph_call.append(header)
+        else:
+            OnapService.permanent_headers.ph_dict.update(header)
+        OnapService._logger.debug("Set permanent header %s", header)
