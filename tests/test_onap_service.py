@@ -289,3 +289,81 @@ def test_send_message_json_custom_error(mock_send):
     assert exc.type is TestException
 
     mock_send.assert_called_once()
+
+@mock.patch("onapsdk.onap_service.requests.Session")
+def test_set_header(mock_session):
+
+    OnapService.send_message("GET", 'test get', 'http://my.url/')
+    _, _, kwargs = mock_session.return_value.request.mock_calls[0]
+    headers = kwargs["headers"]
+    assert "test-header-key" not in headers
+
+    mock_session.reset_mock()
+    OnapService.set_header({"test-header-key": "test-header-value"})
+    OnapService.send_message("GET", 'test get', 'http://my.url/')
+    _, _, kwargs = mock_session.return_value.request.mock_calls[0]
+    headers = kwargs["headers"]
+    assert "test-header-key" in headers
+    assert headers["test-header-key"] == "test-header-value"
+
+    mock_session.reset_mock()
+    OnapService.send_message("GET", 'test get', 'http://my.url/', headers={})
+    _, _, kwargs = mock_session.return_value.request.mock_calls[0]
+    headers = kwargs["headers"]
+    assert "test-header-key" in headers
+    assert headers["test-header-key"] == "test-header-value"
+
+    mock_session.reset_mock()
+    OnapService.send_message("GET", 'test get', 'http://my.url/', headers={"test-header-key": "test-header-another-value"})
+    _, _, kwargs = mock_session.return_value.request.mock_calls[0]
+    headers = kwargs["headers"]
+    assert "test-header-key" in headers
+    assert headers["test-header-key"] == "test-header-value"
+
+    mock_session.reset_mock()
+    OnapService.set_header(None)
+    OnapService.send_message("GET", 'test get', 'http://my.url/')
+    _, _, kwargs = mock_session.return_value.request.mock_calls[0]
+    headers = kwargs["headers"]
+    assert "test-header-key" not in headers
+
+    def test_header_method():
+        return {"test-header-callable-key": "test-header-callable-value"}
+
+    mock_session.reset_mock()
+    OnapService.set_header(test_header_method)
+    OnapService.send_message("GET", 'test get', 'http://my.url/', headers={})
+    _, _, kwargs = mock_session.return_value.request.mock_calls[0]
+    headers = kwargs["headers"]
+    assert "test-header-callable-key" in headers
+    assert headers["test-header-callable-key"] == "test-header-callable-value"
+
+    mock_session.reset_mock()
+    OnapService.send_message("GET", 'test get', 'http://my.url/', headers={"test-header-key": "test-header-value"})
+    _, _, kwargs = mock_session.return_value.request.mock_calls[0]
+    headers = kwargs["headers"]
+    assert "test-header-callable-key" in headers
+    assert headers["test-header-callable-key"] == "test-header-callable-value"
+    assert "test-header-key" in headers
+    assert headers["test-header-key"] == "test-header-value"
+
+    mock_session.reset_mock()
+    OnapService.set_header({"test-header-dict-key": "test-header-dict-value"})
+    OnapService.send_message("GET", 'test get', 'http://my.url/', headers={})
+    _, _, kwargs = mock_session.return_value.request.mock_calls[0]
+    headers = kwargs["headers"]
+    assert "test-header-callable-key" in headers
+    assert headers["test-header-callable-key"] == "test-header-callable-value"
+    assert "test-header-dict-key" in headers
+    assert headers["test-header-dict-key"] == "test-header-dict-value"
+
+    mock_session.reset_mock()
+    OnapService.send_message("GET", 'test get', 'http://my.url/', headers={"test-header-common-key": "test-header-common-value"})
+    _, _, kwargs = mock_session.return_value.request.mock_calls[0]
+    headers = kwargs["headers"]
+    assert "test-header-callable-key" in headers
+    assert headers["test-header-callable-key"] == "test-header-callable-value"
+    assert "test-header-dict-key" in headers
+    assert headers["test-header-dict-key"] == "test-header-dict-value"
+    assert "test-header-common-key" in headers
+    assert headers["test-header-common-key"] == "test-header-common-value"
