@@ -42,7 +42,7 @@ def test_vf_module_deletion(mock_deletion_request):
                                           is_base_vf_module=True,
                                           automated_assignment=False)
     vf_module_instance.delete()
-    mock_deletion_request.assert_called_once_with(vf_module_instance)
+    mock_deletion_request.assert_called_once_with(vf_module_instance, True)
 
 
 def test_vnf_vf_module():

@@ -198,7 +198,7 @@ def test_vnf_instance(mock_vnf_deletion_request):
     assert vnf_instance.url == (f"{vnf_instance.base_url}{vnf_instance.api_version}/network/"
                                 f"generic-vnfs/generic-vnf/{vnf_instance.vnf_id}")
     vnf_instance.delete()
-    mock_vnf_deletion_request.assert_called_once_with(vnf_instance)
+    mock_vnf_deletion_request.assert_called_once_with(vnf_instance, True)
 
 
 @mock.patch.object(VnfInstance, "send_message_json")

@@ -304,14 +304,17 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
             subnets=subnets
         )
 
-    def delete(self) -> "ServiceDeletionRequest":
+    def delete(self, a_la_carte: bool = True) -> "ServiceDeletionRequest":
         """Create service deletion request.
 
         Send a request to delete service instance
+
+        Args:
+            a_la_carte (boolean): deletion mode
 
         Returns:
             ServiceDeletionRequest: Deletion request object
 
         """
         self._logger.debug("Delete %s service instance", self.instance_id)
-        return ServiceDeletionRequest.send_request(self)
+        return ServiceDeletionRequest.send_request(self, a_la_carte)

@@ -369,14 +369,17 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
             use_preload=use_preload
         )
 
-    def delete(self) -> "VnfDeletionRequest":
+    def delete(self, a_la_carte: bool = True) -> "VnfDeletionRequest":
         """Create VNF deletion request.
 
         Send request to delete VNF instance
+
+        Args:
+            a_la_carte (boolean): deletion mode
 
         Returns:
             VnfDeletionRequest: Deletion request
 
         """
         self._logger.debug("Delete %s VNF", self.vnf_id)
-        return VnfDeletionRequest.send_request(self)
+        return VnfDeletionRequest.send_request(self, a_la_carte)
