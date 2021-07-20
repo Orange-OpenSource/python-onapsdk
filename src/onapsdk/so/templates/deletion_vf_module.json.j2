@@ -13,7 +13,8 @@
             "modelCustomizationId": "{{ vf_module_instance.model_customization_id }}"
 		},
 		"requestParameters": {
-			"testApi": "GR_API"
+			"testApi": "GR_API",
+			"aLaCarte": {{ a_la_carte | tojson }}
 		},
         "cloudConfiguration": {
             "cloudOwner": "{{ vf_module_instance.vnf_instance.service_instance.service_subscription.cloud_region.cloud_owner }}",

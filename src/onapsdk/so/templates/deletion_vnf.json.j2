@@ -14,7 +14,8 @@
             "modelCustomizationName": "{{ vnf_instance.vnf.name }}"
 		},
 		"requestParameters": {
-			"testApi": "GR_API"
+			"testApi": "GR_API",
+			"aLaCarte": {{ a_la_carte | tojson }}
 		},
         "cloudConfiguration": {
             "cloudOwner": "{{ vnf_instance.service_instance.service_subscription.cloud_region.cloud_owner }}",
