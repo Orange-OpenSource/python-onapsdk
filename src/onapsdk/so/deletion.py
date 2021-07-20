@@ -15,7 +15,7 @@ class DeletionRequest(OrchestrationRequest, ABC):
     """Deletion request base class."""
 
     @classmethod
-    def send_request(cls, instance: "AaiElement") -> "Deletion":
+    def send_request(cls, instance: "AaiElement", a_la_carte: bool = True) -> "Deletion":
         """Abstract method to send instance deletion request.
 
         Raises:
@@ -30,11 +30,13 @@ class VfModuleDeletionRequest(DeletionRequest):  # pytest: disable=too-many-ance
 
     @classmethod
     def send_request(cls,
-                     instance: "VfModuleInstance") -> "VfModuleDeletion":
+                     instance: "VfModuleInstance",
+                     a_la_carte: bool = True) -> "VfModuleDeletion":
         """Send request to SO to delete VNF instance.
 
         Args:
-            vnf_instance (VnfInstance): VNF instance to delete
+            instance (VfModuleInstance): Vf Module instance to delete
+            a_la_carte (boolean): deletion mode
 
         Returns:
             VnfDeletionRequest: Deletion request object
@@ -52,7 +54,8 @@ class VfModuleDeletionRequest(DeletionRequest):  # pytest: disable=too-many-ance
                                           f"vfModules/{instance.vf_module_id}"),
                                          data=jinja_env().
                                          get_template("deletion_vf_module.json.j2").
-                                         render(vf_module_instance=instance),
+                                         render(vf_module_instance=instance,
+                                                a_la_carte=a_la_carte),
                                          headers=headers_so_creator(OnapService.headers))
         return cls(request_id=response["requestReferences"]["requestId"])
 
@@ -62,11 +65,13 @@ class VnfDeletionRequest(DeletionRequest):  # pytest: disable=too-many-ancestors
 
     @classmethod
     def send_request(cls,
-                     instance: "VnfInstance") -> "VnfDeletionRequest":
+                     instance: "VnfInstance",
+                     a_la_carte: bool = True) -> "VnfDeletionRequest":
         """Send request to SO to delete VNF instance.
 
         Args:
             instance (VnfInstance): VNF instance to delete
+            a_la_carte (boolean): deletion mode
 
         Returns:
             VnfDeletionRequest: Deletion request object
@@ -82,7 +87,8 @@ class VnfDeletionRequest(DeletionRequest):  # pytest: disable=too-many-ancestors
                                           f"vnfs/{instance.vnf_id}"),
                                          data=jinja_env().
                                          get_template("deletion_vnf.json.j2").
-                                         render(vnf_instance=instance),
+                                         render(vnf_instance=instance,
+                                                a_la_carte=a_la_carte),
                                          headers=headers_so_creator(OnapService.headers))
         return cls(request_id=response["requestReferences"]["requestId"])
 
@@ -92,11 +98,13 @@ class ServiceDeletionRequest(DeletionRequest):  # pytest: disable=too-many-ances
 
     @classmethod
     def send_request(cls,
-                     instance: "ServiceInstance") -> "ServiceDeletionRequest":
+                     instance: "ServiceInstance",
+                     a_la_carte: bool = True) -> "ServiceDeletionRequest":
         """Send request to SO to delete service instance.
 
         Args:
             instance (ServiceInstance): service instance to delete
+            a_la_carte (boolean): deletion mode
 
         Returns:
             ServiceDeletionRequest: Deletion request object
@@ -110,7 +118,8 @@ class ServiceDeletionRequest(DeletionRequest):  # pytest: disable=too-many-ances
                                           f"serviceInstances/{instance.instance_id}"),
                                          data=jinja_env().
                                          get_template("deletion_service.json.j2").
-                                         render(service_instance=instance),
+                                         render(service_instance=instance,
+                                                a_la_carte=a_la_carte),
                                          headers=headers_so_creator(OnapService.headers))
         return cls(request_id=response["requestReferences"]["requestId"])
 
@@ -120,11 +129,13 @@ class NetworkDeletionRequest(DeletionRequest):  # pylint: disable=too-many-ances
 
     @classmethod
     def send_request(cls,
-                     instance: "NetworkInstance") -> "VnfDeletionRequest":
+                     instance: "NetworkInstance",
+                     a_la_carte: bool = True) -> "VnfDeletionRequest":
         """Send request to SO to delete Network instance.
 
         Args:
             instance (NetworkInstance): Network instance to delete
+            a_la_carte (boolean): deletion mode
 
         Returns:
             NetworkDeletionRequest: Deletion request object
@@ -140,6 +151,7 @@ class NetworkDeletionRequest(DeletionRequest):  # pylint: disable=too-many-ances
                                           f"networks/{instance.network_id}"),
                                          data=jinja_env().
                                          get_template("deletion_network.json.j2").
-                                         render(network_instance=instance),
+                                         render(network_instance=instance,
+                                                a_la_carte=a_la_carte),
                                          headers=headers_so_creator(OnapService.headers))
         return cls(request_id=response["requestReferences"]["requestId"])

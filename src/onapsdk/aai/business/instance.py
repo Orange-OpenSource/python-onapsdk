@@ -28,10 +28,13 @@ class Instance(AaiElement, ABC):
         self.model_version_id: str = model_version_id
 
     @abstractmethod
-    def delete(self) -> "DeletionRequest":
+    def delete(self, a_la_carte: bool = True) -> "DeletionRequest":
         """Create instance deletion request.
 
         Send request to delete instance
+
+        Args:
+            a_la_carte (boolean): deletion mode
 
         Returns:
             DeletionRequest: Deletion request

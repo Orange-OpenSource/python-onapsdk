@@ -211,4 +211,4 @@ def test_service_instance_deletion(mock_service_deletion_request):
     service_instance = ServiceInstance(service_subscription=mock.MagicMock(),
                                        instance_id="test_service_instance_id")
     service_instance.delete()
-    mock_service_deletion_request.assert_called_once_with(service_instance)
+    mock_service_deletion_request.assert_called_once_with(service_instance, True)

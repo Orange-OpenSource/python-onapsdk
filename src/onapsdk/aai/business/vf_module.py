@@ -143,14 +143,17 @@ class VfModuleInstance(Instance):  # pylint: disable=too-many-instance-attribute
             selflink=api_response.get("selflink")
         )
 
-    def delete(self) -> "VfModuleDeletionRequest":
+    def delete(self, a_la_carte: bool = True) -> "VfModuleDeletionRequest":
         """Create deletion request.
 
         Send request to delete VF module instance
+
+        Args:
+            a_la_carte (boolean): deletion mode
 
         Returns:
             VfModuleDeletionRequest: Deletion request object
 
         """
         self._logger.debug("Delete %s VF module", self.vf_module_id)
-        return VfModuleDeletionRequest.send_request(self)
+        return VfModuleDeletionRequest.send_request(self, a_la_carte)
