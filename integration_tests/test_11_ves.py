@@ -12,8 +12,6 @@ from onapsdk.dmaap.dmaap import Dmaap
 
 logging.basicConfig(level=os.environ.get("LOGLEVEL", "DEBUG"))
 
-requests.post("{}/set_dmaap_address".format(settings.VES_URL), json={"DMAAP_MOCK": settings.DMAAP_URL})
-
 
 def reset_dmaap_mock():
     requests.get("{}/reset".format(settings.DMAAP_URL))
@@ -22,6 +20,8 @@ def reset_dmaap_mock():
 @pytest.mark.integration
 def test_should_send_event_to_ves():
     # given
+
+    requests.post("{}/set_dmaap_address".format(settings.VES_URL), json={"DMAAP_MOCK": settings.DMAAP_URL})
     event: str = jinja_env().get_template("ves_stnd_event.json.j2").render()
 
     # when
@@ -38,6 +38,8 @@ def test_should_send_event_to_ves():
 @pytest.mark.integration
 def test_should_send_batch_event_to_ves():
     # given
+
+    requests.post("{}/set_dmaap_address".format(settings.VES_URL), json={"DMAAP_MOCK": settings.DMAAP_URL})
     event: str = jinja_env().get_template("ves7_batch_with_stndDefined_valid.json.j2").render()
 
     # when
@@ -54,6 +56,8 @@ def test_should_send_batch_event_to_ves():
 @pytest.mark.integration
 def test_should_send_event_to_ves_and_dmaap():
     # given
+
+    requests.post("{}/set_dmaap_address".format(settings.VES_URL), json={"DMAAP_MOCK": settings.DMAAP_URL})
     event: str = jinja_env().get_template("ves_stnd_event.json.j2").render()
 
     # when
@@ -75,6 +79,8 @@ def test_should_send_event_to_ves_and_dmaap():
 @pytest.mark.integration
 def test_should_send_batch_event_to_ves_and_dmaap():
     # given
+
+    requests.post("{}/set_dmaap_address".format(settings.VES_URL), json={"DMAAP_MOCK": settings.DMAAP_URL})
     event: str = jinja_env().get_template("ves7_batch_with_stndDefined_valid.json.j2").render()
 
     # when
