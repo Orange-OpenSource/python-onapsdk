@@ -358,17 +358,24 @@ class CloudRegion(AaiElement):  # pylint: disable=too-many-instance-attributes
                 CloudRegion has no relationship with any Complex
 
         """
-        for relationship in self.relationships:
-            if relationship.related_to == "complex":
-                physical_location_id: Optional[str] = relationship.get_relationship_data(
-                    "complex.physical-location-id"
-                )
-                if physical_location_id is not None:
-                    return Complex.get_by_physical_location_id(
-                        physical_location_id
+        try:
+            for relationship in self.relationships:
+                if relationship.related_to == "complex":
+                    physical_location_id: Optional[str] = relationship.get_relationship_data(
+                        "complex.physical-location-id"
                     )
-                self._logger.error("Invalid Complex relationship!")
-                return None
+                    if physical_location_id is not None:
+                        try:
+                            return Complex.get_by_physical_location_id(
+                                physical_location_id
+                            )
+                        except ResourceNotFound:
+                            self._logger.error("Complex with %s physical location id does "
+                                               "not exist", physical_location_id)
+                    self._logger.error("Invalid Complex relationship!")
+                    return None
+        except ResourceNotFound:
+            self._logger.debug("Cloud region %s has no relationships", self.cloud_region_id)
         self._logger.debug("Cloud region %s has no related complex", self.cloud_region_id)
         return None
 
