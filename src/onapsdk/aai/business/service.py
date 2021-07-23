@@ -146,7 +146,7 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
                 yield related_instance_class.create_from_api_response(\
                     self.send_message_json("GET",
                                            (f"Get {self.instance_id} "
-                                            f"{related_instance_class.__class__}"),
+                                            f"{related_instance_class.__class__.__name__}"),
                                            f"{self.base_url}{relationship.related_link}"),
                     self)
 
