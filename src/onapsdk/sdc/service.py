@@ -613,7 +613,7 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
                                             url,
                                             headers=headers)
         except ResourceNotFound:
-            msg = f"No distributions found for {self.name} of {self.__class__}."
+            msg = f"No distributions found for {self.name} of {self.__class__.__name__}."
             self._logger.debug(msg)
         else:
             status = self._update_components_status(status, result)
