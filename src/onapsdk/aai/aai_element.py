@@ -113,7 +113,6 @@ class AaiElement(OnapService):
                    f'Server: {self.server}. Url: {self.url}')
             raise RelationshipNotFound(msg) from exc
 
-
     def add_relationship(self, relationship: Relationship) -> None:
         """Add relationship to aai resource.
 
@@ -125,7 +124,7 @@ class AaiElement(OnapService):
         """
         self.send_message(
             "PUT",
-            "add relationship to cloud region",
+            f"add relationship to {self.__class__.__name__}",
             f"{self.url}/relationship-list/relationship",
             data=jinja_env()
             .get_template("aai_add_relationship.json.j2")

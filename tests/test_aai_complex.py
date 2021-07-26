@@ -1,7 +1,5 @@
 from unittest import mock
 
-import pytest
-
 from onapsdk.aai.cloud_infrastructure import Complex
 from onapsdk.aai.cloud_infrastructure import CloudRegion
 

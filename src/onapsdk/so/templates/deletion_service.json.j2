@@ -12,7 +12,8 @@
             "modelVersionId": "{{ service_instance.service_subscription.sdc_service.identifier }}"
 		},
 		"requestParameters": {
-			"testApi": "GR_API"
+			"testApi": "GR_API",
+			"aLaCarte": {{ a_la_carte | tojson }}
 		}{% if service_instance.service_subscription.sdc_service.vnfs %},
         "cloudConfiguration": {
             "cloudOwner": "{{ service_instance.service_subscription.cloud_region.cloud_owner }}",
