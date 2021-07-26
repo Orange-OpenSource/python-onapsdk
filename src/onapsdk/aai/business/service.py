@@ -146,7 +146,7 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
                 yield related_instance_class.create_from_api_response(\
                     self.send_message_json("GET",
                                            (f"Get {self.instance_id} "
-                                            f"{related_instance_class.__class__}"),
+                                            f"{related_instance_class.__class__.__name__}"),
                                            f"{self.base_url}{relationship.related_link}"),
                     self)
 
@@ -304,14 +304,17 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
             subnets=subnets
         )
 
-    def delete(self) -> "ServiceDeletionRequest":
+    def delete(self, a_la_carte: bool = True) -> "ServiceDeletionRequest":
         """Create service deletion request.
 
         Send a request to delete service instance
+
+        Args:
+            a_la_carte (boolean): deletion mode
 
         Returns:
             ServiceDeletionRequest: Deletion request object
 
         """
         self._logger.debug("Delete %s service instance", self.instance_id)
-        return ServiceDeletionRequest.send_request(self)
+        return ServiceDeletionRequest.send_request(self, a_la_carte)

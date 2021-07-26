@@ -189,7 +189,7 @@ class PnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
                    pnf_ipv4_address=api_response.get("pnf-ipv4-address"),
                    pnf_ipv6_address=api_response.get("pnf-ipv6-address"))
 
-    def delete(self) -> None:
+    def delete(self, a_la_carte: bool = True) -> None:
         """Delete Pnf instance.
 
         PNF deletion it's just A&AI resource deletion. That's difference between another instances.

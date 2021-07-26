@@ -184,14 +184,17 @@ class NetworkInstance(Instance):  # pylint: disable=too-many-instance-attributes
                    operational_status=api_response.get("operational-status"),
                    is_trunked=api_response.get("is-trunked"))
 
-    def delete(self) -> "NetworkDeletionRequest":
+    def delete(self, a_la_carte: bool = True) -> "NetworkDeletionRequest":
         """Create network deletion request.
 
         Send request to delete network instance
+
+        Args:
+            a_la_carte (boolean): deletion mode
 
         Returns:
             NetworkDeletionRequest: Deletion request
 
         """
         self._logger.debug("Delete %s network", self.network_id)
-        return NetworkDeletionRequest.send_request(self)
+        return NetworkDeletionRequest.send_request(self, a_la_carte)
