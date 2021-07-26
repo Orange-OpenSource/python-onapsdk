@@ -20,6 +20,14 @@ onapsdk.so.instantiation module
    :undoc-members:
    :show-inheritance:
 
+onapsdk.so.so\_db\_adapter module
+---------------------------------
+
+.. automodule:: onapsdk.so.so_db_adapter
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 onapsdk.so.so\_element module
 -----------------------------
 
