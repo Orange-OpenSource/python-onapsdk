@@ -3,4 +3,8 @@
 # SPDX-License-Identifier: Apache-2.0
 """Version module."""
 
+<<<<<<< HEAD
 __version__ = "8.1.2"
+=======
+__version__ = "8.1.1"
+>>>>>>> master
