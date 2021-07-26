@@ -20,6 +20,14 @@ onapsdk.aai.business.instance module
    :undoc-members:
    :show-inheritance:
 
+onapsdk.aai.business.line\_of\_business module
+----------------------------------------------
+
+.. automodule:: onapsdk.aai.business.line_of_business
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 onapsdk.aai.business.network module
 -----------------------------------
 
@@ -36,6 +44,14 @@ onapsdk.aai.business.owning\_entity module
    :undoc-members:
    :show-inheritance:
 
+onapsdk.aai.business.platform module
+------------------------------------
+
+.. automodule:: onapsdk.aai.business.platform
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 onapsdk.aai.business.pnf module
 -------------------------------
 
@@ -44,10 +60,26 @@ onapsdk.aai.business.pnf module
    :undoc-members:
    :show-inheritance:
 
+onapsdk.aai.business.project module
+-----------------------------------
+
+.. automodule:: onapsdk.aai.business.project
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 onapsdk.aai.business.service module
 -----------------------------------
 
 .. automodule:: onapsdk.aai.business.service
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+onapsdk.aai.business.sp\_partner module
+---------------------------------------
+
+.. automodule:: onapsdk.aai.business.sp_partner
    :members:
    :undoc-members:
    :show-inheritance:
