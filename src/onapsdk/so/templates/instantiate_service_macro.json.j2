@@ -47,12 +47,11 @@
                         "resources": {
                             {% if sdc_service.pnfs %}
                             "pnfs":[
-                                {% for sdc_component in sdc_service.components  %}
-                                {% if sdc_component.origin_type == 'PNF' %}
+                                {% for pnf in sdc_service.pnfs  %}
                                 {
                                     "modelInfo":{
-                                        "modelCustomizationName":"{{ sdc_component.name }}",
-                                        "modelCustomizationId":"{{ sdc_component.customization_uuid }}",
+                                        "modelCustomizationName":"{{ pnf.name }}",
+                                        "modelCustomizationId":"{{ pnf.metadata["customizationUUID"] }}",
                                         "modelInvariantId":"{{ sdc_service.unique_uuid }}",
                                         "modelVersionId":"{{ sdc_service.identifier }}",
                                         "modelName":"{{ sdc_service.name }}",
@@ -69,7 +68,6 @@
                                     "instanceParams":[],
                                     "instanceName":"{{ service_instance_name }}"
                                 }{% if not loop.last %},{% endif %}
-                                {% endif %}
                                 {% endfor %}
                             ]
                                 {% if sdc_service.vnfs %},{% endif %}
