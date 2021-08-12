@@ -584,7 +584,7 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
         """
         template_file = "instantiate_service_macro.json.j2"
         if so_service:
-            template_file = "instantiate_service_macro_v2.json.j2"
+            template_file = "instantiate_multi_vnf_service_macro.json.j2"
         if not sdc_service.distributed:
             msg = f"Service {sdc_service.name} is not distributed."
             raise StatusError(msg)
