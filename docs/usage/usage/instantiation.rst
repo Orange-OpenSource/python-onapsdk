@@ -194,17 +194,13 @@ To provide more control on the SO macro instantiation, you can define your servi
         vnfs:
             - model_name: myvfmodel
               vnf_name: myvnf
-              vnf_parameters: [
-                  {"name": "param1",
-                  "value": "value1"}
-              ]
+              vnf_parameters:
+                  param1: value1
               vf_module_parameters:
                   - vf_module_name: myvfm
                     model_name: base
-                    parameters: [
-                        {"name": "param-vfm1",
-                         "value": "value-vfm1"}
-                    ]
+                    parameters:
+                        param-vfm1: value-vfm1
 
 .. code:: Python
 
