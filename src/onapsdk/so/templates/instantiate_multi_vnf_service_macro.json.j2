@@ -36,8 +36,8 @@
             "instanceName": "{{ vnf.vnf_name }}",
             "instanceParams": [
                 {
-                    {% for parameter in vnf.vnf_parameters %}
-                    "{{ parameter.name }}": "{{ parameter.value }}"{% if not loop.last %},{% endif %}
+                    {% for key, value in vnf.vnf_parameters.items() %}
+                    "{{ key }}": "{{ value }}"{% if not loop.last %},{% endif %}
                     {% endfor %}
                 }
             ],
@@ -64,8 +64,8 @@
                     "instanceName": "{{ service_instance_name }}_{{ vf_module.vf_module_name }}",
                     "instanceParams": [
                         {
-                            {% for parameter in vf_module.parameters %}
-                            "{{ parameter.name }}": "{{ parameter.value }}"{% if not loop.last %},{% endif %}
+                            {% for key, value in vf_module.parameters.items() %}
+                            "{{ key }}": "{{ value }}"{% if not loop.last %},{% endif %}
                             {% endfor %}
                         }
                     ]

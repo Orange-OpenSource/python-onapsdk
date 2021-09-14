@@ -34,6 +34,11 @@ class VnfParameter:
     value: str
 
 @dataclass
+class SoService:
+    subscription_service_type: str
+    vnfs: list = None
+
+@dataclass
 class VnfParameters:
     """Class to store vnf parameters used for macro instantiation.
 
@@ -553,7 +558,7 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
                           service_instance_name: str = None,
                           vnf_parameters: Iterable["VnfParameters"] = None,
                           enable_multicloud: bool = False,
-                          so_service: Dict[str, Any] = None
+                          so_service: "SoService" = None
                           ) -> "ServiceInstantiation":
         """Instantiate service using SO macro request.
 
@@ -573,7 +578,7 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
                 going to be used for vnfs instantiation. Defaults to None.
             enable_multicloud (bool, optional): Determines if Multicloud should be enabled
                 for instantiation request. Defaults to False.
-            so_service (Dict[str, Any], optional): SO values to use in instantiation request
+            so_service (SoService, optional): SO values to use in instantiation request
 
         Raises:
             StatusError: if a service is not distributed.

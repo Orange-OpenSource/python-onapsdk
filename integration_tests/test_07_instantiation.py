@@ -195,7 +195,7 @@ def test_instantiate_macro():
     requests.get(f"{ServiceInstantiation.base_url}/reset")
     requests.get(f"{Customer.base_url}/reset")
     requests.post(f"{ServiceInstantiation.base_url}/set_aai_mock",
-                  json={"AAI_MOCK": settings.AAI_URL})
+                  json={"AAI_MOCK": "http://host.docker.internal:5000"})
 
     customer = Customer.create(global_customer_id="test_global_customer_id",
                                subscriber_name="test_subscriber_name",
@@ -294,7 +294,7 @@ def test_instantiate_macro_multiple_vnf():
     requests.get(f"{ServiceInstantiation.base_url}/reset")
     requests.get(f"{Customer.base_url}/reset")
     requests.post(f"{ServiceInstantiation.base_url}/set_aai_mock",
-                  json={"AAI_MOCK": settings.AAI_URL})
+                  json={"AAI_MOCK": "http://host.docker.internal:5000"})
 
     customer = Customer.create(global_customer_id="test_global_customer_id",
                                subscriber_name="test_subscriber_name",
@@ -354,44 +354,32 @@ def test_instantiate_macro_multiple_vnf():
             {
                 "model_name": "test_vnf_model",
                 "vnf_name": "vnf0",
-                "vnf_parameters": [
-                    {
-                        "name": "param1",
-                        "value": "value1"
-                    }
-                ],
+                "vnf_parameters": {
+                    "param1": "value1"
+                },
                 "vf_module_parameters": [
                     {
                         "vf_module_name": "vnf0_vfm0",
                         "model_name": "base",
-                        "parameters": [
-                            {
-                                "name": "vfm_param1",
-                                "value": "vfm_value1"
-                            }
-                        ]
+                        "parameters": {
+                            "vfm_param1": "vfm_value1"
+                        }
                     }
                 ]
             },
             {
                 "model_name": "test_vnf_model",
                 "vnf_name": "vnf1",
-                "vnf_parameters": [
-                    {
-                        "name": "param2",
-                        "value": "value2"
-                    }
-                ],
+                "vnf_parameters": {
+                    "param2": "value2"
+                },
                 "vf_module_parameters": [
                     {
                         "vf_module_name": "vnf1_vfm0",
                         "model_name": "base",
-                        "parameters": [
-                            {
-                                "name": "vfm_param2",
-                                "value": "vfm_value2"
-                            }
-                        ]
+                        "parameters": {
+                            "vfm_param2": "vfm_value2"
+                        }
                     }
                 ]
             }
