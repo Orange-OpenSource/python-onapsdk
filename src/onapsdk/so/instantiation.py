@@ -4,7 +4,7 @@
 """Instantion module."""
 from abc import ABC
 from dataclasses import dataclass
-from typing import Iterable, Optional, Dict, Any
+from typing import Iterable, Optional
 from uuid import uuid4
 from warnings import warn
 from onapsdk.exceptions import (
@@ -35,6 +35,11 @@ class VnfParameter:
 
 @dataclass
 class SoService:
+    """Class to store SO Service parameters used for macro instantiation.
+
+    Contains value list: List of vnfs to instantiate
+    Contains value: subscription service type
+    """
     subscription_service_type: str
     vnfs: list = None
 
