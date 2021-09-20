@@ -194,8 +194,7 @@ def test_a_la_carte_vl_instantiation():
 def test_instantiate_macro():
     requests.get(f"{ServiceInstantiation.base_url}/reset")
     requests.get(f"{Customer.base_url}/reset")
-    requests.post(f"{ServiceInstantiation.base_url}/set_aai_mock",
-                  json={"AAI_MOCK": "http://host.docker.internal:5000"})
+    requests.post(f"{ServiceInstantiation.base_url}/set_aai_mock", json={"AAI_MOCK": settings.AAI_URL})
 
     customer = Customer.create(global_customer_id="test_global_customer_id",
                                subscriber_name="test_subscriber_name",
@@ -293,8 +292,7 @@ def test_instantiate_macro():
 def test_instantiate_macro_multiple_vnf():
     requests.get(f"{ServiceInstantiation.base_url}/reset")
     requests.get(f"{Customer.base_url}/reset")
-    requests.post(f"{ServiceInstantiation.base_url}/set_aai_mock",
-                  json={"AAI_MOCK": "http://host.docker.internal:5000"})
+    requests.post(f"{ServiceInstantiation.base_url}/set_aai_mock", json={"AAI_MOCK": settings.AAI_URL})
 
     customer = Customer.create(global_customer_id="test_global_customer_id",
                                subscriber_name="test_subscriber_name",
