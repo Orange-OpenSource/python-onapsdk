@@ -40,6 +40,7 @@ class SoService:
     Contains value list: List of vnfs to instantiate
     Contains value: subscription service type
     """
+
     subscription_service_type: str
     vnfs: list = None
 
