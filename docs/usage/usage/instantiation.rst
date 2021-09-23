@@ -182,6 +182,72 @@ Instantiate a service (Macro)
     else:
         print("Instantiation failed, check logs")
 
+Instantiate a service using SO service template (Macro)
+-------------------------------------------------------
+
+To provide more control on the SO macro instantiation, you can define your service as follows:
+
+.. code:: Yaml
+
+    myservice:
+        subscription_service_type: myservice
+        vnfs:
+            - model_name: myvfmodel
+              vnf_name: myvnf
+              vnf_parameters:
+                  param1: value1
+              vf_module_parameters:
+                  - vf_module_name: myvfm
+                    model_name: base
+                    parameters:
+                        param-vfm1: value-vfm1
+
+.. code:: Python
+
+    from onapsdk.aai.business import Customer, OwningEntity, Project, LineOfBusiness, Platform
+    from onapsdk.aai.cloud_infrastructure import CloudRegion
+    from onapsdk.sdc.service import Service
+    from onapsdk.so.instantiation import ServiceInstantiation
+    from yaml import load
+
+    so_yaml_service = "/path/to/yaml/service"
+    with open(so_yaml_service, "r") as yaml_template:
+        so_service = load(yaml_template)
+
+    # We assume that:
+    #   - service is onboarded,
+    #   - cloud region, customer, owning_entity and project have been already created,
+    #   - cloud region has at least one tenant
+    #   - customer has service subscription
+    #   - service subscription is connected with cloud region and tenant
+
+    service = Service(next(so_service.keys()))
+    SERVICE_INSTANCE_NAME = "my_svc_instance_name"
+
+    customer = Customer.get_by_global_customer_id(GLOBAL_CUSTOMER_ID)
+    cloud_region = CloudRegion.get_by_id(
+        cloud_owner=CLOUD_OWNER,
+        cloud_region_id=CLOUD_REGION
+    )
+    tenant = next(cloud_region.tenants)
+    owning_entity = OwningEntity(OWNING_ENTITY)
+    project = Project(PROJECT)
+    line_of_business = LineOfBusiness(LINE_OF_BUSINESS)
+    platform = Platform(PLATFORM)
+
+    service_instantiation = ServiceInstantiation.instantiate_macro(
+        sdc_service=service,
+        customer=customer,
+        owning_entity=owning_entity,
+        project=project,
+        line_of_business=line_of_business,
+        platform=platform,
+        cloud_region=cloud_region,
+        tenant=tenant,
+        service_instance_name=SERVICE_INSTANCE_NAME,
+        so_service=so_service
+    )
+
 Instantiate VNF
 ---------------
 

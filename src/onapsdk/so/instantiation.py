@@ -34,6 +34,17 @@ class VnfParameter:
     value: str
 
 @dataclass
+class SoService:
+    """Class to store SO Service parameters used for macro instantiation.
+
+    Contains value list: List of vnfs to instantiate
+    Contains value: subscription service type
+    """
+
+    subscription_service_type: str
+    vnfs: list = None
+
+@dataclass
 class VnfParameters:
     """Class to store vnf parameters used for macro instantiation.
 
@@ -538,8 +549,9 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
             project=project
         )
 
+    # pylint: disable=too-many-arguments, too-many-locals
     @classmethod
-    def instantiate_macro(cls,  # pylint: disable=too-many-arguments
+    def instantiate_macro(cls,
                           sdc_service: "SdcService",
                           customer: "Customer",
                           owning_entity: "OwningEntity",
@@ -551,7 +563,8 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
                           tenant: "Tenant" = None,
                           service_instance_name: str = None,
                           vnf_parameters: Iterable["VnfParameters"] = None,
-                          enable_multicloud: bool = False
+                          enable_multicloud: bool = False,
+                          so_service: "SoService" = None
                           ) -> "ServiceInstantiation":
         """Instantiate service using SO macro request.
 
@@ -571,6 +584,7 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
                 going to be used for vnfs instantiation. Defaults to None.
             enable_multicloud (bool, optional): Determines if Multicloud should be enabled
                 for instantiation request. Defaults to False.
+            so_service (SoService, optional): SO values to use in instantiation request
 
         Raises:
             StatusError: if a service is not distributed.
@@ -579,6 +593,9 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
             ServiceInstantiation: instantiation request object
 
         """
+        template_file = "instantiate_service_macro.json.j2"
+        if so_service:
+            template_file = "instantiate_multi_vnf_service_macro.json.j2"
         if not sdc_service.distributed:
             msg = f"Service {sdc_service.name} is not distributed."
             raise StatusError(msg)
@@ -590,23 +607,24 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
             f"Instantiate {sdc_service.name} service macro",
             (f"{cls.base_url}/onap/so/infra/"
              f"serviceInstantiation/{cls.api_version}/serviceInstances"),
-            data=jinja_env().get_template("instantiate_service_macro.json.j2").\
-            render(
-                sdc_service=sdc_service,
-                cloud_region=cloud_region,
-                tenant=tenant,
-                customer=customer,
-                owning_entity=owning_entity,
-                project=project,
-                aai_service=aai_service,
-                line_of_business=line_of_business,
-                platform=platform,
-                service_instance_name=service_instance_name,
-                vnf_parameters=vnf_parameters,
-                enable_multicloud=enable_multicloud
-            ),
+            data=jinja_env().get_template(template_file). \
+                render(
+                    so_service=so_service,
+                    sdc_service=sdc_service,
+                    cloud_region=cloud_region,
+                    tenant=tenant,
+                    customer=customer,
+                    owning_entity=owning_entity,
+                    project=project,
+                    aai_service=aai_service,
+                    line_of_business=line_of_business,
+                    platform=platform,
+                    service_instance_name=service_instance_name,
+                    vnf_parameters=vnf_parameters,
+                    enable_multicloud=enable_multicloud
+                ),
             headers=headers_so_creator(OnapService.headers)
-        )
+            )
         return cls(
             name=service_instance_name,
             request_id=response["requestReferences"].get("requestId"),
