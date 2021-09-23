@@ -90,7 +90,8 @@ def test_service_macro_instantiation(mock_service_instantiation_send_message):
                               owning_entity=mock.MagicMock(),
                               line_of_business=mock.MagicMock(),
                               platform=mock.MagicMock(),
-                              project=mock.MagicMock())
+                              project=mock.MagicMock(),
+                              so_service=mock.MagicMock())
     assert service_instance.name.startswith("Python_ONAP_SDK_service_instance_")
     mock_service_instantiation_send_message.assert_called()
     method, _, url = mock_service_instantiation_send_message.call_args[0]

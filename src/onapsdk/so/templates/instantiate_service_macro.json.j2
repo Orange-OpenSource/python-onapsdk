@@ -29,7 +29,9 @@
             "globalSubscriberId": "{{ customer.global_customer_id }}"
         },
         "requestParameters": {
+            {% block subscriptionServiceType %}
             "subscriptionServiceType": "{{ sdc_service.name }}",
+            {% endblock %}
             "userParams": [
                 {
                     "Homing_Solution": "none"
@@ -72,6 +74,7 @@
                             ]
                                 {% if sdc_service.vnfs %},{% endif %}
                             {% endif %}
+                            {% block vnfs %}
                             {% if sdc_service.vnfs %}
                             "vnfs": [
                                 {% for vnf in sdc_service.vnfs %}
@@ -143,6 +146,7 @@
                                 {% endfor %}
                             ]
                             {% endif %}
+                            {% endblock %}
                         },
                         "modelInfo": {
                             "modelVersion": "1.0",
