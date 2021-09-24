@@ -41,6 +41,9 @@
                     {% endfor %}
                 }
             ],
+            {% if vnf.processing_priority %}
+            "processingPriority": "{{ vnf.processing_priority }}",
+            {% endif %}
             "vfModules": [
                 {% for vf_module in vnf.vf_module_parameters %}
                 {
@@ -62,6 +65,9 @@
                         {% endfor %}
                     },
                     "instanceName": "{{ service_instance_name }}_{{ vf_module.vf_module_name }}",
+                    {% if vf_module.processing_priority %}
+                    "processingPriority": "{{ vf_module.processing_priority }}",
+                    {% endif %}
                     "instanceParams": [
                         {
                             {% for key, value in vf_module.parameters.items() %}
