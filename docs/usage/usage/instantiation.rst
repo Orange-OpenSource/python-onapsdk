@@ -194,9 +194,9 @@ To provide more control on the SO macro instantiation, you can define your servi
         vnfs:
             - model_name: myvfmodel
               vnf_name: myvnf
-              vnf_parameters:
+              parameters:
                   param1: value1
-              vf_module_parameters:
+              vf_modules:
                   - vf_module_name: myvfm
                     model_name: base
                     parameters:
