@@ -193,12 +193,35 @@ To provide more control on the SO macro instantiation, you can define your servi
         subscription_service_type: myservice
         vnfs:
             - model_name: myvfmodel
-              vnf_name: myvnf
+              vnf_name: myfirstvnf
               parameters:
                   param1: value1
+              processing_priority: 1
               vf_modules:
-                  - vf_module_name: myvfm
+                  - vf_module_name: mysecondvfm
                     model_name: base
+                    processing_priority: 2
+                    parameters:
+                        param-vfm1: value-vfm1
+                  - vf_module_name: myfirstvfm
+                    model_name: base
+                    processing_priority: 1
+                    parameters:
+                        param-vfm1: value-vfm1
+            - model_name: myvfmodel
+              vnf_name: mysecondvnf
+              parameters:
+                  param1: value1
+              processing_priority: 2
+              vf_modules:
+                  - vf_module_name: myfirstvfm
+                    model_name: base
+                    processing_priority: 1
+                    parameters:
+                        param-vfm1: value-vfm1
+                  - vf_module_name: mysecondvfm
+                    model_name: base
+                    processing_priority: 2
                     parameters:
                         param-vfm1: value-vfm1
 
