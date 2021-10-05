@@ -36,13 +36,13 @@
             "instanceName": "{{ vnf.vnf_name }}",
             "instanceParams": [
                 {
-                    {% for key, value in vnf.vnf_parameters.items() %}
+                    {% for key, value in vnf.parameters.items() %}
                     "{{ key }}": "{{ value }}"{% if not loop.last %},{% endif %}
                     {% endfor %}
                 }
             ],
             "vfModules": [
-                {% for vf_module in vnf.vf_module_parameters %}
+                {% for vf_module in vnf.vf_modules %}
                 {
                     "modelInfo": {
                         {% for sdc_vnf in sdc_service.vnfs %}
