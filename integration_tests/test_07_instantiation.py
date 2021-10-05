@@ -352,10 +352,10 @@ def test_instantiate_macro_multiple_vnf():
             {
                 "model_name": "test_vnf_model",
                 "vnf_name": "vnf0",
-                "vnf_parameters": {
+                "parameters": {
                     "param1": "value1"
                 },
-                "vf_module_parameters": [
+                "vf_modules": [
                     {
                         "vf_module_name": "vnf0_vfm0",
                         "model_name": "base",
@@ -368,10 +368,10 @@ def test_instantiate_macro_multiple_vnf():
             {
                 "model_name": "test_vnf_model",
                 "vnf_name": "vnf1",
-                "vnf_parameters": {
+                "parameters": {
                     "param2": "value2"
                 },
-                "vf_module_parameters": [
+                "vf_modules": [
                     {
                         "vf_module_name": "vnf1_vfm0",
                         "model_name": "base",
