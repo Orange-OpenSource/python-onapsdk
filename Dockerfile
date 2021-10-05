@@ -1,6 +1,6 @@
 FROM python:3.9-alpine3.12
 
-ARG PIP_TAG=21.0.1
+ARG PIP_TAG=21.2.4
 
 WORKDIR /opt/chained-ci-mqtt-trigger-master
 
