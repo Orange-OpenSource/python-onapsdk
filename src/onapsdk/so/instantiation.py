@@ -229,7 +229,7 @@ class NodeTemplateInstantiation(Instantiation, ABC):  # pytest: disable=too-many
             request_id (str): Node template instantiation request ID
             instance_id (str): Node template instance ID
             line_of_business (str): LineOfBusiness name
-            platform (Platform): Platform name
+            platform (str): Platform name
         """
         super().__init__(name, request_id, instance_id)
         self.line_of_business = line_of_business
@@ -254,7 +254,7 @@ class VnfInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-many-a
             instance_id (str): instance ID
             service_instantiation ([type]): ServiceInstantiation class object
             line_of_business (str): LineOfBusiness name
-            platform (Platform): Platform name
+            platform (str): Platform name
             vnf (Vnf): Vnf class object
         """
         super().__init__(name, request_id, instance_id, line_of_business, platform)
