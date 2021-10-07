@@ -314,6 +314,10 @@ def test_customer_service_subscription_cloud_region(mock_cloud_region, mock_send
     mock_send_serv_sub.return_value = {}
     relationships = list(service_subscription.relationships)
     assert len(relationships) == 0
+    with pytest.raises(ParameterError):
+        service_subscription.cloud_region
+    with pytest.raises(ParameterError):
+        service_subscription.tenant
     with pytest.raises(StopIteration):
         next(service_subscription.cloud_regions)
     with pytest.raises(StopIteration):
