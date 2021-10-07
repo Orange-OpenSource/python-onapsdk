@@ -314,25 +314,25 @@ def test_customer_service_subscription_cloud_region(mock_cloud_region, mock_send
     mock_send_serv_sub.return_value = {}
     relationships = list(service_subscription.relationships)
     assert len(relationships) == 0
-    with pytest.raises(ParameterError):
-        service_subscription.cloud_region
-    with pytest.raises(ParameterError):
-        service_subscription.tenant
+    with pytest.raises(StopIteration):
+        next(service_subscription.cloud_regions)
+    with pytest.raises(StopIteration):
+        next(service_subscription.tenants)
 
     mock_cloud_region.return_value = CLOUD_REGION
     mock_send_serv_sub.return_value = SERVICE_SUBSCRIPTION_RELATIONSHIPS
     relationships = list(service_subscription.relationships)
     assert len(relationships) == 1
-    cloud_region = service_subscription.cloud_region
+    cloud_region = next(service_subscription.cloud_regions)
     assert cloud_region.cloud_owner == "OPNFV"
     assert cloud_region.cloud_region_id == "RegionOne"
     assert cloud_region.cloud_type == "openstack"
 
     mock_cloud_region.side_effect = ResourceNotFound
-    with pytest.raises(ParameterError):
-        service_subscription.tenant
+    with pytest.raises(StopIteration):
+        next(service_subscription.tenants)
     mock_cloud_region.side_effect = [CLOUD_REGION, TENANT]
-    tenant = service_subscription.tenant
+    tenant = next(service_subscription.tenants)
     assert tenant.tenant_id == "4bdc6f0f2539430f9428c852ba606808"
     assert tenant.name == "onap-dublin-daily-vnfs"
 

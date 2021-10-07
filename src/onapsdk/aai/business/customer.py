@@ -5,7 +5,7 @@ from urllib.parse import urlencode
 
 from onapsdk.sdc.service import Service as SdcService
 from onapsdk.utils.jinja import jinja_env
-from onapsdk.exceptions import APIError, ParameterError, ResourceNotFound
+from onapsdk.exceptions import APIError, ResourceNotFound
 
 from ..aai_element import AaiElement, Relationship
 from ..cloud_infrastructure.cloud_region import CloudRegion
@@ -168,44 +168,6 @@ class ServiceSubscription(AaiElement):
         for relationship in self.relationships:
             if relationship.related_to == "tenant":
                 yield relationship
-
-    @property
-    def cloud_region(self) -> "CloudRegion":
-        """Cloud region associated with service subscription.
-
-        IT'S DEPRECATED! `cloud_regions` parameter SHOULD BE USED
-
-        Raises:
-            ParameterError: Service subscription has no associated cloud region.
-
-        Returns:
-            CloudRegion: CloudRegion object
-
-        """
-        try:
-            return next(self.cloud_regions)
-        except StopIteration:
-            msg = f"No cloud region for service subscription '{self.name}'"
-            raise ParameterError(msg)
-
-    @property
-    def tenant(self) -> "Tenant":
-        """Tenant associated with service subscription.
-
-        IT'S DEPRECATED! `tenants` parameter SHOULD BE USED
-
-        Raises:
-            ParameterError: Service subscription has no associated tenants
-
-        Returns:
-            Tenant: Tenant object
-
-        """
-        try:
-            return next(self.tenants)
-        except StopIteration:
-            msg = f"No tenants for service subscription '{self.name}'"
-            raise ParameterError(msg)
 
     @property
     def _cloud_regions_tenants_data(self) -> Iterator["ServiceSubscriptionCloudRegionTenantData"]:

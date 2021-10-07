@@ -13,7 +13,6 @@ from onapsdk.so.deletion import ServiceDeletionRequest, VfModuleDeletionRequest,
 from onapsdk.so.instantiation import (ServiceInstantiation,
                                       VfModuleInstantiation, VnfInstantiation, InstantiationParameter,
                                       VfmoduleParameters, VnfParameters)
-from onapsdk.vid import LineOfBusiness, OwningEntity, Platform, Project
 
 
 @pytest.mark.integration
@@ -61,11 +60,11 @@ def test_a_la_carte_instantiation():
     # Vnf instantiation
     service_instance = next(service_subscription.service_instances)
     assert len(list(service_instance.vnf_instances)) == 0
-    owning_entity = OwningEntity(name="test_owning_entity")
-    project = Project(name="test_project")
+    owning_entity = "test_owning_entity"
+    project = "test_project"
     vnf = MagicMock()
-    line_of_business = LineOfBusiness(name="test_line_of_business")
-    platform = Platform(name="test_platform")
+    line_of_business = "test_line_of_business"
+    platform = "test_platform"
     with pytest.raises(StatusError):
         service_instance.add_vnf(
             vnf,
@@ -166,11 +165,11 @@ def test_a_la_carte_vl_instantiation():
     # Network instantiation
     service_instance = next(service_subscription.service_instances)
     assert len(list(service_instance.network_instances)) == 0
-    owning_entity = OwningEntity(name="test_owning_entity")
-    project = Project(name="test_project")
+    owning_entity = "test_owning_entity"
+    project = "test_project"
     network = MagicMock()
-    line_of_business = LineOfBusiness(name="test_line_of_business")
-    platform = Platform(name="test_platform")
+    line_of_business = "test_line_of_business"
+    platform = "test_platform"
     with pytest.raises(AttributeError):
         service_instance.network(
             network,
@@ -243,10 +242,10 @@ def test_instantiate_macro():
     )
     tenant = cloud_region.get_tenant(tenant_id="test_tenant_name")
     service_subscription.link_to_cloud_region_and_tenant(cloud_region=cloud_region, tenant=tenant)
-    owning_entity = OwningEntity(name="test_owning_entity")
-    project = Project(name="test_project")
-    line_of_business = LineOfBusiness(name="test_line_of_business")
-    platform = Platform(name="test_platform")
+    owning_entity = "test_owning_entity"
+    project = "test_project"
+    line_of_business = "test_line_of_business"
+    platform = "test_platform"
 
     vfm_instance_params = [
         InstantiationParameter(name="vfm_param", value="vfm_param_value"),
@@ -341,10 +340,10 @@ def test_instantiate_macro_multiple_vnf():
     )
     tenant = cloud_region.get_tenant(tenant_id="test_tenant_name")
     service_subscription.link_to_cloud_region_and_tenant(cloud_region=cloud_region, tenant=tenant)
-    owning_entity = OwningEntity(name="test_owning_entity")
-    project = Project(name="test_project")
-    line_of_business = LineOfBusiness(name="test_line_of_business")
-    platform = Platform(name="test_platform")
+    owning_entity = "test_owning_entity"
+    project = "test_project"
+    line_of_business = "test_line_of_business"
+    platform = "test_platform"
 
     so_service = {
         "subscription_service_type": service.name,

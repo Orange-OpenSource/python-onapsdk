@@ -6,32 +6,19 @@ from abc import ABC
 from dataclasses import dataclass
 from typing import Iterable, Optional
 from uuid import uuid4
-from warnings import warn
 from onapsdk.exceptions import (
     APIError, InvalidResponse, ParameterError, ResourceNotFound, StatusError
 )
 
+from onapsdk.aai.business.owning_entity import OwningEntity
 from onapsdk.onap_service import OnapService
 from onapsdk.sdnc import NetworkPreload, VfModulePreload
 from onapsdk.sdc.service import Network, Service as SdcService, Vnf, VfModule
 from onapsdk.utils.jinja import jinja_env
 from onapsdk.utils.headers_creator import headers_so_creator
-from onapsdk.vid import LineOfBusiness, Platform
 
 from .so_element import OrchestrationRequest
 
-
-@dataclass
-class VnfParameter:
-    """Class to store vnf parameter used for preload.
-
-    IT'S DEPRECATED! `InstantiationParameter` SHOULD BE USED
-
-    Contains two values: name of vnf parameter and it's value
-    """
-
-    name: str
-    value: str
 
 @dataclass
 class SoService:
@@ -156,8 +143,8 @@ class VfModuleInstantiation(Instantiation):  # pytest: disable=too-many-ancestor
     def instantiate_ala_carte(cls,  # pylint: disable=too-many-arguments
                               vf_module: "VfModule",
                               vnf_instance: "VnfInstance",
-                              cloud_region: "CloudRegion" = None,
-                              tenant: "Tenant" = None,
+                              cloud_region: "CloudRegion",
+                              tenant: "Tenant",
                               vf_module_instance_name: str = None,
                               vnf_parameters: Iterable["InstantiationParameter"] = None,
                               use_preload: bool = True) -> "VfModuleInstantiation":
@@ -170,12 +157,8 @@ class VfModuleInstantiation(Instantiation):  # pytest: disable=too-many-ancestor
             vnf_instance (VnfInstance): VnfInstance object
             cloud_region (CloudRegion, optional): Cloud region to use in instantiation request.
                 Defaults to None.
-                THAT PROPERTY WILL BE REQUIRED IN ONE OF THE FUTURE RELEASE. REFACTOR YOUR CODE
-                TO USE IT!.
             tenant (Tenant, optional): Tenant to use in instnatiation request.
                 Defaults to None.
-                THAT PROPERTY WILL BE REQUIRED IN ONE OF THE FUTURE RELEASE. REFACTOR YOUR CODE
-                TO USE IT!.
             vf_module_instance_name_factory (str, optional): Factory to create VF module names.
                 It's going to be a prefix of name. Index of vf module in Tosca file will be
                 added to it.
@@ -216,10 +199,8 @@ class VfModuleInstantiation(Instantiation):  # pytest: disable=too-many-ancestor
                 vf_module_instance_name=vf_module_instance_name,
                 vf_module=vf_module,
                 service=sdc_service,
-                cloud_region=cloud_region or \
-                    vnf_instance.service_instance.service_subscription.cloud_region,
-                tenant=tenant or \
-                    vnf_instance.service_instance.service_subscription.tenant,
+                cloud_region=cloud_region,
+                tenant=tenant,
                 vnf_instance=vnf_instance,
                 vf_module_parameters=vnf_parameters or []
             ),
@@ -239,16 +220,16 @@ class NodeTemplateInstantiation(Instantiation, ABC):  # pytest: disable=too-many
                  name: str,
                  request_id: str,
                  instance_id: str,
-                 line_of_business: LineOfBusiness,
-                 platform: Platform) -> None:
+                 line_of_business: str,
+                 platform: str) -> None:
         """Node template object initialization.
 
         Args:
             name (str): Node template name
             request_id (str): Node template instantiation request ID
             instance_id (str): Node template instance ID
-            line_of_business (LineOfBusiness): LineOfBusiness class object used for instantation
-            platform (Platform): Platform class object used for instantiation
+            line_of_business (str): LineOfBusiness name
+            platform (Platform): Platform name
         """
         super().__init__(name, request_id, instance_id)
         self.line_of_business = line_of_business
@@ -262,8 +243,8 @@ class VnfInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-many-a
                  name: str,
                  request_id: str,
                  instance_id: str,
-                 line_of_business: LineOfBusiness,
-                 platform: Platform,
+                 line_of_business: str,
+                 platform: str,
                  vnf: Vnf) -> None:
         """Class VnfInstantion object initialization.
 
@@ -272,8 +253,8 @@ class VnfInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-many-a
             request_id (str): request ID
             instance_id (str): instance ID
             service_instantiation ([type]): ServiceInstantiation class object
-            line_of_business (LineOfBusiness): LineOfBusiness class object
-            platform (Platform): Platform class object
+            line_of_business (str): LineOfBusiness name
+            platform (Platform): Platform name
             vnf (Vnf): Vnf class object
         """
         super().__init__(name, request_id, instance_id, line_of_business, platform)
@@ -317,10 +298,10 @@ class VnfInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-many-a
                 request_id=request_response.get("request", {}).get("requestId"),
                 instance_id=request_response.get("request", {})\
                     .get("instanceReferences", {}).get("vnfInstanceId"),
-                line_of_business=LineOfBusiness.create(request_response.get("request", {})\
-                    .get("requestDetails", {}).get("lineOfBusiness", {}).get("lineOfBusinessName")),
-                platform=Platform.create(request_response.get("request", {})\
-                    .get("requestDetails", {}).get("platform", {}).get("platformName")),
+                line_of_business=request_response.get("request", {})\
+                    .get("requestDetails", {}).get("lineOfBusiness", {}).get("lineOfBusinessName"),
+                platform=request_response.get("request", {})\
+                    .get("requestDetails", {}).get("platform", {}).get("platformName"),
                 vnf=vnf
             )
         raise InvalidResponse("Invalid vnf instantions in response dictionary's requestList")
@@ -356,10 +337,10 @@ class VnfInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-many-a
     def instantiate_ala_carte(cls,  # pylint: disable=too-many-arguments
                               aai_service_instance: "ServiceInstance",
                               vnf_object: "Vnf",
-                              line_of_business_object: "LineOfBusiness",
-                              platform_object: "Platform",
-                              cloud_region: "CloudRegion" = None,
-                              tenant: "Tenant" = None,
+                              line_of_business: str,
+                              platform: str,
+                              cloud_region: "CloudRegion",
+                              tenant: "Tenant",
                               vnf_instance_name: str = None,
                               vnf_parameters: Iterable["InstantiationParameter"] = None
                               ) -> "VnfInstantiation":
@@ -369,14 +350,8 @@ class VnfInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-many-a
             vnf_object (Vnf): Vnf to instantiate
             line_of_business_object (LineOfBusiness): LineOfBusiness to use in instantiation request
             platform_object (Platform): Platform to use in instantiation request
-            cloud_region (CloudRegion, optional): Cloud region to use in instantiation request.
-                Defaults to None.
-                THAT PROPERTY WILL BE REQUIRED IN ONE OF THE FUTURE RELEASE. REFACTOR YOUR CODE
-                TO USE IT!.
-            tenant (Tenant, optional): Tenant to use in instnatiation request.
-                Defaults to None.
-                THAT PROPERTY WILL BE REQUIRED IN ONE OF THE FUTURE RELEASE. REFACTOR YOUR CODE
-                TO USE IT!.
+            cloud_region (CloudRegion): Cloud region to use in instantiation request.
+            tenant (Tenant): Tenant to use in instnatiation request.
             vnf_instance_name (str, optional): Vnf instance name. Defaults to None.
             vnf_parameters (Iterable[InstantiationParameter], optional): Instantiation parameters
                 that are sent in the request. Defaults to None
@@ -403,8 +378,8 @@ class VnfInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-many-a
                 cloud_region=cloud_region or \
                     aai_service_instance.service_subscription.cloud_region,
                 tenant=tenant or aai_service_instance.service_subscription.tenant,
-                line_of_business=line_of_business_object,
-                platform=platform_object,
+                line_of_business=line_of_business,
+                platform=platform,
                 service_instance=aai_service_instance,
                 vnf_parameters=vnf_parameters or []
             ),
@@ -414,8 +389,8 @@ class VnfInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-many-a
             name=vnf_instance_name,
             request_id=response["requestReferences"]["requestId"],
             instance_id=response["requestReferences"]["instanceId"],
-            line_of_business=line_of_business_object,
-            platform=platform_object,
+            line_of_business=line_of_business,
+            platform=platform,
             vnf=vnf_object
         )
 
@@ -430,8 +405,8 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
                  cloud_region: "CloudRegion",
                  tenant: "Tenant",
                  customer: "Customer",
-                 owning_entity: "OwningEntity",
-                 project: "Project") -> None:
+                 owning_entity: OwningEntity,
+                 project: str) -> None:
         """Class ServiceInstantiation object initialization.
 
         Args:
@@ -443,7 +418,7 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
             tenant (Tenant): Tenant class object
             customer (Customer): Customer class object
             owning_entity (OwningEntity): OwningEntity class object
-            project (Project): Project class object
+            project (str): Project name
 
         """
         super().__init__(name, request_id, instance_id)
@@ -455,43 +430,13 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
         self.project = project
 
     @classmethod
-    def instantiate_so_ala_carte(cls,  # pylint: disable=too-many-arguments
-                                 sdc_service: "SdcService",
-                                 cloud_region: "CloudRegion",
-                                 tenant: "Tenant",
-                                 customer: "Customer",
-                                 owning_entity: "OwningEntity",
-                                 project: "Project",
-                                 service_instance_name: str = None) -> "ServiceInstantiation":
-        """Instantiate service using SO a'la carte request.
-
-        THIS METHOD IS DEPRECATED! USE `instantiate_ala_carte`.
-
-        Args:
-            sdc_service (SdcService): Service to instantiate
-            cloud_region (CloudRegion): Cloud region to use in instantiation request
-            tenant (Tenant): Tenant to use in instantiation request
-            customer (Customer): Customer to use in instantiation request
-            owning_entity (OwningEntity): Owning entity to use in instantiation request
-            project (Project): Project to use in instantiation request
-            service_instance_name (str, optional): Service instance name. Defaults to None.
-
-        Returns:
-            ServiceInstantiation: instantiation request object
-
-        """
-        warn("This method is deprecated, use `instantiate_ala_carte`.", DeprecationWarning)
-        return cls.instantiate_ala_carte(sdc_service, cloud_region, tenant, customer,
-                                         owning_entity, project, service_instance_name)
-
-    @classmethod
     def instantiate_ala_carte(cls,  # pylint: disable=too-many-arguments
                               sdc_service: "SdcService",
                               cloud_region: "CloudRegion",
                               tenant: "Tenant",
                               customer: "Customer",
-                              owning_entity: "OwningEntity",
-                              project: "Project",
+                              owning_entity: OwningEntity,
+                              project: str,
                               service_instance_name: str = None,
                               enable_multicloud: bool = False) -> "ServiceInstantiation":
         """Instantiate service using SO a'la carte request.
@@ -502,7 +447,7 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
             tenant (Tenant): Tenant to use in instantiation request
             customer (Customer): Customer to use in instantiation request
             owning_entity (OwningEntity): Owning entity to use in instantiation request
-            project (Project): Project to use in instantiation request
+            project (str): Project name to use in instantiation request
             service_instance_name (str, optional): Service instance name. Defaults to None.
             enable_multicloud (bool, optional): Determines if Multicloud should be enabled
                 for instantiation request. Defaults to False.
@@ -554,10 +499,10 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
     def instantiate_macro(cls,
                           sdc_service: "SdcService",
                           customer: "Customer",
-                          owning_entity: "OwningEntity",
-                          project: "Project",
-                          line_of_business: "LineOfBusiness",
-                          platform: "Platform",
+                          owning_entity: OwningEntity,
+                          project: str,
+                          line_of_business: str,
+                          platform: str,
                           aai_service: "AaiService" = None,
                           cloud_region: "CloudRegion" = None,
                           tenant: "Tenant" = None,
@@ -572,10 +517,10 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
             sdc_service (SdcService): Service to instantiate
             customer (Customer): Customer to use in instantiation request
             owning_entity (OwningEntity): Owning entity to use in instantiation request
-            project (Project): Project to use in instantiation request
-            line_of_business_object (LineOfBusiness): LineOfBusiness to use
+            project (Project): Project name to use in instantiation request
+            line_of_business_object (LineOfBusiness): LineOfBusiness name to use
                 in instantiation request
-            platform_object (Platform): Platform to use in instantiation request
+            platform_object (Platform): Platform name to use in instantiation request
             aai_service (AaiService): Service object from aai sdc
             cloud_region (CloudRegion): Cloud region to use in instantiation request
             tenant (Tenant): Tenant to use in instantiation request
@@ -671,8 +616,8 @@ class NetworkInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-ma
                  name: str,
                  request_id: str,
                  instance_id: str,
-                 line_of_business: LineOfBusiness,
-                 platform: Platform,
+                 line_of_business: str,
+                 platform: str,
                  network: Network) -> None:
         """Class NetworkInstantiation object initialization.
 
@@ -681,8 +626,8 @@ class NetworkInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-ma
             request_id (str): request ID
             instance_id (str): instance ID
             service_instantiation ([type]): ServiceInstantiation class object
-            line_of_business (LineOfBusiness): LineOfBusiness class object
-            platform (Platform): Platform class object
+            line_of_business (str): LineOfBusiness name
+            platform (str): Platform name
             vnf (Network): Network class object
         """
         super().__init__(name, request_id, instance_id, line_of_business, platform)
@@ -692,26 +637,20 @@ class NetworkInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-ma
     def instantiate_ala_carte(cls,  # pylint: disable=too-many-arguments
                               aai_service_instance: "ServiceInstance",
                               network_object: "Network",
-                              line_of_business_object: "LineOfBusiness",
-                              platform_object: "Platform",
-                              cloud_region: "CloudRegion" = None,
-                              tenant: "Tenant" = None,
+                              line_of_business: str,
+                              platform: str,
+                              cloud_region: "CloudRegion",
+                              tenant: "Tenant",
                               network_instance_name: str = None,
                               subnets: Iterable[Subnet] = None) -> "NetworkInstantiation":
         """Instantiate Network using a'la carte method.
 
         Args:
             network_object (Network): Network to instantiate
-            line_of_business_object (LineOfBusiness): LineOfBusiness to use in instantiation request
-            platform_object (Platform): Platform to use in instantiation request
-            cloud_region (CloudRegion, optional): Cloud region to use in instantiation request.
-                Defaults to None.
-                THAT PROPERTY WILL BE REQUIRED IN ONE OF THE FUTURE RELEASE. REFACTOR YOUR CODE
-                TO USE IT!.
-            tenant (Tenant, optional): Tenant to use in instnatiation request.
-                Defaults to None.
-                THAT PROPERTY WILL BE REQUIRED IN ONE OF THE FUTURE RELEASE. REFACTOR YOUR CODE
-                TO USE IT!.
+            line_of_business (str): LineOfBusiness name to use in instantiation request
+            platform (str): Platform name to use in instantiation request
+            cloud_region (CloudRegion): Cloud region to use in instantiation request.
+            tenant (Tenant): Tenant to use in instnatiation request.
             network_instance_name (str, optional): Network instance name. Defaults to None.
 
         Returns:
@@ -739,8 +678,8 @@ class NetworkInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-ma
                 cloud_region=cloud_region or \
                     aai_service_instance.service_subscription.cloud_region,
                 tenant=tenant or aai_service_instance.service_subscription.tenant,
-                line_of_business=line_of_business_object,
-                platform=platform_object,
+                line_of_business=line_of_business,
+                platform=platform,
                 service_instance=aai_service_instance,
                 subnets=subnets
             ),
@@ -750,7 +689,7 @@ class NetworkInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-ma
             name=network_instance_name,
             request_id=response["requestReferences"]["requestId"],
             instance_id=response["requestReferences"]["instanceId"],
-            line_of_business=line_of_business_object,
-            platform=platform_object,
+            line_of_business=line_of_business,
+            platform=platform,
             network=network_object
         )
