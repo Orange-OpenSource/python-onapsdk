@@ -38,13 +38,13 @@ def test_a_la_carte_instantiation():
     )
     tenant = cloud_region.get_tenant(tenant_id="test_tenant_name")
     service_subscription.link_to_cloud_region_and_tenant(cloud_region=cloud_region, tenant=tenant)
-    owning_entity = OwningEntity(name="test_owning_entity")
-    project = Project(name="test_project")
+    owning_entity = "test_owning_entity"
+    project = "test_project"
 
     # Service instantiation
     service._distributed = True
     assert len(list(service_subscription.service_instances)) == 0
-    service_instantiation_request = ServiceInstantiation.instantiate_so_ala_carte(
+    service_instantiation_request = ServiceInstantiation.instantiate_ala_carte(
         service,
         cloud_region,
         tenant,
@@ -143,13 +143,13 @@ def test_a_la_carte_vl_instantiation():
     )
     tenant = cloud_region.get_tenant(tenant_id="test_tenant_name")
     service_subscription.link_to_cloud_region_and_tenant(cloud_region=cloud_region, tenant=tenant)
-    owning_entity = OwningEntity(name="test_owning_entity")
-    project = Project(name="test_project")
+    owning_entity = "test_owning_entity"
+    project = "test_project"
 
     # Service instantiation
     service._distributed = True
     assert len(list(service_subscription.service_instances)) == 0
-    service_instantiation_request = ServiceInstantiation.instantiate_so_ala_carte(
+    service_instantiation_request = ServiceInstantiation.instantiate_ala_carte(
         service,
         cloud_region,
         tenant,

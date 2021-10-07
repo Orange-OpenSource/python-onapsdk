@@ -376,8 +376,8 @@ class VnfInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-many-a
                 vnf=vnf_object,
                 service=sdc_service,
                 cloud_region=cloud_region or \
-                    aai_service_instance.service_subscription.cloud_region,
-                tenant=tenant or aai_service_instance.service_subscription.tenant,
+                    next(aai_service_instance.service_subscription.cloud_regions),
+                tenant=tenant or next(aai_service_instance.service_subscription.tenants),
                 line_of_business=line_of_business,
                 platform=platform,
                 service_instance=aai_service_instance,
@@ -676,8 +676,8 @@ class NetworkInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-ma
                 network=network_object,
                 service=sdc_service,
                 cloud_region=cloud_region or \
-                    aai_service_instance.service_subscription.cloud_region,
-                tenant=tenant or aai_service_instance.service_subscription.tenant,
+                    next(aai_service_instance.service_subscription.cloud_regions),
+                tenant=tenant or next(aai_service_instance.service_subscription.tenants),
                 line_of_business=line_of_business,
                 platform=platform,
                 service_instance=aai_service_instance,
