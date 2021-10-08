@@ -8,3 +8,11 @@
     "modelCustomizationId": "{{ vnf.metadata["customizationUUID"] }}",
     "modelCustomizationName": "{{ vnf.name }}"
 {% endblock %}
+{% block user_params %}
+{% for parameter in vnf_parameters %}
+{
+    "name": "{{ parameter.name }}",
+    "value": "{{ parameter.value }}"
+}{% if not loop.last %},{% endif %}
+{% endfor %}
+{% endblock %}

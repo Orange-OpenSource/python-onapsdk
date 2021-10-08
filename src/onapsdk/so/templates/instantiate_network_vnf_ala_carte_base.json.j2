@@ -11,7 +11,9 @@
             {% block model_info %}{% endblock %}
         },
         "requestParameters": {
-            "userParams": [],
+            "userParams": [
+                {% block user_params %}{% endblock %}
+            ],
             "aLaCarte": true,
             "testApi": "GR_API"
         },
