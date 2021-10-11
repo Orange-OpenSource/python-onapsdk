@@ -61,10 +61,10 @@
                                         "modelVersion":"1.0"
                                     },
                                     "platform":{
-                                        "platformName":"{{ platform.name }}"
+                                        "platformName":"{{ platform }}"
                                     },
                                     "lineOfBusiness":{
-                                        "lineOfBusinessName":"{{ line_of_business.name }}"
+                                        "lineOfBusinessName":"{{ line_of_business }}"
                                     },
                                     "productFamilyId":"{{ aai_service.service_id }}",
                                     "instanceParams":[],
@@ -93,10 +93,10 @@
                                         "lcpCloudRegionId": "{{ cloud_region.cloud_region_id }}"
                                     },
                                     "platform": {
-                                        "platformName": "{{ platform.name }}"
+                                        "platformName": "{{ platform }}"
                                     },
                                     "lineOfBusiness": {
-                                        "lineOfBusinessName": "{{ line_of_business.name }}"
+                                        "lineOfBusinessName": "{{ line_of_business }}"
                                     },
                                     "productFamilyId": "1234",
                                     "instanceName": "{{ vnf.metadata["name"] }}",
@@ -161,7 +161,7 @@
             "aLaCarte": false
         },
         "project": {
-            "projectName": "{{ project.name }}"
+            "projectName": "{{ project }}"
         },
         "owningEntity": {
             "owningEntityId": "{{ owning_entity.owning_entity_id }}",

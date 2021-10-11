@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """VID module."""
 from abc import ABC
+from warnings import warn
 
 from onapsdk.configuration import settings
 from onapsdk.onap_service import OnapService
@@ -21,6 +22,8 @@ class Vid(OnapService, ABC):
         Args:
             name (str): Resource name
         """
+        warn("VID is deprecated and shouldn't be used! "
+             "It's not a part of the ONAP release since Istanbul.")
         super().__init__()
         self.name: str = name
 
@@ -44,6 +47,8 @@ class Vid(OnapService, ABC):
             Vid: Created VID resource
 
         """
+        warn("VID is deprecated and shouldn't be used! "
+             "It's not a part of the ONAP release since Istanbul.")
         cls.send_message(
             "POST",
             f"Declare VID resource with {name} name",
@@ -66,6 +71,8 @@ class OwningEntity(Vid):
             str: Url used for ownint entity creation
 
         """
+        warn("VID is deprecated and shouldn't be used! "
+             "It's not a part of the ONAP release since Istanbul.")
         return f"{cls.base_url}{cls.api_version}/maintenance/category_parameter/owningEntity"
 
 
@@ -80,6 +87,8 @@ class Project(Vid):
             str: Url used for project creation
 
         """
+        warn("VID is deprecated and shouldn't be used! "
+             "It's not a part of the ONAP release since Istanbul.")
         return f"{cls.base_url}{cls.api_version}/maintenance/category_parameter/project"
 
 
@@ -94,6 +103,8 @@ class LineOfBusiness(Vid):
             str: Url used for line of business creation
 
         """
+        warn("VID is deprecated and shouldn't be used! "
+             "It's not a part of the ONAP release since Istanbul.")
         return f"{cls.base_url}{cls.api_version}/maintenance/category_parameter/lineOfBusiness"
 
 
@@ -108,4 +119,6 @@ class Platform(Vid):
             str: Url used for platform creation
 
         """
+        warn("VID is deprecated and shouldn't be used! "
+             "It's not a part of the ONAP release since Istanbul.")
         return f"{cls.base_url}{cls.api_version}/maintenance/category_parameter/platform"
