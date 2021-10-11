@@ -11,6 +11,8 @@
 			"testApi": "GR_API",
 			"aLaCarte": {{ a_la_carte | tojson }}
 		},
+		{# the code below is needed to be refactored #}
+		{# https://gitlab.com/Orange-OpenSource/lfn/onap/python-onapsdk/-/issues/133 #}
         "cloudConfiguration": {
             "cloudOwner": "{{ network_instance.service_instance.service_subscription.cloud_region.cloud_owner }}",
             "lcpCloudRegionId": "{{ network_instance.service_instance.service_subscription.cloud_region.cloud_region_id }}",
