@@ -21,31 +21,31 @@ def test_service_ala_carte_instantiation(mock_service_instantiation_send_message
     mock_sdc_service.distributed = False
     with pytest.raises(StatusError):
         ServiceInstantiation.\
-            instantiate_so_ala_carte(sdc_service=mock_sdc_service,
-                                    cloud_region=mock.MagicMock(),
-                                    tenant=mock.MagicMock(),
-                                    customer=mock.MagicMock(),
-                                    owning_entity=mock.MagicMock(),
-                                    project=mock.MagicMock(),
-                                    service_instance_name="test")
+            instantiate_ala_carte(sdc_service=mock_sdc_service,
+                                  cloud_region=mock.MagicMock(),
+                                  tenant=mock.MagicMock(),
+                                  customer=mock.MagicMock(),
+                                  owning_entity=mock.MagicMock(),
+                                  project=mock.MagicMock(),
+                                  service_instance_name="test")
     mock_sdc_service.distributed = True
     service_instance = ServiceInstantiation.\
-            instantiate_so_ala_carte(sdc_service=mock_sdc_service,
-                                    cloud_region=mock.MagicMock(),
-                                    tenant=mock.MagicMock(),
-                                    customer=mock.MagicMock(),
-                                    owning_entity=mock.MagicMock(),
-                                    project=mock.MagicMock(),
-                                    service_instance_name="test")
+            instantiate_ala_carte(sdc_service=mock_sdc_service,
+                                  cloud_region=mock.MagicMock(),
+                                  tenant=mock.MagicMock(),
+                                  customer=mock.MagicMock(),
+                                  owning_entity=mock.MagicMock(),
+                                  project=mock.MagicMock(),
+                                  service_instance_name="test")
     assert service_instance.name == "test"
 
     service_instance = ServiceInstantiation.\
-            instantiate_so_ala_carte(sdc_service=mock_sdc_service,
-                                    cloud_region=mock.MagicMock(),
-                                    tenant=mock.MagicMock(),
-                                    customer=mock.MagicMock(),
-                                    owning_entity=mock.MagicMock(),
-                                    project=mock.MagicMock())
+            instantiate_ala_carte(sdc_service=mock_sdc_service,
+                                  cloud_region=mock.MagicMock(),
+                                  tenant=mock.MagicMock(),
+                                  customer=mock.MagicMock(),
+                                  owning_entity=mock.MagicMock(),
+                                  project=mock.MagicMock())
     assert service_instance.name.startswith("Python_ONAP_SDK_service_instance_")
     mock_service_instantiation_send_message.assert_called()
     method, _, url = mock_service_instantiation_send_message.call_args[0]
@@ -132,34 +132,8 @@ def test_vnf_instantiation(mock_vnf_instantiation_send_message):
     vnf_instantiation = VnfInstantiation.\
         instantiate_ala_carte(aai_service_instance=aai_service_instance_mock,
                               vnf_object=mock.MagicMock(),
-                              line_of_business_object=mock.MagicMock(),
-                              platform_object=mock.MagicMock())
-    assert vnf_instantiation.name.startswith("Python_ONAP_SDK_vnf_instance_")
-    mock_vnf_instantiation_send_message.assert_called_once()
-    method, _, url = mock_vnf_instantiation_send_message.call_args[0]
-    assert method == "POST"
-    assert url == (f"{VnfInstantiation.base_url}/onap/so/infra/serviceInstantiation/"
-                   f"{VnfInstantiation.api_version}/serviceInstances/"
-                   f"{aai_service_instance_mock.instance_id}/vnfs")
-
-    vnf_instantiation = VnfInstantiation.\
-        instantiate_ala_carte(aai_service_instance=aai_service_instance_mock,
-                              vnf_object=mock.MagicMock(),
-                              line_of_business_object=mock.MagicMock(),
-                              platform_object=mock.MagicMock(),
-                              vnf_instance_name="test")
-    assert vnf_instantiation.name == "test"
-
-
-@mock.patch.object(VnfInstantiation, "send_message_json")
-def test_vnf_instantiation_with_cr_and_tenant(mock_vnf_instantiation_send_message):
-    aai_service_instance_mock = mock.MagicMock()
-    aai_service_instance_mock.instance_id = "test_instance_id"
-    vnf_instantiation = VnfInstantiation.\
-        instantiate_ala_carte(aai_service_instance=aai_service_instance_mock,
-                              vnf_object=mock.MagicMock(),
-                              line_of_business_object=mock.MagicMock(),
-                              platform_object=mock.MagicMock(),
+                              line_of_business="test_lob",
+                              platform="test_platform",
                               cloud_region=mock.MagicMock(),
                               tenant=mock.MagicMock())
     assert vnf_instantiation.name.startswith("Python_ONAP_SDK_vnf_instance_")
@@ -173,8 +147,38 @@ def test_vnf_instantiation_with_cr_and_tenant(mock_vnf_instantiation_send_messag
     vnf_instantiation = VnfInstantiation.\
         instantiate_ala_carte(aai_service_instance=aai_service_instance_mock,
                               vnf_object=mock.MagicMock(),
-                              line_of_business_object=mock.MagicMock(),
-                              platform_object=mock.MagicMock(),
+                              line_of_business="test_lob",
+                              platform="test_platform",
+                              vnf_instance_name="test",
+                              cloud_region=mock.MagicMock(),
+                              tenant=mock.MagicMock())
+    assert vnf_instantiation.name == "test"
+
+
+@mock.patch.object(VnfInstantiation, "send_message_json")
+def test_vnf_instantiation_with_cr_and_tenant(mock_vnf_instantiation_send_message):
+    aai_service_instance_mock = mock.MagicMock()
+    aai_service_instance_mock.instance_id = "test_instance_id"
+    vnf_instantiation = VnfInstantiation.\
+        instantiate_ala_carte(aai_service_instance=aai_service_instance_mock,
+                              vnf_object=mock.MagicMock(),
+                              line_of_business="test_lob",
+                              platform="test_platform",
+                              cloud_region=mock.MagicMock(),
+                              tenant=mock.MagicMock())
+    assert vnf_instantiation.name.startswith("Python_ONAP_SDK_vnf_instance_")
+    mock_vnf_instantiation_send_message.assert_called_once()
+    method, _, url = mock_vnf_instantiation_send_message.call_args[0]
+    assert method == "POST"
+    assert url == (f"{VnfInstantiation.base_url}/onap/so/infra/serviceInstantiation/"
+                   f"{VnfInstantiation.api_version}/serviceInstances/"
+                   f"{aai_service_instance_mock.instance_id}/vnfs")
+
+    vnf_instantiation = VnfInstantiation.\
+        instantiate_ala_carte(aai_service_instance=aai_service_instance_mock,
+                              vnf_object=mock.MagicMock(),
+                              line_of_business="test_lob",
+                              platform="test_platform",
                               cloud_region=mock.MagicMock(),
                               tenant=mock.MagicMock(),
                               vnf_instance_name="test")
@@ -189,37 +193,8 @@ def test_network_instantiation(mock_network_preload, mock_network_instantiation_
     vnf_instantiation = NetworkInstantiation.\
         instantiate_ala_carte(aai_service_instance=aai_service_instance_mock,
                               network_object=mock.MagicMock(),
-                              line_of_business_object=mock.MagicMock(),
-                              platform_object=mock.MagicMock())
-    mock_network_preload.assert_called_once()
-    assert vnf_instantiation.name.startswith("Python_ONAP_SDK_network_instance_")
-    mock_network_instantiation_send_message.assert_called_once()
-    method, _, url = mock_network_instantiation_send_message.call_args[0]
-    assert method == "POST"
-    assert url == (f"{NetworkInstantiation.base_url}/onap/so/infra/serviceInstantiation/"
-                   f"{NetworkInstantiation.api_version}/serviceInstances/"
-                   f"{aai_service_instance_mock.instance_id}/networks")
-
-    network_instantiation = NetworkInstantiation.\
-        instantiate_ala_carte(aai_service_instance=aai_service_instance_mock,
-                              network_object=mock.MagicMock(),
-                              line_of_business_object=mock.MagicMock(),
-                              platform_object=mock.MagicMock(),
-                              network_instance_name="test")
-    assert mock_network_preload.call_count == 2
-    assert network_instantiation.name == "test"
-
-
-@mock.patch.object(NetworkInstantiation, "send_message_json")
-@mock.patch.object(NetworkPreload, "send_message_json")
-def test_network_instantiation_with_cr_and_tenant(mock_network_preload, mock_network_instantiation_send_message):
-    aai_service_instance_mock = mock.MagicMock()
-    aai_service_instance_mock.instance_id = "test_instance_id"
-    vnf_instantiation = NetworkInstantiation.\
-        instantiate_ala_carte(aai_service_instance=aai_service_instance_mock,
-                              network_object=mock.MagicMock(),
-                              line_of_business_object=mock.MagicMock(),
-                              platform_object=mock.MagicMock(),
+                              line_of_business="test_lob",
+                              platform="test_platform",
                               cloud_region=mock.MagicMock(),
                               tenant=mock.MagicMock())
     mock_network_preload.assert_called_once()
@@ -234,8 +209,41 @@ def test_network_instantiation_with_cr_and_tenant(mock_network_preload, mock_net
     network_instantiation = NetworkInstantiation.\
         instantiate_ala_carte(aai_service_instance=aai_service_instance_mock,
                               network_object=mock.MagicMock(),
-                              line_of_business_object=mock.MagicMock(),
-                              platform_object=mock.MagicMock(),
+                              line_of_business="test_lob",
+                              platform="test_platform",
+                              network_instance_name="test",
+                              cloud_region=mock.MagicMock(),
+                              tenant=mock.MagicMock())
+    assert mock_network_preload.call_count == 2
+    assert network_instantiation.name == "test"
+
+
+@mock.patch.object(NetworkInstantiation, "send_message_json")
+@mock.patch.object(NetworkPreload, "send_message_json")
+def test_network_instantiation_with_cr_and_tenant(mock_network_preload, mock_network_instantiation_send_message):
+    aai_service_instance_mock = mock.MagicMock()
+    aai_service_instance_mock.instance_id = "test_instance_id"
+    vnf_instantiation = NetworkInstantiation.\
+        instantiate_ala_carte(aai_service_instance=aai_service_instance_mock,
+                              network_object=mock.MagicMock(),
+                              line_of_business=mock.MagicMock(),
+                              platform=mock.MagicMock(),
+                              cloud_region=mock.MagicMock(),
+                              tenant=mock.MagicMock())
+    mock_network_preload.assert_called_once()
+    assert vnf_instantiation.name.startswith("Python_ONAP_SDK_network_instance_")
+    mock_network_instantiation_send_message.assert_called_once()
+    method, _, url = mock_network_instantiation_send_message.call_args[0]
+    assert method == "POST"
+    assert url == (f"{NetworkInstantiation.base_url}/onap/so/infra/serviceInstantiation/"
+                   f"{NetworkInstantiation.api_version}/serviceInstances/"
+                   f"{aai_service_instance_mock.instance_id}/networks")
+
+    network_instantiation = NetworkInstantiation.\
+        instantiate_ala_carte(aai_service_instance=aai_service_instance_mock,
+                              network_object=mock.MagicMock(),
+                              line_of_business="test_lob",
+                              platform="test_platform",
                               cloud_region=mock.MagicMock(),
                               tenant=mock.MagicMock(),
                               network_instance_name="test")
@@ -378,7 +386,9 @@ def test_vf_module_instantiation(mock_vf_module_preload, mock_send_message_json)
     mock_vnf_instance.vnf_id = "4321"
     instantiation = VfModuleInstantiation.\
         instantiate_ala_carte(vf_module=mock.MagicMock(),
-                              vnf_instance=mock_vnf_instance)
+                              vnf_instance=mock_vnf_instance,
+                              cloud_region=mock.MagicMock(),
+                              tenant=mock.MagicMock())
     assert instantiation.name.startswith("Python_ONAP_SDK_vf_module_instance_")
     mock_send_message_json.assert_called_once()
     method, _, url = mock_send_message_json.call_args[0]
@@ -390,7 +400,9 @@ def test_vf_module_instantiation(mock_vf_module_preload, mock_send_message_json)
     instantiation = VfModuleInstantiation.\
         instantiate_ala_carte(vf_module=mock.MagicMock(),
                               vnf_instance=mock_vnf_instance,
-                              vf_module_instance_name="test")
+                              vf_module_instance_name="test",
+                              cloud_region=mock.MagicMock(),
+                              tenant=mock.MagicMock())
     assert instantiation.name == "test"
 
 

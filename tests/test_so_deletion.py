@@ -53,7 +53,6 @@ def test_vnf_deletion_request(mock_send_message):
     mock_service_instance = mock.MagicMock()
     mock_service_instance.instance_id = "test_service_instance"
     mock_vnf_instance.service_instance = mock_service_instance
-
     VnfDeletionRequest.send_request(instance=mock_vnf_instance)
     mock_send_message.assert_called_once()
     method, _, url = mock_send_message.call_args[0]
