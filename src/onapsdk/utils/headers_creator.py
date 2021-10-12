@@ -215,6 +215,6 @@ def headers_clamp_creator(base_header: Dict[str, str]):
     """
     headers = base_header.copy()
     headers["Authorization"] = \
-        "Basic ZGVtbzpkZW1vMTIzNDU2IQ=="
+        "Basic ZGVtb0BwZW9wbGUub3NhYWYub3JnOmRlbW8xMjM0NTYh"
     headers["X-ECOMP-InstanceID"] = "onapsdk"
     return headers
