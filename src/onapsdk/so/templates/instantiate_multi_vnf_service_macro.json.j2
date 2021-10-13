@@ -1,0 +1,85 @@
+{% extends "instantiate_service_macro.json.j2" %}
+
+{% block subscriptionServiceType %}
+    "subscriptionServiceType": "{{ so_service.subscription_service_type }}",
+{% endblock %}
+
+{% block vnfs %}
+    {% if so_service.vnfs %}
+    "vnfs": [
+        {% for vnf in so_service.vnfs %}
+        {
+            "modelInfo": {
+                {% for sdc_vnf in sdc_service.vnfs %}
+                {% if sdc_vnf.metadata["name"] == vnf.model_name %}
+                "modelName": "{{ sdc_vnf.metadata["name"] }}",
+                "modelVersionId": "{{ sdc_vnf.metadata["UUID"] }}",
+                "modelInvariantUuid": "{{ sdc_vnf.metadata["invariantUUID"] }}",
+                "modelVersion": "{{ sdc_vnf.metadata["version"] }}",
+                "modelCustomizationId": "{{ sdc_vnf.metadata["customizationUUID"] }}",
+                "modelInstanceName": "{{ sdc_vnf.metadata["name"] }}"
+                {% endif %}
+                {% endfor %}
+            },
+            "cloudConfiguration": {
+                "tenantId": "{{ tenant.tenant_id }}",
+                "cloudOwner": "{{ cloud_region.cloud_owner }}",
+                "lcpCloudRegionId": "{{ cloud_region.cloud_region_id }}"
+            },
+            "platform": {
+                "platformName": "{{ platform.name }}"
+            },
+            "lineOfBusiness": {
+                "lineOfBusinessName": "{{ line_of_business.name }}"
+            },
+            "productFamilyId": "1234",
+            "instanceName": "{{ vnf.vnf_name }}",
+            "instanceParams": [
+                {
+                    {% for key, value in vnf.parameters.items() %}
+                    "{{ key }}": "{{ value }}"{% if not loop.last %},{% endif %}
+                    {% endfor %}
+                }
+            ],
+            {% if vnf.processing_priority %}
+            "processingPriority": "{{ vnf.processing_priority }}",
+            {% endif %}
+            "vfModules": [
+                {% for vf_module in vnf.vf_modules %}
+                {
+                    "modelInfo": {
+                        {% for sdc_vnf in sdc_service.vnfs %}
+                        {% if sdc_vnf.metadata["name"] == vnf.model_name %}
+                        {% for sdc_vf_module in sdc_vnf.vf_modules %}
+                        {% set mylist = sdc_vf_module.name.split('..') %}
+                        {% set item = mylist|length-2 %}
+                        {% if vf_module.model_name == mylist[item] %}
+                        "modelName": "{{ sdc_vf_module.metadata["vfModuleModelName"] }}",
+                        "modelVersionId": "{{ sdc_vf_module.metadata["vfModuleModelUUID"] }}",
+                        "modelInvariantUuid": "{{ sdc_vf_module.metadata["vfModuleModelInvariantUUID"] }}",
+                        "modelVersion": "{{ sdc_vf_module.metadata["vfModuleModelVersion"] }}",
+                        "modelCustomizationId": "{{ sdc_vf_module.metadata["vfModuleModelCustomizationUUID"] }}"
+                        {% endif %}
+                        {% endfor %}
+                        {% endif %}
+                        {% endfor %}
+                    },
+                    "instanceName": "{{ service_instance_name }}_{{ vf_module.vf_module_name }}",
+                    {% if vf_module.processing_priority %}
+                    "processingPriority": "{{ vf_module.processing_priority }}",
+                    {% endif %}
+                    "instanceParams": [
+                        {
+                            {% for key, value in vf_module.parameters.items() %}
+                            "{{ key }}": "{{ value }}"{% if not loop.last %},{% endif %}
+                            {% endfor %}
+                        }
+                    ]
+                }{% if not loop.last %},{% endif %}
+                {% endfor %}
+            ]
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ]
+    {% endif %}
+{% endblock %}
