@@ -11,7 +11,9 @@
             {% block model_info %}{% endblock %}
         },
         "requestParameters": {
-            "userParams": [],
+            "userParams": [
+                {% block user_params %}{% endblock %}
+            ],
             "aLaCarte": true,
             "testApi": "GR_API"
         },
@@ -21,10 +23,10 @@
             "lcpCloudRegionId": "{{ cloud_region.cloud_region_id }}"
         },
         "lineOfBusiness": {
-            "lineOfBusinessName": "{{ line_of_business.name }}"
+            "lineOfBusinessName": "{{ line_of_business }}"
         },
         "platform": {
-            "platformName": "{{ platform.name }}"
+            "platformName": "{{ platform }}"
         },
         "relatedInstanceList": [{
             "relatedInstance": {

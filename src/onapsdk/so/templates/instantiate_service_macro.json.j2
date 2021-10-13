@@ -29,7 +29,9 @@
             "globalSubscriberId": "{{ customer.global_customer_id }}"
         },
         "requestParameters": {
+            {% block subscriptionServiceType %}
             "subscriptionServiceType": "{{ sdc_service.name }}",
+            {% endblock %}
             "userParams": [
                 {
                     "Homing_Solution": "none"
@@ -47,12 +49,11 @@
                         "resources": {
                             {% if sdc_service.pnfs %}
                             "pnfs":[
-                                {% for sdc_component in sdc_service.components  %}
-                                {% if sdc_component.origin_type == 'PNF' %}
+                                {% for pnf in sdc_service.pnfs  %}
                                 {
                                     "modelInfo":{
-                                        "modelCustomizationName":"{{ sdc_component.name }}",
-                                        "modelCustomizationId":"{{ sdc_component.customization_uuid }}",
+                                        "modelCustomizationName":"{{ pnf.name }}",
+                                        "modelCustomizationId":"{{ pnf.metadata["customizationUUID"] }}",
                                         "modelInvariantId":"{{ sdc_service.unique_uuid }}",
                                         "modelVersionId":"{{ sdc_service.identifier }}",
                                         "modelName":"{{ sdc_service.name }}",
@@ -60,20 +61,20 @@
                                         "modelVersion":"1.0"
                                     },
                                     "platform":{
-                                        "platformName":"{{ platform.name }}"
+                                        "platformName":"{{ platform }}"
                                     },
                                     "lineOfBusiness":{
-                                        "lineOfBusinessName":"{{ line_of_business.name }}"
+                                        "lineOfBusinessName":"{{ line_of_business }}"
                                     },
                                     "productFamilyId":"{{ aai_service.service_id }}",
                                     "instanceParams":[],
                                     "instanceName":"{{ service_instance_name }}"
                                 }{% if not loop.last %},{% endif %}
-                                {% endif %}
                                 {% endfor %}
                             ]
                                 {% if sdc_service.vnfs %},{% endif %}
                             {% endif %}
+                            {% block vnfs %}
                             {% if sdc_service.vnfs %}
                             "vnfs": [
                                 {% for vnf in sdc_service.vnfs %}
@@ -92,10 +93,10 @@
                                         "lcpCloudRegionId": "{{ cloud_region.cloud_region_id }}"
                                     },
                                     "platform": {
-                                        "platformName": "{{ platform.name }}"
+                                        "platformName": "{{ platform }}"
                                     },
                                     "lineOfBusiness": {
-                                        "lineOfBusinessName": "{{ line_of_business.name }}"
+                                        "lineOfBusinessName": "{{ line_of_business }}"
                                     },
                                     "productFamilyId": "1234",
                                     "instanceName": "{{ vnf.metadata["name"] }}",
@@ -145,6 +146,7 @@
                                 {% endfor %}
                             ]
                             {% endif %}
+                            {% endblock %}
                         },
                         "modelInfo": {
                             "modelVersion": "1.0",
@@ -159,7 +161,7 @@
             "aLaCarte": false
         },
         "project": {
-            "projectName": "{{ project.name }}"
+            "projectName": "{{ project }}"
         },
         "owningEntity": {
             "owningEntityId": "{{ owning_entity.owning_entity_id }}",

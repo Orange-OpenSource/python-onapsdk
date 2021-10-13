@@ -5,15 +5,14 @@ from uuid import uuid4
 import pytest
 import requests
 from onapsdk.exceptions import StatusError
-from onapsdk.aai.business import Customer, ServiceInstance, ServiceSubscription, VnfInstance
-from onapsdk.aai.cloud_infrastructure import CloudRegion, Tenant
+from onapsdk.aai.business import Customer, ServiceSubscription
+from onapsdk.aai.cloud_infrastructure import CloudRegion
 from onapsdk.configuration import settings
-from onapsdk.sdnc.preload import VfModulePreload
-from onapsdk.sdc.service import Service
+from onapsdk.sdc.service import Service, Vnf, VfModule
 from onapsdk.so.deletion import ServiceDeletionRequest, VfModuleDeletionRequest, VnfDeletionRequest
 from onapsdk.so.instantiation import (ServiceInstantiation,
-                                      VfModuleInstantiation, VnfInstantiation)
-from onapsdk.vid import LineOfBusiness, OwningEntity, Platform, Project
+                                      VfModuleInstantiation, VnfInstantiation, InstantiationParameter,
+                                      VfmoduleParameters, VnfParameters)
 
 
 @pytest.mark.integration
@@ -39,13 +38,13 @@ def test_a_la_carte_instantiation():
     )
     tenant = cloud_region.get_tenant(tenant_id="test_tenant_name")
     service_subscription.link_to_cloud_region_and_tenant(cloud_region=cloud_region, tenant=tenant)
-    owning_entity = OwningEntity(name="test_owning_entity")
-    project = Project(name="test_project")
+    owning_entity = "test_owning_entity"
+    project = "test_project"
 
     # Service instantiation
     service._distributed = True
     assert len(list(service_subscription.service_instances)) == 0
-    service_instantiation_request = ServiceInstantiation.instantiate_so_ala_carte(
+    service_instantiation_request = ServiceInstantiation.instantiate_ala_carte(
         service,
         cloud_region,
         tenant,
@@ -61,11 +60,11 @@ def test_a_la_carte_instantiation():
     # Vnf instantiation
     service_instance = next(service_subscription.service_instances)
     assert len(list(service_instance.vnf_instances)) == 0
-    owning_entity = OwningEntity(name="test_owning_entity")
-    project = Project(name="test_project")
+    owning_entity = "test_owning_entity"
+    project = "test_project"
     vnf = MagicMock()
-    line_of_business = LineOfBusiness(name="test_line_of_business")
-    platform = Platform(name="test_platform")
+    line_of_business = "test_line_of_business"
+    platform = "test_platform"
     with pytest.raises(StatusError):
         service_instance.add_vnf(
             vnf,
@@ -144,13 +143,13 @@ def test_a_la_carte_vl_instantiation():
     )
     tenant = cloud_region.get_tenant(tenant_id="test_tenant_name")
     service_subscription.link_to_cloud_region_and_tenant(cloud_region=cloud_region, tenant=tenant)
-    owning_entity = OwningEntity(name="test_owning_entity")
-    project = Project(name="test_project")
+    owning_entity = "test_owning_entity"
+    project = "test_project"
 
     # Service instantiation
     service._distributed = True
     assert len(list(service_subscription.service_instances)) == 0
-    service_instantiation_request = ServiceInstantiation.instantiate_so_ala_carte(
+    service_instantiation_request = ServiceInstantiation.instantiate_ala_carte(
         service,
         cloud_region,
         tenant,
@@ -166,11 +165,11 @@ def test_a_la_carte_vl_instantiation():
     # Network instantiation
     service_instance = next(service_subscription.service_instances)
     assert len(list(service_instance.network_instances)) == 0
-    owning_entity = OwningEntity(name="test_owning_entity")
-    project = Project(name="test_project")
+    owning_entity = "test_owning_entity"
+    project = "test_project"
     network = MagicMock()
-    line_of_business = LineOfBusiness(name="test_line_of_business")
-    platform = Platform(name="test_platform")
+    line_of_business = "test_line_of_business"
+    platform = "test_platform"
     with pytest.raises(AttributeError):
         service_instance.network(
             network,
@@ -188,3 +187,226 @@ def test_a_la_carte_vl_instantiation():
     network_instantiation_request.wait_for_finish()
     assert network_instantiation_request.status == VnfInstantiation.StatusEnum.COMPLETED
     assert len(list(service_instance.network_instances)) == 1
+
+
+@pytest.mark.integration
+def test_instantiate_macro():
+    requests.get(f"{ServiceInstantiation.base_url}/reset")
+    requests.get(f"{Customer.base_url}/reset")
+    requests.post(f"{ServiceInstantiation.base_url}/set_aai_mock", json={"AAI_MOCK": settings.AAI_URL})
+
+    customer = Customer.create(global_customer_id="test_global_customer_id",
+                               subscriber_name="test_subscriber_name",
+                               subscriber_type="test_subscriber_type")
+    service = Service("test_service")
+    service._tosca_template = "n/a"
+    service._vnfs = [
+        Vnf(
+            name="test_vnf",
+            node_template_type="vf",
+            metadata={
+                "name": "test_vnf_model",
+                "UUID": str(uuid4()),
+                "invariantUUID": str(uuid4()),
+                "version": "1.0",
+                "customizationUUID": str(uuid4())
+            },
+            properties={},
+            capabilities={},
+            vf_modules=[
+                VfModule(
+                    name="TestVnfModel..base..module-0",
+                    group_type="vf-module",
+                    metadata={
+                        "vfModuleModelName": "TestVnfModel..base..module-0",
+                        "vfModuleModelUUID": str(uuid4()),
+                        "vfModuleModelInvariantUUID": str(uuid4()),
+                        "vfModuleModelVersion": "1",
+                        "vfModuleModelCustomizationUUID": str(uuid4())
+                    },
+                    properties={}
+                )
+            ]
+        )
+    ]
+    service.unique_uuid = str(uuid4())
+    service.identifier = str(uuid4())
+    service.name = str(uuid4())
+    customer.subscribe_service(service)
+    service_subscription = customer.get_service_subscription_by_service_type(service.name)
+    cloud_region = CloudRegion.create(
+        "test_owner", "test_cloud_region", orchestration_disabled=True, in_maint=False
+    )
+    cloud_region.add_tenant(
+        tenant_id="test_tenant_name", tenant_name="test_tenant_name", tenant_context="test_tenant_context"
+    )
+    tenant = cloud_region.get_tenant(tenant_id="test_tenant_name")
+    service_subscription.link_to_cloud_region_and_tenant(cloud_region=cloud_region, tenant=tenant)
+    owning_entity = "test_owning_entity"
+    project = "test_project"
+    line_of_business = "test_line_of_business"
+    platform = "test_platform"
+
+    vfm_instance_params = [
+        InstantiationParameter(name="vfm_param", value="vfm_param_value"),
+
+    ]
+    vfm_params = VfmoduleParameters("base", vfm_instance_params)
+
+    vnf_instance_params = [
+        InstantiationParameter(name="vnf_param", value="vnf_param_value")
+    ]
+
+    vnf_params = VnfParameters("test_vnf_model", vnf_instance_params, [vfm_params])
+
+    # Service instantiation
+    service._distributed = True
+    assert len(list(service_subscription.service_instances)) == 0
+    service_instantiation_request = ServiceInstantiation.instantiate_macro(
+        sdc_service=service,
+        customer=customer,
+        owning_entity=owning_entity,
+        project=project,
+        line_of_business=line_of_business,
+        platform=platform,
+        cloud_region=cloud_region,
+        tenant=tenant,
+        vnf_parameters=[vnf_params]
+    )
+    assert service_instantiation_request.status == ServiceInstantiation.StatusEnum.IN_PROGRESS
+    time.sleep(2)  # After 1 second mocked server changed request status to complete
+    assert service_instantiation_request.status == ServiceInstantiation.StatusEnum.COMPLETED
+    assert len(list(service_subscription.service_instances)) == 1
+    service_instance = next(service_subscription.service_instances)
+
+    # Cleanup
+    with patch.object(ServiceSubscription, "sdc_service", return_value=service) as service_mock:
+        service_deletion_request = service_instance.delete()
+    assert service_deletion_request.status == ServiceDeletionRequest.StatusEnum.IN_PROGRESS
+    time.sleep(2)  # After 1 second mocked server changed request status to complete
+    assert service_deletion_request.status == ServiceDeletionRequest.StatusEnum.COMPLETED
+    assert len(list(service_subscription.service_instances)) == 0
+
+@pytest.mark.integration
+def test_instantiate_macro_multiple_vnf():
+    requests.get(f"{ServiceInstantiation.base_url}/reset")
+    requests.get(f"{Customer.base_url}/reset")
+    requests.post(f"{ServiceInstantiation.base_url}/set_aai_mock", json={"AAI_MOCK": settings.AAI_URL})
+
+    customer = Customer.create(global_customer_id="test_global_customer_id",
+                               subscriber_name="test_subscriber_name",
+                               subscriber_type="test_subscriber_type")
+    service = Service("test_service")
+    service._tosca_template = "n/a"
+    service._vnfs = [
+        Vnf(
+            name="test_vnf",
+            node_template_type="vf",
+            metadata={
+                "name": "test_vnf_model",
+                "UUID": str(uuid4()),
+                "invariantUUID": str(uuid4()),
+                "version": "1.0",
+                "customizationUUID": str(uuid4())
+            },
+            properties={},
+            capabilities={},
+            vf_modules=[
+                VfModule(
+                    name="TestVnfModel..base..module-0",
+                    group_type="vf-module",
+                    metadata={
+                        "vfModuleModelName": "TestVnfModel..base..module-0",
+                        "vfModuleModelUUID": str(uuid4()),
+                        "vfModuleModelInvariantUUID": str(uuid4()),
+                        "vfModuleModelVersion": "1",
+                        "vfModuleModelCustomizationUUID": str(uuid4())
+                    },
+                    properties={}
+                )
+            ]
+        )
+    ]
+    service.unique_uuid = str(uuid4())
+    service.identifier = str(uuid4())
+    service.name = str(uuid4())
+    customer.subscribe_service(service)
+    service_subscription = customer.get_service_subscription_by_service_type(service.name)
+    cloud_region = CloudRegion.create(
+        "test_owner", "test_cloud_region", orchestration_disabled=True, in_maint=False
+    )
+    cloud_region.add_tenant(
+        tenant_id="test_tenant_name", tenant_name="test_tenant_name", tenant_context="test_tenant_context"
+    )
+    tenant = cloud_region.get_tenant(tenant_id="test_tenant_name")
+    service_subscription.link_to_cloud_region_and_tenant(cloud_region=cloud_region, tenant=tenant)
+    owning_entity = "test_owning_entity"
+    project = "test_project"
+    line_of_business = "test_line_of_business"
+    platform = "test_platform"
+
+    so_service = {
+        "subscription_service_type": service.name,
+        "vnfs": [
+            {
+                "model_name": "test_vnf_model",
+                "vnf_name": "vnf0",
+                "parameters": {
+                    "param1": "value1"
+                },
+                "vf_modules": [
+                    {
+                        "vf_module_name": "vnf0_vfm0",
+                        "model_name": "base",
+                        "parameters": {
+                            "vfm_param1": "vfm_value1"
+                        }
+                    }
+                ]
+            },
+            {
+                "model_name": "test_vnf_model",
+                "vnf_name": "vnf1",
+                "parameters": {
+                    "param2": "value2"
+                },
+                "vf_modules": [
+                    {
+                        "vf_module_name": "vnf1_vfm0",
+                        "model_name": "base",
+                        "parameters": {
+                            "vfm_param2": "vfm_value2"
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+
+    # Service instantiation
+    service._distributed = True
+    assert len(list(service_subscription.service_instances)) == 0
+    service_instantiation_request = ServiceInstantiation.instantiate_macro(
+        sdc_service=service,
+        customer=customer,
+        owning_entity=owning_entity,
+        project=project,
+        line_of_business=line_of_business,
+        platform=platform,
+        cloud_region=cloud_region,
+        tenant=tenant,
+        so_service=so_service
+    )
+    assert service_instantiation_request.status == ServiceInstantiation.StatusEnum.IN_PROGRESS
+    time.sleep(2)  # After 1 second mocked server changed request status to complete
+    assert service_instantiation_request.status == ServiceInstantiation.StatusEnum.COMPLETED
+    assert len(list(service_subscription.service_instances)) == 1
+    service_instance = next(service_subscription.service_instances)
+
+    # Cleanup
+    with patch.object(ServiceSubscription, "sdc_service", return_value=service) as service_mock:
+        service_deletion_request = service_instance.delete()
+    assert service_deletion_request.status == ServiceDeletionRequest.StatusEnum.IN_PROGRESS
+    time.sleep(2)  # After 1 second mocked server changed request status to complete
+    assert service_deletion_request.status == ServiceDeletionRequest.StatusEnum.COMPLETED
+    assert len(list(service_subscription.service_instances)) == 0
