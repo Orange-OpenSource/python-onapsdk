@@ -38,7 +38,7 @@ def test_platform_get_by_name(mock_send):
     Platform.get_by_name(name="test-name")
     mock_send.assert_called_once_with("GET",
                                       "Get test-name platform",
-                                      "https://aai.api.sparky.simpledemo.onap.org:30233/aai/v20/business/platforms/platform/test-name")
+                                      "https://aai.api.sparky.simpledemo.onap.org:30233/aai/v23/business/platforms/platform/test-name")
 
 
 @mock.patch("onapsdk.aai.business.platform.Platform.send_message")
@@ -47,5 +47,5 @@ def test_platform_create(_, mock_send):
     Platform.create(name="test-name")
     mock_send.assert_called_once_with("PUT",
                                       "Declare A&AI platform",
-                                      "https://aai.api.sparky.simpledemo.onap.org:30233/aai/v20/business/platforms/platform/test-name",
+                                      "https://aai.api.sparky.simpledemo.onap.org:30233/aai/v23/business/platforms/platform/test-name",
                                       data='{\n    "platform-name": "test-name"\n}')

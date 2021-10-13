@@ -8,7 +8,7 @@
 ######################
 
 AAI_URL     = "https://aai.api.sparky.simpledemo.onap.org:30233"
-AAI_API_VERSION = "v20"
+AAI_API_VERSION = "v23"
 CDS_URL     = "http://portal.api.simpledemo.onap.org:30449"
 MSB_URL     = "https://msb.api.simpledemo.onap.org:30283"
 SDC_BE_URL  = "https://sdc.api.be.simpledemo.onap.org:30204"
