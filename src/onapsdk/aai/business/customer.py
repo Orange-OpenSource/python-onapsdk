@@ -261,17 +261,17 @@ class ServiceSubscription(AaiElement):
             except ResourceNotFound:
                 self._logger.error("Can't get %s tenant", cr_data.tenant_id)
 
-    @property
-    def sdc_service(self) -> "SdcService":
-        """Sdc service.
+    # @property
+    # def sdc_service(self) -> "SdcService":
+    #     """Sdc service.
 
-        SDC service associated with service subscription.
+    #     SDC service associated with service subscription.
 
-        Returns:
-            SdcService: SdcService object
+    #     Returns:
+    #         SdcService: SdcService object
 
-        """
-        return SdcService(self.service_type)
+    #     """
+    #     return SdcService(self.service_type)
 
     def get_service_instance_by_id(self, service_instance_id) -> ServiceInstance:
         """Get service instance using it's ID.
@@ -546,7 +546,7 @@ class Customer(AaiElement):
             self._logger.error(
                 "API returned an error: %s", exc)
 
-    def subscribe_service(self, service: SdcService) -> "ServiceSubscription":
+    def subscribe_service(self, service: SdcService, service_type: str) -> "ServiceSubscription":
         """Create SDC Service subscription.
 
         If service is already subscribed it won't create a new resource but use the
@@ -554,9 +554,11 @@ class Customer(AaiElement):
 
         Args:
             service (SdcService): SdcService object to subscribe.
+            service_type (str): Value defined by orchestration to identify this service
+                across ONAP.
         """
         try:
-            return self.get_service_subscription_by_service_type(service.name)
+            return self.get_service_subscription_by_service_type(service_type)
         except ResourceNotFound:
             self._logger.info("Create service subscription for %s customer",
                               self.global_customer_id)
@@ -565,14 +567,14 @@ class Customer(AaiElement):
             "Create service subscription",
             (f"{self.base_url}{self.api_version}/business/customers/"
              f"customer/{self.global_customer_id}/service-subscriptions/"
-             f"service-subscription/{service.name}"),
+             f"service-subscription/{service_type}"),
             data=jinja_env()
             .get_template("customer_service_subscription_create.json.j2")
             .render(
                 service_id=service.unique_uuid,
             )
         )
-        return self.get_service_subscription_by_service_type(service.name)
+        return self.get_service_subscription_by_service_type(service_type)
 
     def delete(self) -> None:
         """Delete customer.

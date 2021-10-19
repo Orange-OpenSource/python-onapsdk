@@ -27,7 +27,8 @@ def test_service_ala_carte_instantiation(mock_service_instantiation_send_message
                                   customer=mock.MagicMock(),
                                   owning_entity=mock.MagicMock(),
                                   project=mock.MagicMock(),
-                                  service_instance_name="test")
+                                  service_instance_name="test",
+                                  service_subscription=mock.MagicMock())
     mock_sdc_service.distributed = True
     service_instance = ServiceInstantiation.\
             instantiate_ala_carte(sdc_service=mock_sdc_service,
@@ -36,7 +37,8 @@ def test_service_ala_carte_instantiation(mock_service_instantiation_send_message
                                   customer=mock.MagicMock(),
                                   owning_entity=mock.MagicMock(),
                                   project=mock.MagicMock(),
-                                  service_instance_name="test")
+                                  service_instance_name="test",
+                                  service_subscription=mock.MagicMock())
     assert service_instance.name == "test"
 
     service_instance = ServiceInstantiation.\
@@ -45,7 +47,8 @@ def test_service_ala_carte_instantiation(mock_service_instantiation_send_message
                                   tenant=mock.MagicMock(),
                                   customer=mock.MagicMock(),
                                   owning_entity=mock.MagicMock(),
-                                  project=mock.MagicMock())
+                                  project=mock.MagicMock(),
+                                  service_subscription=mock.MagicMock())
     assert service_instance.name.startswith("Python_ONAP_SDK_service_instance_")
     mock_service_instantiation_send_message.assert_called()
     method, _, url = mock_service_instantiation_send_message.call_args[0]
@@ -68,7 +71,8 @@ def test_service_macro_instantiation(mock_service_instantiation_send_message):
                               project=mock.MagicMock(),
                               line_of_business=mock.MagicMock(),
                               platform=mock.MagicMock(),
-                              service_instance_name="test")
+                              service_instance_name="test",
+                              service_subscription=mock.MagicMock())
     mock_sdc_service.distributed = True
     service_instance = ServiceInstantiation.\
             instantiate_macro(sdc_service=mock_sdc_service,
@@ -79,7 +83,8 @@ def test_service_macro_instantiation(mock_service_instantiation_send_message):
                               project=mock.MagicMock(),
                               line_of_business=mock.MagicMock(),
                               platform=mock.MagicMock(),
-                              service_instance_name="test")
+                              service_instance_name="test",
+                              service_subscription=mock.MagicMock())
     assert service_instance.name == "test"
 
     service_instance = ServiceInstantiation.\
@@ -135,7 +140,8 @@ def test_vnf_instantiation(mock_vnf_instantiation_send_message):
                               line_of_business="test_lob",
                               platform="test_platform",
                               cloud_region=mock.MagicMock(),
-                              tenant=mock.MagicMock())
+                              tenant=mock.MagicMock(),
+                              sdc_service=mock.MagicMock())
     assert vnf_instantiation.name.startswith("Python_ONAP_SDK_vnf_instance_")
     mock_vnf_instantiation_send_message.assert_called_once()
     method, _, url = mock_vnf_instantiation_send_message.call_args[0]
@@ -151,7 +157,8 @@ def test_vnf_instantiation(mock_vnf_instantiation_send_message):
                               platform="test_platform",
                               vnf_instance_name="test",
                               cloud_region=mock.MagicMock(),
-                              tenant=mock.MagicMock())
+                              tenant=mock.MagicMock(),
+                              sdc_service=mock.MagicMock())
     assert vnf_instantiation.name == "test"
 
 
@@ -165,7 +172,8 @@ def test_vnf_instantiation_with_cr_and_tenant(mock_vnf_instantiation_send_messag
                               line_of_business="test_lob",
                               platform="test_platform",
                               cloud_region=mock.MagicMock(),
-                              tenant=mock.MagicMock())
+                              tenant=mock.MagicMock(),
+                              sdc_service=mock.MagicMock())
     assert vnf_instantiation.name.startswith("Python_ONAP_SDK_vnf_instance_")
     mock_vnf_instantiation_send_message.assert_called_once()
     method, _, url = mock_vnf_instantiation_send_message.call_args[0]
@@ -181,7 +189,8 @@ def test_vnf_instantiation_with_cr_and_tenant(mock_vnf_instantiation_send_messag
                               platform="test_platform",
                               cloud_region=mock.MagicMock(),
                               tenant=mock.MagicMock(),
-                              vnf_instance_name="test")
+                              vnf_instance_name="test",
+                              sdc_service=mock.MagicMock())
     assert vnf_instantiation.name == "test"
 
 
@@ -468,7 +477,8 @@ def test_service_instantiation_multicloud(mock_send_message_json):
                                   tenant=mock.MagicMock(),
                                   customer=mock.MagicMock(),
                                   owning_entity=mock.MagicMock(),
-                                  project=mock.MagicMock())
+                                  project=mock.MagicMock(),
+                                  service_subscription=mock.MagicMock())
     _, kwargs = mock_send_message_json.call_args
     data = json.loads(kwargs["data"])
     assert data["requestDetails"]["requestParameters"]["userParams"] == []
@@ -481,7 +491,8 @@ def test_service_instantiation_multicloud(mock_send_message_json):
                                   customer=mock.MagicMock(),
                                   owning_entity=mock.MagicMock(),
                                   project=mock.MagicMock(),
-                                  enable_multicloud=True)
+                                  enable_multicloud=True,
+                                  service_subscription=mock.MagicMock())
     _, kwargs = mock_send_message_json.call_args
     data = json.loads(kwargs["data"])
     assert data["requestDetails"]["requestParameters"]["userParams"] == [{"name": "orchestrator", "value": "multicloud"}]
@@ -496,7 +507,8 @@ def test_service_instantiation_multicloud(mock_send_message_json):
                               project=mock.MagicMock(),
                               line_of_business=mock.MagicMock(),
                               platform=mock.MagicMock(),
-                              service_instance_name="test")
+                              service_instance_name="test",
+                              service_subscription=mock.MagicMock())
     _, kwargs = mock_send_message_json.call_args
     data = json.loads(kwargs["data"])
     assert not any(filter(lambda x: x == {"name": "orchestrator", "value": "multicloud"}, data["requestDetails"]["requestParameters"]["userParams"]))
@@ -512,7 +524,8 @@ def test_service_instantiation_multicloud(mock_send_message_json):
                               line_of_business=mock.MagicMock(),
                               platform=mock.MagicMock(),
                               service_instance_name="test",
-                              enable_multicloud=True)
+                              enable_multicloud=True,
+                              service_subscription=mock.MagicMock())
     _, kwargs = mock_send_message_json.call_args
     data = json.loads(kwargs["data"])
     assert any(filter(lambda x: x == {"name": "orchestrator", "value": "multicloud"}, data["requestDetails"]["requestParameters"]["userParams"]))

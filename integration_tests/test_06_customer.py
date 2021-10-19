@@ -40,9 +40,9 @@ def test_subscribe_service():
 
     service = Service("test_service")
     service.unique_uuid = str(uuid4())
-    customer.subscribe_service(service)
+    customer.subscribe_service(service, "service_type")
     assert len(list(customer.service_subscriptions)) == 1
-    assert customer.get_service_subscription_by_service_type(service.name)
+    assert customer.get_service_subscription_by_service_type("service_type")
 
 
 @pytest.mark.integration
@@ -55,8 +55,8 @@ def test_link_service_subscription_to_cloud_region_and_tenant():
                                subscriber_type="test_subscriber_type")
     service = Service("test_service")
     service.unique_uuid = str(uuid4())
-    customer.subscribe_service(service)
-    service_subscription = customer.get_service_subscription_by_service_type(service.name)
+    customer.subscribe_service(service, "service_type")
+    service_subscription = customer.get_service_subscription_by_service_type("service_type")
 
     assert len(list(service_subscription.relationships)) == 0
     with pytest.raises(ParameterError):

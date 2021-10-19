@@ -1159,3 +1159,14 @@ def test_service_instantiation_type(mock_metadata_url, mock_send_message_json, m
     mock_send_message_json.return_value = {"metadata": {"instantiationType": "Macro"}}
     service = Service(name="test")
     assert service.instantiation_type == ServiceInstantiationType.MACRO
+
+
+@mock.patch.object(Service, "get_all")
+def test_service_get_by_unique_uuid(mock_get_all):
+    mock_get_all.return_value = []
+    with pytest.raises(ResourceNotFound):
+        Service.get_by_unique_uuid("test")
+    mock_service = MagicMock()
+    mock_service.unique_uuid = "test"
+    mock_get_all.return_value = [mock_service]
+    Service.get_by_unique_uuid("test")
