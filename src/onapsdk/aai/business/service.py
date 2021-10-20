@@ -208,6 +208,7 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
 
         Raises:
             ResourceNotFound: Service model not found
+
         """
         if not self._sdc_service:
             self._sdc_service = Service.get_by_unique_uuid(self.model_invariant_id)

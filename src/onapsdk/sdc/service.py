@@ -173,8 +173,10 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
 
         Returns:
             Service: object with provided unique_uuid
+
         Raises:
             ResourceNotFound: No service with given unique_uuid exists
+
         """
         services: List["Service"] = cls.get_all()
         for service in services:
