@@ -129,7 +129,7 @@ Create customer service subscription
 
     service = Service(name="myService")
     customer = Customer.get_by_global_customer_id(GLOBAL_CUSTOMER_ID)
-    customer.subscribe_service(service)
+    customer.subscribe_service(service, "service_type")
 
     # Service subscriptions can be also created during Customer
     # creation
