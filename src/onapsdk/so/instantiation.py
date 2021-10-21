@@ -3,8 +3,8 @@
 # SPDX-License-Identifier: Apache-2.0
 """Instantion module."""
 from abc import ABC
-from dataclasses import dataclass
-from typing import Iterable, Optional
+from dataclasses import dataclass, field
+from typing import Any, Dict, Iterable, List, Optional
 from uuid import uuid4
 from onapsdk.exceptions import (
     APIError, InvalidResponse, ParameterError, ResourceNotFound, StatusError
@@ -21,6 +21,20 @@ from .so_element import OrchestrationRequest
 
 
 @dataclass
+class SoServiceVfModule:
+    model_name: str
+
+
+@dataclass
+class SoServiceVnf:
+    model_name: str
+    instance_name: str
+    processing_priority: Optional[int] = None
+    parameters: Dict[str, Any] = field(default_factory=dict)
+    vf_modules: List[SoServiceVfModule] = field(default_factory=list)
+
+
+@dataclass
 class SoService:
     """Class to store SO Service parameters used for macro instantiation.
 
@@ -29,7 +43,8 @@ class SoService:
     """
 
     subscription_service_type: str
-    vnfs: list = None
+    vnfs: list = field(default_factory=list)
+
 
 @dataclass
 class VnfParameters:
