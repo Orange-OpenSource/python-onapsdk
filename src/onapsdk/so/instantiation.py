@@ -22,11 +22,15 @@ from .so_element import OrchestrationRequest
 
 @dataclass
 class SoServiceVfModule:
+    """Class to store a VfModule instance parameters."""
+
     model_name: str
 
 
 @dataclass
 class SoServiceVnf:
+    """Class to store a Vnf instance parameters."""
+
     model_name: str
     instance_name: str
     processing_priority: Optional[int] = None
