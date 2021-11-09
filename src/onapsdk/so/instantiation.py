@@ -3,8 +3,8 @@
 # SPDX-License-Identifier: Apache-2.0
 """Instantion module."""
 from abc import ABC
-from dataclasses import dataclass
-from typing import Iterable, Optional
+from dataclasses import dataclass, field
+from typing import Any, Dict, Iterable, List, Optional
 from uuid import uuid4
 from warnings import warn
 from onapsdk.exceptions import (
@@ -22,6 +22,7 @@ from .so_element import OrchestrationRequest
 
 
 @dataclass
+<<<<<<< HEAD
 class VnfParameter:
     """Class to store vnf parameter used for preload.
 
@@ -32,6 +33,20 @@ class VnfParameter:
 
     name: str
     value: str
+=======
+class SoServiceVfModule:
+    model_name: str
+
+
+@dataclass
+class SoServiceVnf:
+    model_name: str
+    instance_name: str
+    processing_priority: Optional[int] = None
+    parameters: Dict[str, Any] = field(default_factory=dict)
+    vf_modules: List[SoServiceVfModule] = field(default_factory=list)
+
+>>>>>>> dd9e6de... Resolve "SoService should be more organised structure"
 
 @dataclass
 class SoService:
@@ -42,7 +57,8 @@ class SoService:
     """
 
     subscription_service_type: str
-    vnfs: list = None
+    vnfs: list = field(default_factory=list)
+
 
 @dataclass
 class VnfParameters:
