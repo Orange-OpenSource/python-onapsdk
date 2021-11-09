@@ -1,14 +1,20 @@
 import json
+import oyaml as yaml
 from collections import namedtuple
+from pathlib import Path
 from unittest import mock
 
 import pytest
-from onapsdk.exceptions import APIError, InvalidResponse, ResourceNotFound, StatusError
 
+from onapsdk.exceptions import APIError, InvalidResponse, ResourceNotFound, StatusError
+from onapsdk.sdc.service import Service
 from onapsdk.sdnc import NetworkPreload, VfModulePreload
 from onapsdk.so.instantiation import (
     NetworkInstantiation,
     ServiceInstantiation,
+    SoService,
+    SoServiceVfModule,
+    SoServiceVnf,
     VfModuleInstantiation,
     VnfInstantiation
 )
@@ -93,6 +99,25 @@ def test_service_macro_instantiation(mock_service_instantiation_send_message):
                               project=mock.MagicMock(),
                               so_service=mock.MagicMock())
     assert service_instance.name.startswith("Python_ONAP_SDK_service_instance_")
+    mock_service_instantiation_send_message.assert_called()
+    method, _, url = mock_service_instantiation_send_message.call_args[0]
+    assert method == "POST"
+    assert url == (f"{ServiceInstantiation.base_url}/onap/so/infra/"
+                   f"serviceInstantiation/{ServiceInstantiation.api_version}/serviceInstances")
+
+    so_service_mock = mock.MagicMock()
+    so_service_mock.instance_name = "SoServiceInstanceName"
+    service_instance = ServiceInstantiation.\
+            instantiate_macro(sdc_service=mock_sdc_service,
+                              cloud_region=mock.MagicMock(),
+                              tenant=mock.MagicMock(),
+                              customer=mock.MagicMock(),
+                              owning_entity=mock.MagicMock(),
+                              line_of_business=mock.MagicMock(),
+                              platform=mock.MagicMock(),
+                              project=mock.MagicMock(),
+                              so_service=so_service_mock)
+    assert service_instance.name == "SoServiceInstanceName"
     mock_service_instantiation_send_message.assert_called()
     method, _, url = mock_service_instantiation_send_message.call_args[0]
     assert method == "POST"
@@ -516,3 +541,229 @@ def test_service_instantiation_multicloud(mock_send_message_json):
     _, kwargs = mock_send_message_json.call_args
     data = json.loads(kwargs["data"])
     assert any(filter(lambda x: x == {"name": "orchestrator", "value": "multicloud"}, data["requestDetails"]["requestParameters"]["userParams"]))
+
+
+@mock.patch.object(ServiceInstantiation, "send_message_json")
+def test_service_instantiation_so_service(mock_send_message_json):
+    mock_sdc_service = mock.MagicMock()
+    mock_sdc_service.distributed = True
+
+    so_service = SoService(
+        subscription_service_type="test_so_service",
+        vnfs=[
+            SoServiceVnf(
+                model_name="test_so_service_vnf_model_name_1",
+                instance_name="test_so_service_vnf_instance_name_1",
+                parameters={
+                    "param_1": "param_1_value",
+                    "param_2": "param_2_value"
+                }
+            ),
+            SoServiceVnf(
+                model_name="test_so_service_vnf_model_name_2",
+                instance_name="test_so_service_vnf_instance_name_2",
+                vf_modules=[
+                    SoServiceVfModule(
+                        model_name="test_so_service_vf_module_model_name_1",
+                        instance_name="test_so_service_vf_module_instance_name_1",
+                        parameters={
+                            "vf_module_param_1": "vf_module_param_1_value",
+                            "vf_module_param_2": "vf_module_param_2_value"
+                        }
+                    ),
+                    SoServiceVfModule(
+                        model_name="test_so_service_vf_module_model_name_2",
+                        instance_name="test_so_service_vf_module_instance_name_2",
+                        parameters={
+                            "vf_module_param_1": "vf_module_param_1_value",
+                            "vf_module_param_2": "vf_module_param_2_value"
+                        }
+                    ),
+                ]
+            )
+        ]
+    )
+
+    _ = ServiceInstantiation.\
+            instantiate_macro(sdc_service=mock_sdc_service,
+                              cloud_region=mock.MagicMock(),
+                              tenant=mock.MagicMock(),
+                              customer=mock.MagicMock(),
+                              owning_entity=mock.MagicMock(),
+                              project=mock.MagicMock(),
+                              line_of_business=mock.MagicMock(),
+                              platform=mock.MagicMock(),
+                              service_instance_name="test",
+                              so_service=so_service)
+    _, kwargs = mock_send_message_json.call_args
+    data = json.loads(kwargs["data"])
+    print(data)
+    assert data["requestDetails"]["requestParameters"]["subscriptionServiceType"] == "test_so_service"
+    assert len(data["requestDetails"]["requestParameters"]["userParams"][1]["service"]["resources"]["vnfs"]) == 2
+    vnf_1_data = data["requestDetails"]["requestParameters"]["userParams"][1]["service"]["resources"]["vnfs"][0]
+    vnf_2_data = data["requestDetails"]["requestParameters"]["userParams"][1]["service"]["resources"]["vnfs"][1]
+    assert vnf_1_data["instanceName"] == "test_so_service_vnf_instance_name_1"
+    assert len(vnf_1_data["instanceParams"][0]) == 2
+    assert vnf_1_data["instanceParams"][0]["param_1"] == "param_1_value"
+    assert vnf_1_data["instanceParams"][0]["param_2"] == "param_2_value"
+    assert len(vnf_1_data["vfModules"]) == 0
+
+    assert vnf_2_data["instanceName"] == "test_so_service_vnf_instance_name_2"
+    assert len(vnf_2_data["instanceParams"][0]) == 0
+    assert len(vnf_2_data["vfModules"]) == 2
+    vf_module_1_data = vnf_2_data["vfModules"][0]
+    vf_module_2_data = vnf_2_data["vfModules"][1]
+
+    assert vf_module_1_data["instanceName"] == "test_so_service_vf_module_instance_name_1"
+    assert len(vf_module_1_data["instanceParams"][0]) == 2
+    assert vf_module_1_data["instanceParams"][0]["vf_module_param_1"] == "vf_module_param_1_value"
+    assert vf_module_1_data["instanceParams"][0]["vf_module_param_2"] == "vf_module_param_2_value"
+
+    assert vf_module_2_data["instanceName"] == "test_so_service_vf_module_instance_name_2"
+    assert len(vf_module_2_data["instanceParams"][0]) == 2
+    assert vf_module_2_data["instanceParams"][0]["vf_module_param_1"] == "vf_module_param_1_value"
+    assert vf_module_2_data["instanceParams"][0]["vf_module_param_2"] == "vf_module_param_2_value"
+
+
+def test_so_service_load_from_yaml():
+
+    so_service_yaml = """
+    subscription_service_type: myservice
+    vnfs:
+        - model_name: myvfmodel
+          instance_name: myfirstvnf
+          parameters:
+              param1: value1
+          processing_priority: 1
+          vf_modules:
+              - instance_name: mysecondvfm
+                model_name: base
+                processing_priority: 2
+                parameters:
+                    param-vfm1: value-vfm1
+              - instance_name: myfirstvfm
+                model_name: base
+                processing_priority: 1
+                parameters:
+                    param-vfm1: value-vfm1
+        - model_name: myvfmodel
+          instance_name: mysecondvnf
+          parameters:
+              param1: value1
+          processing_priority: 2
+          vf_modules:
+              - instance_name: myfirstvfm
+                model_name: base
+                processing_priority: 1
+                parameters:
+                    param-vfm1: value-vfm1
+              - instance_name: mysecondvfm
+                model_name: base
+                processing_priority: 2
+                parameters:
+                    param-vfm1: value-vfm1
+    """
+    so_service = SoService.load(yaml.safe_load(so_service_yaml))
+    assert so_service.subscription_service_type == "myservice"
+    assert not so_service.instance_name
+    assert len(so_service.vnfs) == 2
+
+    so_service_vnf_1 = so_service.vnfs[0]
+    so_service_vnf_2 = so_service.vnfs[1]
+
+    assert so_service_vnf_1.model_name == "myvfmodel"
+    assert so_service_vnf_1.instance_name == "myfirstvnf"
+    assert so_service_vnf_1.processing_priority == 1
+    assert len(so_service_vnf_1.parameters) == 1
+    assert so_service_vnf_1.parameters["param1"] == "value1"
+    assert len(so_service_vnf_1.vf_modules) == 2
+
+    so_service_vnf_1_vf_module_1 = so_service_vnf_1.vf_modules[0]
+    so_service_vnf_1_vf_module_2 = so_service_vnf_1.vf_modules[1]
+
+    assert so_service_vnf_1_vf_module_1.model_name == "base"
+    assert so_service_vnf_1_vf_module_1.instance_name == "mysecondvfm"
+    assert so_service_vnf_1_vf_module_1.processing_priority == 2
+    assert len(so_service_vnf_1_vf_module_1.parameters) == 1
+    assert so_service_vnf_1_vf_module_1.parameters["param-vfm1"] == "value-vfm1"
+    assert so_service_vnf_1_vf_module_2.model_name == "base"
+    assert so_service_vnf_1_vf_module_2.instance_name == "myfirstvfm"
+    assert so_service_vnf_1_vf_module_2.processing_priority == 1
+    assert len(so_service_vnf_1_vf_module_2.parameters) == 1
+    assert so_service_vnf_1_vf_module_2.parameters["param-vfm1"] == "value-vfm1"
+
+    assert so_service_vnf_2.model_name == "myvfmodel"
+    assert so_service_vnf_2.instance_name == "mysecondvnf"
+    assert so_service_vnf_2.processing_priority == 2
+    assert len(so_service_vnf_2.parameters) == 1
+    assert so_service_vnf_2.parameters["param1"] == "value1"
+    assert len(so_service_vnf_2.vf_modules) == 2
+
+    so_service_vnf_1_vf_module_1 = so_service_vnf_2.vf_modules[0]
+    so_service_vnf_1_vf_module_2 = so_service_vnf_2.vf_modules[1]
+
+    assert so_service_vnf_1_vf_module_1.model_name == "base"
+    assert so_service_vnf_1_vf_module_1.instance_name == "myfirstvfm"
+    assert so_service_vnf_1_vf_module_1.processing_priority == 1
+    assert len(so_service_vnf_1_vf_module_1.parameters) == 1
+    assert so_service_vnf_1_vf_module_1.parameters["param-vfm1"] == "value-vfm1"
+    assert so_service_vnf_1_vf_module_2.model_name == "base"
+    assert so_service_vnf_1_vf_module_2.instance_name == "mysecondvfm"
+    assert so_service_vnf_1_vf_module_2.processing_priority == 2
+    assert len(so_service_vnf_1_vf_module_2.parameters) == 1
+    assert so_service_vnf_1_vf_module_2.parameters["param-vfm1"] == "value-vfm1"
+
+
+def test_so_service_load_from_file():
+    with Path(Path(__file__).parent, "data/test_so_service_data.yaml").open() as yaml_template:
+        so_service_data = yaml.safe_load(yaml_template)
+    service = Service(next(iter(so_service_data.keys())))
+    so_service = SoService.load(so_service_data[service.name])
+    assert so_service.subscription_service_type == "myservice"
+    assert not so_service.instance_name
+    assert len(so_service.vnfs) == 2
+
+    so_service_vnf_1 = so_service.vnfs[0]
+    so_service_vnf_2 = so_service.vnfs[1]
+
+    assert so_service_vnf_1.model_name == "myvfmodel"
+    assert so_service_vnf_1.instance_name == "myfirstvnf"
+    assert so_service_vnf_1.processing_priority == 1
+    assert len(so_service_vnf_1.parameters) == 1
+    assert so_service_vnf_1.parameters["param1"] == "value1"
+    assert len(so_service_vnf_1.vf_modules) == 2
+
+    so_service_vnf_1_vf_module_1 = so_service_vnf_1.vf_modules[0]
+    so_service_vnf_1_vf_module_2 = so_service_vnf_1.vf_modules[1]
+
+    assert so_service_vnf_1_vf_module_1.model_name == "base"
+    assert so_service_vnf_1_vf_module_1.instance_name == "mysecondvfm"
+    assert so_service_vnf_1_vf_module_1.processing_priority == 2
+    assert len(so_service_vnf_1_vf_module_1.parameters) == 1
+    assert so_service_vnf_1_vf_module_1.parameters["param-vfm1"] == "value-vfm1"
+    assert so_service_vnf_1_vf_module_2.model_name == "base"
+    assert so_service_vnf_1_vf_module_2.instance_name == "myfirstvfm"
+    assert so_service_vnf_1_vf_module_2.processing_priority == 1
+    assert len(so_service_vnf_1_vf_module_2.parameters) == 1
+    assert so_service_vnf_1_vf_module_2.parameters["param-vfm1"] == "value-vfm1"
+
+    assert so_service_vnf_2.model_name == "myvfmodel"
+    assert so_service_vnf_2.instance_name == "mysecondvnf"
+    assert so_service_vnf_2.processing_priority == 2
+    assert len(so_service_vnf_2.parameters) == 1
+    assert so_service_vnf_2.parameters["param1"] == "value1"
+    assert len(so_service_vnf_2.vf_modules) == 2
+
+    so_service_vnf_1_vf_module_1 = so_service_vnf_2.vf_modules[0]
+    so_service_vnf_1_vf_module_2 = so_service_vnf_2.vf_modules[1]
+
+    assert so_service_vnf_1_vf_module_1.model_name == "base"
+    assert so_service_vnf_1_vf_module_1.instance_name == "myfirstvfm"
+    assert so_service_vnf_1_vf_module_1.processing_priority == 1
+    assert len(so_service_vnf_1_vf_module_1.parameters) == 1
+    assert so_service_vnf_1_vf_module_1.parameters["param-vfm1"] == "value-vfm1"
+    assert so_service_vnf_1_vf_module_2.model_name == "base"
+    assert so_service_vnf_1_vf_module_2.instance_name == "mysecondvfm"
+    assert so_service_vnf_1_vf_module_2.processing_priority == 2
+    assert len(so_service_vnf_1_vf_module_2.parameters) == 1
+    assert so_service_vnf_1_vf_module_2.parameters["param-vfm1"] == "value-vfm1"

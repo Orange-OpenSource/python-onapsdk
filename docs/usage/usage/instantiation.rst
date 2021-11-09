@@ -193,33 +193,33 @@ To provide more control on the SO macro instantiation, you can define your servi
         subscription_service_type: myservice
         vnfs:
             - model_name: myvfmodel
-              vnf_name: myfirstvnf
+              instance_name: myfirstvnf
               parameters:
                   param1: value1
               processing_priority: 1
               vf_modules:
-                  - vf_module_name: mysecondvfm
+                  - instance_name: mysecondvfm
                     model_name: base
                     processing_priority: 2
                     parameters:
                         param-vfm1: value-vfm1
-                  - vf_module_name: myfirstvfm
+                  - instance_name: myfirstvfm
                     model_name: base
                     processing_priority: 1
                     parameters:
                         param-vfm1: value-vfm1
             - model_name: myvfmodel
-              vnf_name: mysecondvnf
+              instance_name: mysecondvnf
               parameters:
                   param1: value1
               processing_priority: 2
               vf_modules:
-                  - vf_module_name: myfirstvfm
+                  - instance_name: myfirstvfm
                     model_name: base
                     processing_priority: 1
                     parameters:
                         param-vfm1: value-vfm1
-                  - vf_module_name: mysecondvfm
+                  - instance_name: mysecondvfm
                     model_name: base
                     processing_priority: 2
                     parameters:
@@ -235,7 +235,7 @@ To provide more control on the SO macro instantiation, you can define your servi
 
     so_yaml_service = "/path/to/yaml/service"
     with open(so_yaml_service, "r") as yaml_template:
-        so_service = load(yaml_template)
+        so_service_data = load(yaml_template)
 
     # We assume that:
     #   - service is onboarded,
@@ -244,7 +244,8 @@ To provide more control on the SO macro instantiation, you can define your servi
     #   - customer has service subscription
     #   - service subscription is connected with cloud region and tenant
 
-    service = Service(next(so_service.keys()))
+    service = Service(next(iter(so_service_data.keys())))
+    so_service = SoService.load(so_service_data[service.name])
     SERVICE_INSTANCE_NAME = "my_svc_instance_name"
 
     customer = Customer.get_by_global_customer_id(GLOBAL_CUSTOMER_ID)
