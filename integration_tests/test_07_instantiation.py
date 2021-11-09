@@ -28,7 +28,7 @@ def test_a_la_carte_instantiation():
     service.unique_uuid = str(uuid4())
     service.identifier = str(uuid4())
     service.name = str(uuid4())
-    customer.subscribe_service(service, "service_type")
+    customer.subscribe_service("service_type")
     service_subscription = customer.get_service_subscription_by_service_type("service_type")
     cloud_region = CloudRegion.create(
         "test_owner", "test_cloud_region", orchestration_disabled=True, in_maint=False
@@ -135,7 +135,7 @@ def test_a_la_carte_vl_instantiation():
     service.unique_uuid = str(uuid4())
     service.identifier = str(uuid4())
     service.name = str(uuid4())
-    customer.subscribe_service(service, "service_type")
+    customer.subscribe_service("service_type")
     service_subscription = customer.get_service_subscription_by_service_type("service_type")
     cloud_region = CloudRegion.create(
         "test_owner", "test_cloud_region", orchestration_disabled=True, in_maint=False
@@ -235,7 +235,7 @@ def test_instantiate_macro():
     service.unique_uuid = str(uuid4())
     service.identifier = str(uuid4())
     service.name = str(uuid4())
-    customer.subscribe_service(service, "service_type")
+    customer.subscribe_service("service_type")
     service_subscription = customer.get_service_subscription_by_service_type("service_type")
     cloud_region = CloudRegion.create(
         "test_owner", "test_cloud_region", orchestration_disabled=True, in_maint=False
@@ -334,7 +334,7 @@ def test_instantiate_macro_multiple_vnf():
     service.unique_uuid = str(uuid4())
     service.identifier = str(uuid4())
     service.name = str(uuid4())
-    customer.subscribe_service(service, "service_type")
+    customer.subscribe_service("service_type")
     service_subscription = customer.get_service_subscription_by_service_type("service_type")
     cloud_region = CloudRegion.create(
         "test_owner", "test_cloud_region", orchestration_disabled=True, in_maint=False

@@ -3,7 +3,6 @@ from dataclasses import dataclass
 from typing import Iterable, Iterator, Optional
 from urllib.parse import urlencode
 
-from onapsdk.sdc.service import Service as SdcService
 from onapsdk.utils.jinja import jinja_env
 from onapsdk.exceptions import APIError, ParameterError, ResourceNotFound
 
@@ -458,7 +457,7 @@ class Customer(AaiElement):
                global_customer_id: str,
                subscriber_name: str,
                subscriber_type: str,
-               services_to_subscribe: Optional[Iterable[SdcService]] = None) -> "Customer":
+               service_subscriptions: Optional[Iterable[str]] = None) -> "Customer":
         """Create customer.
 
         Args:
@@ -468,8 +467,8 @@ class Customer(AaiElement):
                 to retrieve a customer.
             subscriber_type (str): Subscriber type, a way to provide
                 VID with only the INFRA customers.
-            services_to_subscribe (Optional[Iterable[SdcService]], optional): Iterable
-                of services for which service subscription should be created for newly
+            service_subscriptions (Optional[Iterable[str]], optional): Iterable
+                of service subscription names should be created for newly
                 created customer. Defaults to None.
 
         Returns:
@@ -490,7 +489,7 @@ class Customer(AaiElement):
                 global_customer_id=global_customer_id,
                 subscriber_name=subscriber_name,
                 subscriber_type=subscriber_type,
-                services_to_subscribe=services_to_subscribe
+                service_subscriptions=service_subscriptions
             ),
         )
         response: dict = cls.send_message_json(
@@ -546,14 +545,13 @@ class Customer(AaiElement):
             self._logger.error(
                 "API returned an error: %s", exc)
 
-    def subscribe_service(self, service: SdcService, service_type: str) -> "ServiceSubscription":
+    def subscribe_service(self, service_type: str) -> "ServiceSubscription":
         """Create SDC Service subscription.
 
-        If service is already subscribed it won't create a new resource but use the
-            existing one.
+        If service subscription with given service_type already exists it won't create
+            a new resource but use the existing one.
 
         Args:
-            service (SdcService): SdcService object to subscribe.
             service_type (str): Value defined by orchestration to identify this service
                 across ONAP.
         """
@@ -567,12 +565,7 @@ class Customer(AaiElement):
             "Create service subscription",
             (f"{self.base_url}{self.api_version}/business/customers/"
              f"customer/{self.global_customer_id}/service-subscriptions/"
-             f"service-subscription/{service_type}"),
-            data=jinja_env()
-            .get_template("customer_service_subscription_create.json.j2")
-            .render(
-                service_id=service.unique_uuid,
-            )
+             f"service-subscription/{service_type}")
         )
         return self.get_service_subscription_by_service_type(service_type)
 

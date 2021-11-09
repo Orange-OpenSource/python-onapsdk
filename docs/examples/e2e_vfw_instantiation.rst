@@ -215,7 +215,7 @@ E2E Instantiation of vFW (a'la carte)
 
     if not service_subscription:
         logger.info("******** Subscribe Service *******")
-        customer.subscribe_service(service, "service_type")
+        customer.subscribe_service(SERVICENAME)
 
     logger.info("******** Get Tenant *******")
     cloud_region = CloudRegion(cloud_owner=CLOUD_OWNER, cloud_region_id=CLOUD_REGION,
