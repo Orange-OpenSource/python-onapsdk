@@ -6,11 +6,13 @@ from abc import ABC
 from dataclasses import dataclass, field
 from typing import Any, Dict, Iterable, List, Optional
 from uuid import uuid4
-from warnings import warn
+
+from dacite import from_dict
+
+from onapsdk.aai.business.owning_entity import OwningEntity
 from onapsdk.exceptions import (
     APIError, InvalidResponse, ParameterError, ResourceNotFound, StatusError
 )
-
 from onapsdk.onap_service import OnapService
 from onapsdk.sdnc import NetworkPreload, VfModulePreload
 from onapsdk.sdc.service import Network, Service as SdcService, Vnf, VfModule
@@ -22,31 +24,25 @@ from .so_element import OrchestrationRequest
 
 
 @dataclass
-<<<<<<< HEAD
-class VnfParameter:
-    """Class to store vnf parameter used for preload.
-
-    IT'S DEPRECATED! `InstantiationParameter` SHOULD BE USED
-
-    Contains two values: name of vnf parameter and it's value
-    """
-
-    name: str
-    value: str
-=======
 class SoServiceVfModule:
+    """Class to store a VfModule instance parameters."""
+
     model_name: str
+    instance_name: str
+    parameters: Dict[str, Any] = field(default_factory=dict)
+    processing_priority: Optional[int] = None
 
 
 @dataclass
 class SoServiceVnf:
+    """Class to store a Vnf instance parameters."""
+
     model_name: str
     instance_name: str
-    processing_priority: Optional[int] = None
     parameters: Dict[str, Any] = field(default_factory=dict)
     vf_modules: List[SoServiceVfModule] = field(default_factory=list)
+    processing_priority: Optional[int] = None
 
->>>>>>> dd9e6de... Resolve "SoService should be more organised structure"
 
 @dataclass
 class SoService:
@@ -57,7 +53,21 @@ class SoService:
     """
 
     subscription_service_type: str
-    vnfs: list = field(default_factory=list)
+    vnfs: List[SoServiceVnf] = field(default_factory=list)
+    instance_name: Optional[str] = None
+
+    @classmethod
+    def load(cls, data: Dict[str, Any]) -> "SoService":
+        """Create a service instance description object from the dict.
+
+        Useful if you keep your instance data in file.
+
+        Returns:
+            SoService: SoService object created from the dictionary
+
+        """
+        return from_dict(data_class=cls, data=data)
+
 
 
 @dataclass
@@ -612,11 +622,14 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
         template_file = "instantiate_service_macro.json.j2"
         if so_service:
             template_file = "instantiate_multi_vnf_service_macro.json.j2"
+            if so_service.instance_name:
+                service_instance_name = so_service.instance_name
+        else:
+            if service_instance_name is None:
+                service_instance_name = f"Python_ONAP_SDK_service_instance_{str(uuid4())}"
         if not sdc_service.distributed:
             msg = f"Service {sdc_service.name} is not distributed."
             raise StatusError(msg)
-        if service_instance_name is None:
-            service_instance_name = f"Python_ONAP_SDK_service_instance_{str(uuid4())}"
 
         response: dict = cls.send_message_json(
             "POST",

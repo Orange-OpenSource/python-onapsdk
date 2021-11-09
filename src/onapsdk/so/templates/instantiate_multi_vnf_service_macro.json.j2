@@ -33,7 +33,7 @@
                 "lineOfBusinessName": "{{ line_of_business.name }}"
             },
             "productFamilyId": "1234",
-            "instanceName": "{{ vnf.vnf_name }}",
+            "instanceName": "{{ vnf.instance_name }}",
             "instanceParams": [
                 {
                     {% for key, value in vnf.parameters.items() %}
@@ -64,7 +64,7 @@
                         {% endif %}
                         {% endfor %}
                     },
-                    "instanceName": "{{ service_instance_name }}_{{ vf_module.vf_module_name }}",
+                    "instanceName": "{{ vf_module.instance_name }}",
                     {% if vf_module.processing_priority %}
                     "processingPriority": "{{ vf_module.processing_priority }}",
                     {% endif %}
