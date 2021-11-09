@@ -10,7 +10,7 @@ from onapsdk.aai.cloud_infrastructure import CloudRegion
 from onapsdk.configuration import settings
 from onapsdk.sdc.service import Service, Vnf, VfModule
 from onapsdk.so.deletion import ServiceDeletionRequest, VfModuleDeletionRequest, VnfDeletionRequest
-from onapsdk.so.instantiation import (ServiceInstantiation,
+from onapsdk.so.instantiation import (ServiceInstantiation, SoService,
                                       VfModuleInstantiation, VnfInstantiation, InstantiationParameter,
                                       VfmoduleParameters, VnfParameters)
 
@@ -345,18 +345,18 @@ def test_instantiate_macro_multiple_vnf():
     line_of_business = "test_line_of_business"
     platform = "test_platform"
 
-    so_service = {
+    so_service = SoService.load({
         "subscription_service_type": service.name,
         "vnfs": [
             {
                 "model_name": "test_vnf_model",
-                "vnf_name": "vnf0",
+                "instance_name": "vnf0",
                 "parameters": {
                     "param1": "value1"
                 },
                 "vf_modules": [
                     {
-                        "vf_module_name": "vnf0_vfm0",
+                        "instance_name": "vnf0_vfm0",
                         "model_name": "base",
                         "parameters": {
                             "vfm_param1": "vfm_value1"
@@ -366,13 +366,13 @@ def test_instantiate_macro_multiple_vnf():
             },
             {
                 "model_name": "test_vnf_model",
-                "vnf_name": "vnf1",
+                "instance_name": "vnf1",
                 "parameters": {
                     "param2": "value2"
                 },
                 "vf_modules": [
                     {
-                        "vf_module_name": "vnf1_vfm0",
+                        "instance_name": "vnf1_vfm0",
                         "model_name": "base",
                         "parameters": {
                             "vfm_param2": "vfm_value2"
@@ -381,7 +381,7 @@ def test_instantiate_macro_multiple_vnf():
                 ]
             }
         ]
-    }
+    })
 
     # Service instantiation
     service._distributed = True
