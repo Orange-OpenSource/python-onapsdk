@@ -1,0 +1,35 @@
+myservice:
+  subscription_service_type: myservice
+  vnfs:
+    - model_name: myvfmodel
+      instance_name: myfirstvnf
+      parameters:
+          param1: value1
+      processing_priority: 1
+      vf_modules:
+          - instance_name: mysecondvfm
+            model_name: base
+            processing_priority: 2
+            parameters:
+                param-vfm1: value-vfm1
+          - instance_name: myfirstvfm
+            model_name: base
+            processing_priority: 1
+            parameters:
+                param-vfm1: value-vfm1
+    - model_name: myvfmodel
+      instance_name: mysecondvnf
+      parameters:
+          param1: value1
+      processing_priority: 2
+      vf_modules:
+          - instance_name: myfirstvfm
+            model_name: base
+            processing_priority: 1
+            parameters:
+                param-vfm1: value-vfm1
+          - instance_name: mysecondvfm
+            model_name: base
+            processing_priority: 2
+            parameters:
+                param-vfm1: value-vfm1

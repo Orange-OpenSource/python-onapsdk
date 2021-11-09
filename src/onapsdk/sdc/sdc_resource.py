@@ -874,3 +874,37 @@ class SdcResource(SdcOnboardable, ABC):  # pylint: disable=too-many-instance-att
         result = self._action_to_sdc(const.CHECKOUT, "lifecycleState")
         if result:
             self.load()
+
+    def add_resource(self, resource: 'SdcResource') -> None:
+        """
+        Add a Resource.
+
+        Args:
+            resource (SdcResource): the resource to add
+
+        """
+        if self.status == const.DRAFT:
+            url = "{}/{}/{}/resourceInstance".format(self._base_create_url(),
+                                                     self._sdc_path(),
+                                                     self.unique_identifier)
+
+            template = jinja_env().get_template(
+                "add_resource_to_service.json.j2")
+            data = template.render(resource=resource,
+                                   resource_type=resource.origin_type)
+            result = self.send_message("POST",
+                                       f"Add {resource.origin_type} to {self.origin_type}",
+                                       url,
+                                       data=data)
+            if result:
+                self._logger.info("Resource %s %s has been added on %s %s",
+                                  resource.origin_type, resource.name,
+                                  self.origin_type, self.name)
+                return result
+            self._logger.error(("an error occured during adding resource %s %s"
+                                " on %s %s in SDC"),
+                               resource.origin_type, resource.name,
+                               self.origin_type, self.name)
+            return None
+        msg = f"Can't add resource to {self.origin_type} which is not in DRAFT status"
+        raise StatusError(msg)

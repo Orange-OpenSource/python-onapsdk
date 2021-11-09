@@ -502,41 +502,6 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
                      instantiation_type=self.instantiation_type.value,
                      category=self.category)
 
-    def add_resource(self, resource: SdcResource) -> None:
-        """
-        Add a Resource to the service.
-
-        Args:
-            resource (SdcResource): the resource to add
-
-        """
-        if self.status == const.DRAFT:
-            url = "{}/{}/{}/resourceInstance".format(self._base_create_url(),
-                                                     self._sdc_path(),
-                                                     self.unique_identifier)
-
-            template = jinja_env().get_template(
-                "add_resource_to_service.json.j2")
-            data = template.render(resource=resource,
-                                   resource_type=resource.origin_type)
-            result = self.send_message("POST",
-                                       "Add {} to service".format(
-                                           resource.origin_type),
-                                       url,
-                                       data=data)
-            if result:
-                self._logger.info("Resource %s %s has been added on serice %s",
-                                  resource.origin_type, resource.name,
-                                  self.name)
-                return result
-            self._logger.error(("an error occured during adding resource %s %s"
-                                " on service %s in SDC"),
-                               resource.origin_type, resource.name,
-                               self.name)
-            return None
-        self._logger.error("Service is not in Draft mode")
-        return None
-
     def declare_resources_and_properties(self) -> None:
         """Delcare resources and properties.
 

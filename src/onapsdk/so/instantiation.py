@@ -3,14 +3,16 @@
 # SPDX-License-Identifier: Apache-2.0
 """Instantion module."""
 from abc import ABC
-from dataclasses import dataclass
-from typing import Iterable, Optional
+from dataclasses import dataclass, field
+from typing import Any, Dict, Iterable, List, Optional
 from uuid import uuid4
+
+from dacite import from_dict
+
+from onapsdk.aai.business.owning_entity import OwningEntity
 from onapsdk.exceptions import (
     APIError, InvalidResponse, ParameterError, ResourceNotFound, StatusError
 )
-
-from onapsdk.aai.business.owning_entity import OwningEntity
 from onapsdk.onap_service import OnapService
 from onapsdk.sdnc import NetworkPreload, VfModulePreload
 from onapsdk.sdc.service import Network, Service as SdcService, Vnf, VfModule
@@ -18,6 +20,27 @@ from onapsdk.utils.jinja import jinja_env
 from onapsdk.utils.headers_creator import headers_so_creator
 
 from .so_element import OrchestrationRequest
+
+
+@dataclass
+class SoServiceVfModule:
+    """Class to store a VfModule instance parameters."""
+
+    model_name: str
+    instance_name: str
+    parameters: Dict[str, Any] = field(default_factory=dict)
+    processing_priority: Optional[int] = None
+
+
+@dataclass
+class SoServiceVnf:
+    """Class to store a Vnf instance parameters."""
+
+    model_name: str
+    instance_name: str
+    parameters: Dict[str, Any] = field(default_factory=dict)
+    vf_modules: List[SoServiceVfModule] = field(default_factory=list)
+    processing_priority: Optional[int] = None
 
 
 @dataclass
@@ -29,7 +52,22 @@ class SoService:
     """
 
     subscription_service_type: str
-    vnfs: list = None
+    vnfs: List[SoServiceVnf] = field(default_factory=list)
+    instance_name: Optional[str] = None
+
+    @classmethod
+    def load(cls, data: Dict[str, Any]) -> "SoService":
+        """Create a service instance description object from the dict.
+
+        Useful if you keep your instance data in file.
+
+        Returns:
+            SoService: SoService object created from the dictionary
+
+        """
+        return from_dict(data_class=cls, data=data)
+
+
 
 @dataclass
 class VnfParameters:
@@ -547,15 +585,17 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
         template_file = "instantiate_service_macro.json.j2"
         if so_service:
             template_file = "instantiate_multi_vnf_service_macro.json.j2"
+            if so_service.instance_name:
+                service_instance_name = so_service.instance_name
         else:
             if not service_subscription:
                 raise ParameterError("If no so_service is provided, "
                                      "service_subscription parameter is required!")
+            if service_instance_name is None:
+                service_instance_name = f"Python_ONAP_SDK_service_instance_{str(uuid4())}"
         if not sdc_service.distributed:
             msg = f"Service {sdc_service.name} is not distributed."
             raise StatusError(msg)
-        if service_instance_name is None:
-            service_instance_name = f"Python_ONAP_SDK_service_instance_{str(uuid4())}"
 
         response: dict = cls.send_message_json(
             "POST",
