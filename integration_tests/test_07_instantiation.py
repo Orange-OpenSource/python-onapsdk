@@ -5,7 +5,7 @@ from uuid import uuid4
 import pytest
 import requests
 from onapsdk.exceptions import StatusError
-from onapsdk.aai.business import Customer, ServiceSubscription
+from onapsdk.aai.business import Customer, ServiceInstance
 from onapsdk.aai.cloud_infrastructure import CloudRegion
 from onapsdk.configuration import settings
 from onapsdk.sdc.service import Service, Vnf, VfModule
@@ -29,8 +29,8 @@ def test_a_la_carte_instantiation():
     service.unique_uuid = str(uuid4())
     service.identifier = str(uuid4())
     service.name = str(uuid4())
-    customer.subscribe_service(service)
-    service_subscription = customer.get_service_subscription_by_service_type(service.name)
+    customer.subscribe_service("service_type")
+    service_subscription = customer.get_service_subscription_by_service_type("service_type")
     cloud_region = CloudRegion.create(
         "test_owner", "test_cloud_region", orchestration_disabled=True, in_maint=False
     )
@@ -51,7 +51,8 @@ def test_a_la_carte_instantiation():
         tenant,
         customer,
         owning_entity,
-        project
+        project,
+        service_subscription
     )
     assert service_instantiation_request.status == ServiceInstantiation.StatusEnum.IN_PROGRESS
     time.sleep(2)  # After 1 second mocked server changed request status to complete
@@ -73,7 +74,8 @@ def test_a_la_carte_instantiation():
             platform
         )
     service_instance.orchestration_status = "Active"
-    with patch.object(ServiceSubscription, "sdc_service", return_value=service):
+    service_instance._sdc_service = service
+    with patch.object(ServiceInstance, "sdc_service", return_value=service):
         vnf_instantiation_request = service_instance.add_vnf(
             vnf,
             line_of_business,
@@ -89,7 +91,7 @@ def test_a_la_carte_instantiation():
     vnf.metadata = {"UUID": vnf_instance.model_version_id}
     vf_module = MagicMock()
 
-    with patch.object(ServiceSubscription, "sdc_service", return_value=service) as service_mock:
+    with patch.object(ServiceInstance, "sdc_service", return_value=service) as service_mock:
         service_mock.vnfs = [vnf]
         vf_module_instantiation_request = vnf_instance.add_vf_module(
             vf_module
@@ -113,7 +115,7 @@ def test_a_la_carte_instantiation():
     assert vnf_deletion_request.status == VnfDeletionRequest.StatusEnum.COMPLETED
     assert len(list(service_instance.vnf_instances)) == 0
 
-    with patch.object(ServiceSubscription, "sdc_service", return_value=service) as service_mock:
+    with patch.object(ServiceInstance, "sdc_service", return_value=service) as service_mock:
         service_deletion_request = service_instance.delete()
     assert service_deletion_request.status == ServiceDeletionRequest.StatusEnum.IN_PROGRESS
     time.sleep(2)  # After 1 second mocked server changed request status to complete
@@ -134,8 +136,8 @@ def test_a_la_carte_vl_instantiation():
     service.unique_uuid = str(uuid4())
     service.identifier = str(uuid4())
     service.name = str(uuid4())
-    customer.subscribe_service(service)
-    service_subscription = customer.get_service_subscription_by_service_type(service.name)
+    customer.subscribe_service("service_type")
+    service_subscription = customer.get_service_subscription_by_service_type("service_type")
     cloud_region = CloudRegion.create(
         "test_owner", "test_cloud_region", orchestration_disabled=True, in_maint=False
     )
@@ -156,7 +158,8 @@ def test_a_la_carte_vl_instantiation():
         tenant,
         customer,
         owning_entity,
-        project
+        project,
+        service_subscription
     )
     assert service_instantiation_request.status == ServiceInstantiation.StatusEnum.IN_PROGRESS
     service_instantiation_request.wait_for_finish()
@@ -178,7 +181,7 @@ def test_a_la_carte_vl_instantiation():
             platform
         )
     service_instance.orchestration_status = "Active"
-    with patch.object(ServiceSubscription, "sdc_service", return_value=service):
+    with patch.object(ServiceInstance, "sdc_service", return_value=service):
         network_instantiation_request = service_instance.add_network(
             network,
             line_of_business,
@@ -233,8 +236,8 @@ def test_instantiate_macro():
     service.unique_uuid = str(uuid4())
     service.identifier = str(uuid4())
     service.name = str(uuid4())
-    customer.subscribe_service(service)
-    service_subscription = customer.get_service_subscription_by_service_type(service.name)
+    customer.subscribe_service("service_type")
+    service_subscription = customer.get_service_subscription_by_service_type("service_type")
     cloud_region = CloudRegion.create(
         "test_owner", "test_cloud_region", orchestration_disabled=True, in_maint=False
     )
@@ -272,7 +275,8 @@ def test_instantiate_macro():
         platform=platform,
         cloud_region=cloud_region,
         tenant=tenant,
-        vnf_parameters=[vnf_params]
+        vnf_parameters=[vnf_params],
+        service_subscription=service_subscription
     )
     assert service_instantiation_request.status == ServiceInstantiation.StatusEnum.IN_PROGRESS
     time.sleep(2)  # After 1 second mocked server changed request status to complete
@@ -281,7 +285,7 @@ def test_instantiate_macro():
     service_instance = next(service_subscription.service_instances)
 
     # Cleanup
-    with patch.object(ServiceSubscription, "sdc_service", return_value=service) as service_mock:
+    with patch.object(ServiceInstance, "sdc_service", return_value=service) as service_mock:
         service_deletion_request = service_instance.delete()
     assert service_deletion_request.status == ServiceDeletionRequest.StatusEnum.IN_PROGRESS
     time.sleep(2)  # After 1 second mocked server changed request status to complete
@@ -331,8 +335,8 @@ def test_instantiate_macro_multiple_vnf():
     service.unique_uuid = str(uuid4())
     service.identifier = str(uuid4())
     service.name = str(uuid4())
-    customer.subscribe_service(service)
-    service_subscription = customer.get_service_subscription_by_service_type(service.name)
+    customer.subscribe_service("service_type")
+    service_subscription = customer.get_service_subscription_by_service_type("service_type")
     cloud_region = CloudRegion.create(
         "test_owner", "test_cloud_region", orchestration_disabled=True, in_maint=False
     )
@@ -347,7 +351,7 @@ def test_instantiate_macro_multiple_vnf():
     platform = Platform(name="test_platform")
 
     so_service = SoService.load({
-        "subscription_service_type": service.name,
+        "subscription_service_type": "service_type",
         "vnfs": [
             {
                 "model_name": "test_vnf_model",
@@ -405,7 +409,7 @@ def test_instantiate_macro_multiple_vnf():
     service_instance = next(service_subscription.service_instances)
 
     # Cleanup
-    with patch.object(ServiceSubscription, "sdc_service", return_value=service) as service_mock:
+    with patch.object(ServiceInstance, "sdc_service", return_value=service) as service_mock:
         service_deletion_request = service_instance.delete()
     assert service_deletion_request.status == ServiceDeletionRequest.StatusEnum.IN_PROGRESS
     time.sleep(2)  # After 1 second mocked server changed request status to complete
