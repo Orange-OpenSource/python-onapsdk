@@ -125,18 +125,15 @@ Create customer service subscription
     # We assume here that the service has been already onboarded
     # and customer created
     from onapsdk.aai.business import Customer
-    from onapsdk.service import Service
 
-    service = Service(name="myService")
     customer = Customer.get_by_global_customer_id(GLOBAL_CUSTOMER_ID)
-    customer.subscribe_service(service)
+    customer.subscribe_service("service_type")
 
     # Service subscriptions can be also created during Customer
     # creation
     from onapsdk.aai.business import Customer
-    from onapsdk.service import Service
-    service = Service(name="myService")
-    customer = Customer.create(GLOBAL_CUSTOMER_ID, GLOBAL_CUSTOMER_ID, "INFRA", services_to_subscribe=[service])
+
+    customer = Customer.create(GLOBAL_CUSTOMER_ID, GLOBAL_CUSTOMER_ID, "INFRA", service_subscriptions=["service_type"])
 
 Connect service subscription to cloud region and tenant
 -------------------------------------------------------
