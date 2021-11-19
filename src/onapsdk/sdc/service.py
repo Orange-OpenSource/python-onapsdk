@@ -65,7 +65,7 @@ class NodeTemplate:  # pylint: disable=too-many-instance-attributes
             Iterator[Property]: Node template properties iterator
 
         """
-        return self.component.parent_sdc_resource.properties
+        return self.component.properties
 
 
 @dataclass
