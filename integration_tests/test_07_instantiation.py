@@ -225,7 +225,8 @@ def test_instantiate_macro(mock_service_components, mock_service_vnfs):
                     model_version_id=str(uuid4()),
                     model_invariant_uuid=str(uuid4()),
                     model_version="1",
-                    model_customization_id=str(uuid4())
+                    model_customization_id=str(uuid4()),
+                    properties=None
                 )
             ]
         )
@@ -322,7 +323,8 @@ def test_instantiate_macro_multiple_vnf(mock_service_components, mock_service_vn
                     model_version_id=str(uuid4()),
                     model_invariant_uuid=str(uuid4()),
                     model_version="1",
-                    model_customization_id=str(uuid4())
+                    model_customization_id=str(uuid4()),
+                    properties=None
                 )
             ]
         )
