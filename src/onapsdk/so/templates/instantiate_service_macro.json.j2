@@ -30,7 +30,7 @@
         },
         "requestParameters": {
             {% block subscriptionServiceType %}
-            "subscriptionServiceType": "{{ sdc_service.name }}",
+            "subscriptionServiceType": "{{ service_subscription.service_type }}",
             {% endblock %}
             "userParams": [
                 {

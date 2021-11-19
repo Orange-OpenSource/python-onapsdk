@@ -153,6 +153,23 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
         self._networks: list = None
         self._vf_modules: list = None
 
+    @classmethod
+    def get_by_unique_uuid(cls, unique_uuid: str) -> "Service":
+        """Get the service model using unique uuid.
+
+        Returns:
+            Service: object with provided unique_uuid
+
+        Raises:
+            ResourceNotFound: No service with given unique_uuid exists
+
+        """
+        services: List["Service"] = cls.get_all()
+        for service in services:
+            if service.unique_uuid == unique_uuid:
+                return service
+        raise ResourceNotFound("Service with given unique uuid doesn't exist")
+
     def onboard(self) -> None:
         """Onboard the Service in SDC.
 
