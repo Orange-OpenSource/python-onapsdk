@@ -59,7 +59,7 @@ class NodeTemplate:  # pylint: disable=too-many-instance-attributes
 
     @property
     def properties(self) -> Iterator["Property"]:
-        """Node template properties
+        """Node template properties.
 
         Returns:
             Iterator[Property]: Node template properties iterator
