@@ -28,7 +28,7 @@ from onapsdk.utils.jinja import jinja_env
 
 
 @dataclass
-class VfModule:
+class VfModule:  # pylint: disable=too-many-instance-attributes
     """VfModule dataclass."""
 
     name: str
@@ -38,6 +38,7 @@ class VfModule:
     model_invariant_uuid: str
     model_version: str
     model_customization_id: str
+    properties: Iterator[Property]
 
 
 @dataclass
@@ -305,7 +306,16 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
                             model_version_id=vf_module["groupUUID"],
                             model_invariant_uuid=vf_module["invariantUUID"],
                             model_version=vf_module["version"],
-                            model_customization_id=vf_module["customizationUUID"]
+                            model_customization_id=vf_module["customizationUUID"],
+                            properties=(
+                                Property(
+                                    name=property_def["name"],
+                                    property_type=property_def["type"],
+                                    description=property_def["description"],
+                                    value=property_def["value"]
+                                ) for property_def in vf_module["properties"] \
+                                    if property_def["value"]
+                            )
                         ))
                 yield vnf
 

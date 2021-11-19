@@ -844,7 +844,21 @@ def test_vnf_vf_modules_one(mock_service_resource_inputs_url, mock_import_from_s
                     "groupUUID": "ed041b38-63fc-486d-9d4d-4e2531bc7e54",
                     "invariantUUID": "f47c3a9b-6a5f-4d1a-8a0b-b7f56ebb9a90",
                     "version": "1",
-                    "customizationUUID": "d946ea06-ec4b-4ed2-921a-117e1379b913"
+                    "customizationUUID": "d946ea06-ec4b-4ed2-921a-117e1379b913",
+                    "properties": [
+                        {
+                            "name": "123",
+                            "type": "test type",
+                            "value": "val",
+                            "description": "12234",
+                        },
+                        {
+                            "name": "123",
+                            "type": "test type",
+                            "value": None,
+                            "description": "12234",
+                        }
+                    ]
                 }
             ]
         }]
@@ -857,6 +871,7 @@ def test_vnf_vf_modules_one(mock_service_resource_inputs_url, mock_import_from_s
     assert vnf.node_template_type == "org.openecomp.resource.vf.Ubuntu16Vf"
     assert vnf.vf_modules
     assert vnf.vf_modules[0].name == "ubuntu16_vf0..Ubuntu16Vf..base_ubuntu16..module-0"
+    assert len(list(vnf.vf_modules[0].properties)) == 1
 
 @mock.patch("onapsdk.sdc.service.Service.send_message_json")
 @mock.patch("onapsdk.sdc.service.SdcResource.import_from_sdc")
@@ -914,7 +929,27 @@ def test_vnf_vf_modules_two(mock_service_resource_inputs_url, mock_import_from_s
                     "groupUUID": "ed041b38-63fc-486d-9d4d-4e2531bc7e54",
                     "invariantUUID": "f47c3a9b-6a5f-4d1a-8a0b-b7f56ebb9a90",
                     "version": "1",
-                    "customizationUUID": "d946ea06-ec4b-4ed2-921a-117e1379b913"
+                    "customizationUUID": "d946ea06-ec4b-4ed2-921a-117e1379b913",
+                    "properties": [
+                        {
+                            "name": "123",
+                            "type": "test type",
+                            "value": "val",
+                            "description": "12234",
+                        },
+                        {
+                            "name": "333",
+                            "type": "test type",
+                            "value": "val",
+                            "description": "12234",
+                        },
+                        {
+                            "name": "123",
+                            "type": "test type",
+                            "value": None,
+                            "description": "12234",
+                        }
+                    ]
                 }
             ]
         },
@@ -938,7 +973,21 @@ def test_vnf_vf_modules_two(mock_service_resource_inputs_url, mock_import_from_s
                     "groupUUID": "ed041b38-63fc-486d-9d4d-4e2531bc7e54",
                     "invariantUUID": "f47c3a9b-6a5f-4d1a-8a0b-b7f56ebb9a90",
                     "version": "1",
-                    "customizationUUID": "d946ea06-ec4b-4ed2-921a-117e1379b913"
+                    "customizationUUID": "d946ea06-ec4b-4ed2-921a-117e1379b913",
+                    "properties": [
+                        {
+                            "name": "123",
+                            "type": "test type",
+                            "value": "val",
+                            "description": "12234",
+                        },
+                        {
+                            "name": "123",
+                            "type": "test type",
+                            "value": None,
+                            "description": "12234",
+                        }
+                    ]
                 }
             ]
         }]
@@ -951,12 +1000,14 @@ def test_vnf_vf_modules_two(mock_service_resource_inputs_url, mock_import_from_s
     assert vnf.node_template_type == "org.openecomp.resource.vf.VfwclVpkgVf"
     assert vnf.vf_modules
     assert vnf.vf_modules[0].name == "vfwcl_vpkgvf0..VfwclVpkgVf..base_vpkg..module-0"
+    assert len(list(vnf.vf_modules[0].properties)) == 2
 
     vnf = vnfs[1]
     assert vnf.name == "vFWCL_vFWSNK-vf 0"
     assert vnf.node_template_type == "org.openecomp.resource.vf.VfwclVfwsnkVf"
     assert vnf.vf_modules
     assert vnf.vf_modules[0].name == "vfwcl_vfwsnkvf0..VfwclVfwsnkVf..base_vfw..module-0"
+    assert len(list(vnf.vf_modules[0].properties)) == 1
 
 
 @mock.patch.object(Service, 'send_message_json')
