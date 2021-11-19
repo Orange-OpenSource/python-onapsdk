@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from io import BytesIO, TextIOWrapper
 from os import makedirs
-from typing import Dict, List, Callable, Optional, Union, Any, BinaryIO
+from typing import Dict, List, Callable, Iterator, Optional, Union, Any, BinaryIO
 from zipfile import ZipFile, BadZipFile
 
 import oyaml as yaml
@@ -55,6 +55,17 @@ class NodeTemplate:  # pylint: disable=too-many-instance-attributes
     model_version: str
     model_customization_id: str
     model_instance_name: str
+    component: "Component"
+
+    @property
+    def properties(self) -> Iterator["Property"]:
+        """Node template properties
+
+        Returns:
+            Iterator[Property]: Node template properties iterator
+
+        """
+        return self.component.parent_sdc_resource.properties
 
 
 @dataclass
@@ -283,6 +294,7 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
                     model_version=component.sdc_resource.version,
                     model_customization_id=component.component_name,
                     model_instance_name=self.name,
+                    component=component
                 )
                 if component.group_instances:
                     for vf_module in component.group_instances:
@@ -318,6 +330,7 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
                     model_version=component.sdc_resource.version,
                     model_customization_id=component.component_name,
                     model_instance_name=self.name,
+                    component=component
                 )
 
     @property
@@ -344,6 +357,7 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
                     model_version=component.sdc_resource.version,
                     model_customization_id=component.component_name,
                     model_instance_name=self.name,
+                    component=component
                 )
 
     @property
