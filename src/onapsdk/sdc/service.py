@@ -280,8 +280,7 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
 
         Load VNFs from components generator.
         It creates a generator of the vf modules as well, but without
-            vf modules which has "base_template_dummu_ignore" value
-            in the name.
+            vf modules which has "dummy" value in the name.
 
         Returns:
             Iterator[Vnf]: Vnf objects iterator
@@ -302,7 +301,7 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
                 )
                 if component.group_instances:
                     for vf_module in component.group_instances:
-                        if "base_template_dummy_ignore" not in vf_module["name"]:
+                        if "dummy" not in vf_module["name"]:
                             vnf.vf_modules.append(VfModule(
                                 name=vf_module["name"],
                                 group_type=vf_module["type"],
