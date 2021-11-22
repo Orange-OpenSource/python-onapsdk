@@ -278,10 +278,13 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
     def vnfs(self) -> List[Vnf]:
         """Service Vnfs.
 
-        Load VNFs from service's tosca file
+        Load VNFs from components generator.
+        It creates a generator of the vf modules as well, but without
+            vf modules which has "base_template_dummu_ignore" value
+            in the name.
 
         Returns:
-            List[Vnf]: Vnf objects list
+            Iterator[Vnf]: Vnf objects iterator
 
         """
         for component in self.components:
@@ -299,34 +302,35 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
                 )
                 if component.group_instances:
                     for vf_module in component.group_instances:
-                        vnf.vf_modules.append(VfModule(
-                            name=vf_module["name"],
-                            group_type=vf_module["type"],
-                            model_name=vf_module["groupName"],
-                            model_version_id=vf_module["groupUUID"],
-                            model_invariant_uuid=vf_module["invariantUUID"],
-                            model_version=vf_module["version"],
-                            model_customization_id=vf_module["customizationUUID"],
-                            properties=(
-                                Property(
-                                    name=property_def["name"],
-                                    property_type=property_def["type"],
-                                    description=property_def["description"],
-                                    value=property_def["value"]
-                                ) for property_def in vf_module["properties"] \
-                                    if property_def["value"]
-                            )
-                        ))
+                        if "base_template_dummy_ignore" not in vf_module["name"]:
+                            vnf.vf_modules.append(VfModule(
+                                name=vf_module["name"],
+                                group_type=vf_module["type"],
+                                model_name=vf_module["groupName"],
+                                model_version_id=vf_module["groupUUID"],
+                                model_invariant_uuid=vf_module["invariantUUID"],
+                                model_version=vf_module["version"],
+                                model_customization_id=vf_module["customizationUUID"],
+                                properties=(
+                                    Property(
+                                        name=property_def["name"],
+                                        property_type=property_def["type"],
+                                        description=property_def["description"],
+                                        value=property_def["value"]
+                                    ) for property_def in vf_module["properties"] \
+                                        if property_def["value"]
+                                )
+                            ))
                 yield vnf
 
     @property
-    def pnfs(self) -> List[Pnf]:
+    def pnfs(self) -> Iterator[Pnf]:
         """Service Pnfs.
 
-        Load PNFs from service's tosca file
+        Load PNFS from components generator.
 
         Returns:
-            List[Pnf]: Pnf objects list
+            Iterator[Pnf]: Pnf objects generator
 
         """
         for component in self.components:
@@ -344,16 +348,13 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
                 )
 
     @property
-    def networks(self) -> List[Network]:
+    def networks(self) -> Iterator[Network]:
         """Service networks.
 
-        Load networks from service's tosca file
-
-        Raises:
-            ParameterError: Service has no TOSCA template
+        Load networks from service's components generator.
 
         Returns:
-            List[Network]: Network objects list
+            Iterator[Network]: Network objects generator
 
         """
         for component in self.components:

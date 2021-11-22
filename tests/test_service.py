@@ -950,6 +950,35 @@ def test_vnf_vf_modules_two(mock_service_resource_inputs_url, mock_import_from_s
                             "description": "12234",
                         }
                     ]
+                },
+                {
+                    "name": "vfwcl_vpkgvf0..base_template_dummy_ignore..base_vpkg..module-0",
+                    "type": "org.openecomp.groups.VfModule",
+                    "groupName": "Ubuntu16Vf..base_ubuntu16..module-0",
+                    "groupUUID": "ed041b38-63fc-486d-9d4d-4e2531bc7e54",
+                    "invariantUUID": "f47c3a9b-6a5f-4d1a-8a0b-b7f56ebb9a90",
+                    "version": "1",
+                    "customizationUUID": "d946ea06-ec4b-4ed2-921a-117e1379b913",
+                    "properties": [
+                        {
+                            "name": "123",
+                            "type": "test type",
+                            "value": "val",
+                            "description": "12234",
+                        },
+                        {
+                            "name": "333",
+                            "type": "test type",
+                            "value": "val",
+                            "description": "12234",
+                        },
+                        {
+                            "name": "123",
+                            "type": "test type",
+                            "value": None,
+                            "description": "12234",
+                        }
+                    ]
                 }
             ]
         },
@@ -999,6 +1028,7 @@ def test_vnf_vf_modules_two(mock_service_resource_inputs_url, mock_import_from_s
     assert vnf.name == "vFWCL_vPKG-vf 0"
     assert vnf.node_template_type == "org.openecomp.resource.vf.VfwclVpkgVf"
     assert vnf.vf_modules
+    assert len(vnf.vf_modules) == 1
     assert vnf.vf_modules[0].name == "vfwcl_vpkgvf0..VfwclVpkgVf..base_vpkg..module-0"
     assert len(list(vnf.vf_modules[0].properties)) == 2
 
