@@ -11,13 +11,13 @@
         {
             "modelInfo": {
                 {% for sdc_vnf in sdc_service.vnfs %}
-                {% if sdc_vnf.metadata["name"] == vnf.model_name %}
-                "modelName": "{{ sdc_vnf.metadata["name"] }}",
-                "modelVersionId": "{{ sdc_vnf.metadata["UUID"] }}",
-                "modelInvariantUuid": "{{ sdc_vnf.metadata["invariantUUID"] }}",
-                "modelVersion": "{{ sdc_vnf.metadata["version"] }}",
-                "modelCustomizationId": "{{ sdc_vnf.metadata["customizationUUID"] }}",
-                "modelInstanceName": "{{ sdc_vnf.metadata["name"] }}"
+                {% if sdc_vnf.model_name == vnf.model_name %}
+                "modelName": "{{ sdc_vnf.model_name }}",
+                "modelVersionId": "{{ sdc_vnf.model_version_id }}",
+                "modelInvariantUuid": "{{ sdc_vnf.model_invariant_uuid }}",
+                "modelVersion": "{{ sdc_vnf.model_version }}",
+                "modelCustomizationId": "{{ sdc_vnf.model_customization_id }}",
+                "modelInstanceName": "{{ sdc_vnf.model_name }}"
                 {% endif %}
                 {% endfor %}
             },
@@ -49,16 +49,16 @@
                 {
                     "modelInfo": {
                         {% for sdc_vnf in sdc_service.vnfs %}
-                        {% if sdc_vnf.metadata["name"] == vnf.model_name %}
+                        {% if sdc_vnf.model_name == vnf.model_name %}
                         {% for sdc_vf_module in sdc_vnf.vf_modules %}
                         {% set mylist = sdc_vf_module.name.split('..') %}
                         {% set item = mylist|length-2 %}
                         {% if vf_module.model_name == mylist[item] %}
-                        "modelName": "{{ sdc_vf_module.metadata["vfModuleModelName"] }}",
-                        "modelVersionId": "{{ sdc_vf_module.metadata["vfModuleModelUUID"] }}",
-                        "modelInvariantUuid": "{{ sdc_vf_module.metadata["vfModuleModelInvariantUUID"] }}",
-                        "modelVersion": "{{ sdc_vf_module.metadata["vfModuleModelVersion"] }}",
-                        "modelCustomizationId": "{{ sdc_vf_module.metadata["vfModuleModelCustomizationUUID"] }}"
+                        "modelName": "{{ sdc_vf_module.model_name }}",
+                        "modelVersionId": "{{ sdc_vf_module.model_version_id }}",
+                        "modelInvariantUuid": "{{ sdc_vf_module.model_invariant_uuid }}",
+                        "modelVersion": "{{ sdc_vf_module.model_version }}",
+                        "modelCustomizationId": "{{ sdc_vf_module.model_customization_id }}"
                         {% endif %}
                         {% endfor %}
                         {% endif %}

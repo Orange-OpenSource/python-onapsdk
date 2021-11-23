@@ -1,5 +1,5 @@
 import time
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, PropertyMock, patch
 from uuid import uuid4
 
 import pytest
@@ -88,7 +88,7 @@ def test_a_la_carte_instantiation():
     # VfModule instantiation
     vnf_instance = next(service_instance.vnf_instances)
     assert len(list(vnf_instance.vf_modules)) == 0
-    vnf.metadata = {"UUID": vnf_instance.model_version_id}
+    vnf.model_version_id = vnf_instance.model_version_id
     vf_module = MagicMock()
 
     with patch.object(ServiceInstance, "sdc_service", return_value=service) as service_mock:
@@ -193,8 +193,10 @@ def test_a_la_carte_vl_instantiation():
     assert len(list(service_instance.network_instances)) == 1
 
 
+@patch.object(Service, "vnfs", new_callable=PropertyMock)
+@patch.object(Service, "components", new_callable=PropertyMock)
 @pytest.mark.integration
-def test_instantiate_macro():
+def test_instantiate_macro(mock_service_components, mock_service_vnfs):
     requests.get(f"{ServiceInstantiation.base_url}/reset")
     requests.get(f"{Customer.base_url}/reset")
     requests.post(f"{ServiceInstantiation.base_url}/set_aai_mock", json={"AAI_MOCK": settings.AAI_URL})
@@ -204,31 +206,28 @@ def test_instantiate_macro():
                                subscriber_type="test_subscriber_type")
     service = Service("test_service")
     service._tosca_template = "n/a"
-    service._vnfs = [
+
+    mock_service_vnfs.return_value = [
         Vnf(
             name="test_vnf",
             node_template_type="vf",
-            metadata={
-                "name": "test_vnf_model",
-                "UUID": str(uuid4()),
-                "invariantUUID": str(uuid4()),
-                "version": "1.0",
-                "customizationUUID": str(uuid4())
-            },
-            properties={},
-            capabilities={},
+            model_name= "test_vnf_model",
+            model_version_id = str(uuid4()),
+            model_invartiant_id=str(uuid4()),
+            model_version="1.0",
+            model_customization_id=str(uuid4()),
+            model_instance_name=str(uuid4()),
+            component=MagicMock(),
             vf_modules=[
                 VfModule(
                     name="TestVnfModel..base..module-0",
                     group_type="vf-module",
-                    metadata={
-                        "vfModuleModelName": "TestVnfModel..base..module-0",
-                        "vfModuleModelUUID": str(uuid4()),
-                        "vfModuleModelInvariantUUID": str(uuid4()),
-                        "vfModuleModelVersion": "1",
-                        "vfModuleModelCustomizationUUID": str(uuid4())
-                    },
-                    properties={}
+                    model_name="TestVnfModel..base..module-0",
+                    model_version_id=str(uuid4()),
+                    model_invariant_uuid=str(uuid4()),
+                    model_version="1",
+                    model_customization_id=str(uuid4()),
+                    properties=None
                 )
             ]
         )
@@ -292,8 +291,10 @@ def test_instantiate_macro():
     assert service_deletion_request.status == ServiceDeletionRequest.StatusEnum.COMPLETED
     assert len(list(service_subscription.service_instances)) == 0
 
+@patch.object(Service, "vnfs", new_callable=PropertyMock)
+@patch.object(Service, "components", new_callable=PropertyMock)
 @pytest.mark.integration
-def test_instantiate_macro_multiple_vnf():
+def test_instantiate_macro_multiple_vnf(mock_service_components, mock_service_vnfs):
     requests.get(f"{ServiceInstantiation.base_url}/reset")
     requests.get(f"{Customer.base_url}/reset")
     requests.post(f"{ServiceInstantiation.base_url}/set_aai_mock", json={"AAI_MOCK": settings.AAI_URL})
@@ -303,31 +304,28 @@ def test_instantiate_macro_multiple_vnf():
                                subscriber_type="test_subscriber_type")
     service = Service("test_service")
     service._tosca_template = "n/a"
-    service._vnfs = [
+    
+    mock_service_vnfs.return_value = [
         Vnf(
             name="test_vnf",
             node_template_type="vf",
-            metadata={
-                "name": "test_vnf_model",
-                "UUID": str(uuid4()),
-                "invariantUUID": str(uuid4()),
-                "version": "1.0",
-                "customizationUUID": str(uuid4())
-            },
-            properties={},
-            capabilities={},
+            model_name= "test_vnf_model",
+            model_version_id = str(uuid4()),
+            model_invartiant_id=str(uuid4()),
+            model_version="1.0",
+            model_customization_id=str(uuid4()),
+            model_instance_name=str(uuid4()),
+            component=MagicMock(),
             vf_modules=[
                 VfModule(
                     name="TestVnfModel..base..module-0",
                     group_type="vf-module",
-                    metadata={
-                        "vfModuleModelName": "TestVnfModel..base..module-0",
-                        "vfModuleModelUUID": str(uuid4()),
-                        "vfModuleModelInvariantUUID": str(uuid4()),
-                        "vfModuleModelVersion": "1",
-                        "vfModuleModelCustomizationUUID": str(uuid4())
-                    },
-                    properties={}
+                    model_name="TestVnfModel..base..module-0",
+                    model_version_id=str(uuid4()),
+                    model_invariant_uuid=str(uuid4()),
+                    model_version="1",
+                    model_customization_id=str(uuid4()),
+                    properties=None
                 )
             ]
         )

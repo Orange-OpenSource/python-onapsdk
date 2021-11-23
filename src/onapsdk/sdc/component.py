@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """SDC Component module."""
 from dataclasses import dataclass
-from typing import Any, Dict, Iterator
+from typing import Any, Dict, Iterator, List, Optional
 from onapsdk.exceptions import ParameterError
 
 from onapsdk.sdc.properties import ComponentProperty
@@ -25,6 +25,7 @@ class Component:  # pylint: disable=too-many-instance-attributes
     component_version: str
     tosca_component_name: str
     component_name: str
+    group_instances: Optional[List[Dict[str, Any]]]
     sdc_resource: "SdcResource"
     parent_sdc_resource: "SdcResource"
 
@@ -55,6 +56,7 @@ class Component:  # pylint: disable=too-many-instance-attributes
                    component_version=api_response["componentVersion"],
                    tosca_component_name=api_response["toscaComponentName"],
                    component_name=api_response["componentName"],
+                   group_instances=api_response["groupInstances"],
                    sdc_resource=sdc_resource,
                    parent_sdc_resource=parent_sdc_resource)
 
