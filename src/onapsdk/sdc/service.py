@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from io import BytesIO, TextIOWrapper
 from os import makedirs
-from typing import Dict, List, Callable, Iterator, Optional, Union, Any, BinaryIO
+from typing import Dict, List, Callable, Iterator, Optional, Type, Union, Any, BinaryIO
 from zipfile import ZipFile, BadZipFile
 
 import oyaml as yaml
@@ -274,13 +274,72 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
                 headers=headers).content
         return self._tosca_model
 
+    def create_node_template(self,
+                             node_template_type: Type[NodeTemplate],
+                             component: "Component") -> NodeTemplate:
+        """Create a node template type object.
+
+        The base of the all node template types objects (Vnf, Pnf, Network) is the
+        same. The difference is only for the Vnf which can have vf modules associated with.
+        Vf modules could have "vf_module_label" property with"base_template_dummy_ignore"
+        value. These vf modules should be ignored/
+
+        Args:
+            node_template_type (Type[NodeTemplate]): Node template class type
+            component (Component): Component on which base node template object should be created
+
+        Returns:
+            NodeTemplate: Node template object created from component
+
+        """
+        node_template: NodeTemplate = node_template_type(
+            name=component.name,
+            node_template_type=component.tosca_component_name,
+            model_name=component.component_name,
+            model_version_id=component.sdc_resource.identifier,
+            model_invartiant_id=component.sdc_resource.unique_uuid,
+            model_version=component.sdc_resource.version,
+            model_customization_id=component.component_name,
+            model_instance_name=self.name,
+            component=component
+        )
+        if node_template_type is Vnf:
+            if component.group_instances:
+                for vf_module in component.group_instances:
+                    if not any([property_def["name"] == "vf_module_label"] and \
+                            property_def["value"] == "base_template_dummy_ignore" for \
+                                property_def in vf_module["properties"]):
+                        node_template.vf_modules.append(VfModule(
+                            name=vf_module["name"],
+                            group_type=vf_module["type"],
+                            model_name=vf_module["groupName"],
+                            model_version_id=vf_module["groupUUID"],
+                            model_invariant_uuid=vf_module["invariantUUID"],
+                            model_version=vf_module["version"],
+                            model_customization_id=vf_module["customizationUUID"],
+                            properties=(
+                                Property(
+                                    name=property_def["name"],
+                                    property_type=property_def["type"],
+                                    description=property_def["description"],
+                                    value=property_def["value"]
+                                ) for property_def in vf_module["properties"] \
+                                    if property_def["value"] and not (
+                                        property_def["name"] == "vf_module_label" and \
+                                            property_def["value"] == "base_template_dummy_ignore"
+                                    )
+                            )
+                        ))
+        return node_template
+
     @property
     def vnfs(self) -> List[Vnf]:
         """Service Vnfs.
 
         Load VNFs from components generator.
         It creates a generator of the vf modules as well, but without
-            vf modules which has "dummy" value in the name.
+            vf modules which has "vf_module_label" property value equal
+            to "base_template_dummy_ignore".
 
         Returns:
             Iterator[Vnf]: Vnf objects iterator
@@ -288,39 +347,40 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
         """
         for component in self.components:
             if component.origin_type == "VF":
-                vnf: Vnf = Vnf(
-                    name=component.name,
-                    node_template_type=component.tosca_component_name,
-                    model_name=component.component_name,
-                    model_version_id=component.sdc_resource.identifier,
-                    model_invartiant_id=component.sdc_resource.unique_uuid,
-                    model_version=component.sdc_resource.version,
-                    model_customization_id=component.component_name,
-                    model_instance_name=self.name,
-                    component=component
-                )
-                if component.group_instances:
-                    for vf_module in component.group_instances:
-                        if "dummy" not in vf_module["name"]:
-                            vnf.vf_modules.append(VfModule(
-                                name=vf_module["name"],
-                                group_type=vf_module["type"],
-                                model_name=vf_module["groupName"],
-                                model_version_id=vf_module["groupUUID"],
-                                model_invariant_uuid=vf_module["invariantUUID"],
-                                model_version=vf_module["version"],
-                                model_customization_id=vf_module["customizationUUID"],
-                                properties=(
-                                    Property(
-                                        name=property_def["name"],
-                                        property_type=property_def["type"],
-                                        description=property_def["description"],
-                                        value=property_def["value"]
-                                    ) for property_def in vf_module["properties"] \
-                                        if property_def["value"]
-                                )
-                            ))
-                yield vnf
+                yield self.create_node_template(Vnf, component)
+        #         vnf: Vnf = Vnf(
+        #             name=component.name,
+        #             node_template_type=component.tosca_component_name,
+        #             model_name=component.component_name,
+        #             model_version_id=component.sdc_resource.identifier,
+        #             model_invartiant_id=component.sdc_resource.unique_uuid,
+        #             model_version=component.sdc_resource.version,
+        #             model_customization_id=component.component_name,
+        #             model_instance_name=self.name,
+        #             component=component
+        #         )
+        #         if component.group_instances:
+        #             for vf_module in component.group_instances:
+        #                 if "dummy" not in vf_module["name"]:
+        #                     vnf.vf_modules.append(VfModule(
+        #                         name=vf_module["name"],
+        #                         group_type=vf_module["type"],
+        #                         model_name=vf_module["groupName"],
+        #                         model_version_id=vf_module["groupUUID"],
+        #                         model_invariant_uuid=vf_module["invariantUUID"],
+        #                         model_version=vf_module["version"],
+        #                         model_customization_id=vf_module["customizationUUID"],
+        #                         properties=(
+        #                             Property(
+        #                                 name=property_def["name"],
+        #                                 property_type=property_def["type"],
+        #                                 description=property_def["description"],
+        #                                 value=property_def["value"]
+        #                             ) for property_def in vf_module["properties"] \
+        #                                 if property_def["value"]
+        #                         )
+        #                     ))
+        #         yield vnf
 
     @property
     def pnfs(self) -> Iterator[Pnf]:
@@ -334,17 +394,20 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
         """
         for component in self.components:
             if component.origin_type == "PNF":
-                yield Pnf(
-                    name=component.name,
-                    node_template_type=component.tosca_component_name,
-                    model_name=component.component_name,
-                    model_version_id=component.sdc_resource.identifier,
-                    model_invartiant_id=component.sdc_resource.unique_uuid,
-                    model_version=component.sdc_resource.version,
-                    model_customization_id=component.component_name,
-                    model_instance_name=self.name,
-                    component=component
-                )
+                yield self.create_node_template(Pnf, component)
+        # for component in self.components:
+        #     if component.origin_type == "PNF":
+        #         yield Pnf(
+        #             name=component.name,
+        #             node_template_type=component.tosca_component_name,
+        #             model_name=component.component_name,
+        #             model_version_id=component.sdc_resource.identifier,
+        #             model_invartiant_id=component.sdc_resource.unique_uuid,
+        #             model_version=component.sdc_resource.version,
+        #             model_customization_id=component.component_name,
+        #             model_instance_name=self.name,
+        #             component=component
+        #         )
 
     @property
     def networks(self) -> Iterator[Network]:
@@ -358,17 +421,20 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
         """
         for component in self.components:
             if component.origin_type == "VL":
-                yield Network(
-                    name=component.name,
-                    node_template_type=component.tosca_component_name,
-                    model_name=component.component_name,
-                    model_version_id=component.sdc_resource.identifier,
-                    model_invartiant_id=component.sdc_resource.unique_uuid,
-                    model_version=component.sdc_resource.version,
-                    model_customization_id=component.component_name,
-                    model_instance_name=self.name,
-                    component=component
-                )
+                yield self.create_node_template(Network, component)
+        # for component in self.components:
+        #     if component.origin_type == "VL":
+        #         yield Network(
+        #             name=component.name,
+        #             node_template_type=component.tosca_component_name,
+        #             model_name=component.component_name,
+        #             model_version_id=component.sdc_resource.identifier,
+        #             model_invartiant_id=component.sdc_resource.unique_uuid,
+        #             model_version=component.sdc_resource.version,
+        #             model_customization_id=component.component_name,
+        #             model_instance_name=self.name,
+        #             component=component
+        #         )
 
     @property
     def deployment_artifacts_url(self) -> str:

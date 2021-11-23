@@ -973,9 +973,9 @@ def test_vnf_vf_modules_two(mock_service_resource_inputs_url, mock_import_from_s
                             "description": "12234",
                         },
                         {
-                            "name": "123",
+                            "name": "vf_module_label",
                             "type": "test type",
-                            "value": None,
+                            "value": "base_template_dummy_ignore",
                             "description": "12234",
                         }
                     ]
