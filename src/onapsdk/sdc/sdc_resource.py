@@ -875,6 +875,13 @@ class SdcResource(SdcOnboardable, ABC):  # pylint: disable=too-many-instance-att
         if result:
             self.load()
 
+    def undo_checkout(self) -> None:
+        """Undo Checkout SDC resource."""
+        self._logger.debug("Undo Checkout %s SDC resource", self.name)
+        result = self._action_to_sdc(const.UNDOCHECKOUT, "lifecycleState")
+        if result:
+            self.load()
+
     def add_resource(self, resource: 'SdcResource') -> None:
         """
         Add a Resource.
