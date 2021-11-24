@@ -322,3 +322,11 @@ def test_blueprintprocessor_bootstrap(mock_send_message):
     Blueprintprocessor.bootstrap(load_cba=False, load_model_type=False, load_resource_dictionary=False)
     assert mock_send_message.called_once()
     assert mock_send_message.call_args[1]["data"] == '{\n    "loadModelType" : false,\n    "loadResourceDictionary" : false,\n    "loadCBA" : false\n}'
+
+
+@patch.object(DataDictionary, "send_message_json")
+def test_data_dictionary_get_by_name(mock_send_message_json):
+
+    DataDictionary.get_by_name("test_name")
+    mock_send_message_json.assert_called_once()
+    assert "test_name" in mock_send_message_json.call_args[0][2]
