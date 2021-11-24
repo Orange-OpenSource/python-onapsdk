@@ -6,7 +6,7 @@ from tempfile import TemporaryDirectory
 
 from onapsdk.configuration import settings
 from onapsdk.cds.blueprint import Blueprint
-from onapsdk.cds.data_dictionary import DataDictionarySet
+from onapsdk.cds.data_dictionary import DataDictionary, DataDictionarySet
 
 
 @pytest.mark.integration
@@ -35,6 +35,10 @@ def test_cds_connection():
     # Connection availability between CDS API and Blueprint/DataDictionarySet
     dd_set.upload()
     assert type(blueprint.cba_file_bytes) == bytes
+
+    for dd in dd_set.dd_set:
+        dd_obj = DataDictionary.get_by_name(dd.name)
+        assert dd_obj == dd
 
     blueprint = blueprint.enrich()
     assert type(blueprint.cba_file_bytes) == bytes
