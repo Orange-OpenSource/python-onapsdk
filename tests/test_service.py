@@ -45,7 +45,8 @@ COMPONENTS = {
             "componentUid":"374f0a98-a280-43f1-9e6c-00b436782ce7",
             "componentVersion":"1.0",
             "toscaComponentName":"org.openecomp.resource.vfc.11111cvfc.abstract.abstract.nodes.vsn",
-            "componentName":"11111-nodes.vsnCvfc"
+            "componentName":"11111-nodes.vsnCvfc",
+            "groupInstances":None
         }
     ]
 }
@@ -98,7 +99,8 @@ COMPONENT = {
         "derivedFrom":None,
         "uuid":"59f05bfb-ccea-4857-8799-6acff59e6344",
         "archived":False,
-        "vspArchived":False
+        "vspArchived":False,
+        "groupInstances":None
     }
 }
 
@@ -300,7 +302,8 @@ def test_add_resource_not_draft(mock_send, mock_exists):
     mock_exists.return_value = False
     svc = Service()
     resource = SdcResource()
-    svc.add_resource(resource)
+    with pytest.raises(StatusError):
+        svc.add_resource(resource)
     mock_send.assert_not_called()
 
 @mock.patch.object(Service, 'load')
@@ -318,7 +321,7 @@ def test_add_resource_bad_result(mock_send, mock_load):
     resource.name = "test"
     assert svc.add_resource(resource) is None
     mock_send.assert_called_once_with(
-        'POST', 'Add SDCRESOURCE to service',
+        'POST', 'Add SDCRESOURCE to ServiceProxy',
         'https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/rest/v1/catalog/services/45/resourceInstance',
         data='{\n  "name": "test",\n  "componentVersion": "40",\n  "posY": 100,\n  "posX": 200,\n  "uniqueId": "12",\n  "originType": "SDCRESOURCE",\n  "componentUid": "12",\n  "icon": "defaulticon"\n}')
 
@@ -338,7 +341,7 @@ def test_add_resource_OK(mock_send, mock_load):
     result = svc.add_resource(resource)
     assert result['yes'] == "indeed"
     mock_send.assert_called_once_with(
-        'POST', 'Add SDCRESOURCE to service',
+        'POST', 'Add SDCRESOURCE to ServiceProxy',
         'https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/rest/v1/catalog/services/45/resourceInstance',
         data='{\n  "name": "test",\n  "componentVersion": "40",\n  "posY": 100,\n  "posX": 200,\n  "uniqueId": "12",\n  "originType": "SDCRESOURCE",\n  "componentUid": "12",\n  "icon": "defaulticon"\n}')
 
@@ -814,75 +817,227 @@ def test_onboard_whole_service(mock_create,
         mock_certify.assert_called_once()
         mock_distribute.assert_called_once()
 
-
-def test_vnf_no_template():
-    getter_mock = mock.Mock(wraps=Service.tosca_template.fget)
-    getter_mock.return_value = False
-    mock_status = Service.tosca_template.getter(getter_mock)
-    with mock.patch.object(Service, 'tosca_template', mock_status):
-        with pytest.raises(ParameterError):
-            service = Service(name="test")
-            service.vnfs
-
-def test_pnf_no_template():
-    getter_mock = mock.Mock(wraps=Service.tosca_template.fget)
-    getter_mock.return_value = False
-    mock_status = Service.tosca_template.getter(getter_mock)
-    with mock.patch.object(Service, 'tosca_template', mock_status):
-        with pytest.raises(ParameterError):
-            service = Service(name="test")
-            service.pnfs
-
-def test_vnf_vf_modules_one():
+@mock.patch("onapsdk.sdc.service.Service.send_message_json")
+@mock.patch("onapsdk.sdc.service.SdcResource.import_from_sdc")
+@mock.patch("onapsdk.sdc.service.Service.resource_inputs_url", new_callable=mock.PropertyMock)
+def test_vnf_vf_modules_one(mock_service_resource_inputs_url, mock_import_from_sdc, mock_send_message_json):
     """Test parsing TOSCA file with one VNF which has associated one VFmodule"""
     service = Service(name="test")
-    with open(Path(Path(__file__).resolve().parent, "data/service-Ubuntu16-template.yml"), "r") as ubuntu:
-        service._tosca_template = yaml.safe_load(ubuntu.read())
-        assert len(service.vnfs) == 1
-        vnf = service.vnfs[0]
-        assert vnf.name == "ubuntu16_VF 0"
-        assert vnf.node_template_type == "org.openecomp.resource.vf.Ubuntu16Vf"
-        assert vnf.vf_modules
-        assert vnf.vf_modules[0].name == "ubuntu16_vf0..Ubuntu16Vf..base_ubuntu16..module-0"
+    mock_send_message_json.side_effect = [{
+        "componentInstances": [{
+            "actualComponentUid": "123",
+            "originType": "VF",
+            "name": "ubuntu16_VF 0",
+            "toscaComponentName": "org.openecomp.resource.vf.Ubuntu16Vf",
+            "createdFromCsar": False,
+            "uniqueId": "123",
+            "normalizedName": "123",
+            "customizationUUID": "123",
+            "componentUid": "123",
+            "componentVersion": "123",
+            "componentName": "123",
+            "groupInstances": [
+                {
+                    "name": "ubuntu16_vf0..Ubuntu16Vf..base_ubuntu16..module-0",
+                    "type": "org.openecomp.groups.VfModule",
+                    "groupName": "Ubuntu16Vf..base_ubuntu16..module-0",
+                    "groupUUID": "ed041b38-63fc-486d-9d4d-4e2531bc7e54",
+                    "invariantUUID": "f47c3a9b-6a5f-4d1a-8a0b-b7f56ebb9a90",
+                    "version": "1",
+                    "customizationUUID": "d946ea06-ec4b-4ed2-921a-117e1379b913",
+                    "properties": [
+                        {
+                            "name": "123",
+                            "type": "test type",
+                            "value": "val",
+                            "description": "12234",
+                        },
+                        {
+                            "name": "123",
+                            "type": "test type",
+                            "value": None,
+                            "description": "12234",
+                        }
+                    ]
+                }
+            ]
+        }]
+    }, MagicMock()
+    ]
+    vnfs = list(service.vnfs)
+    assert len(vnfs) == 1
+    vnf = vnfs[0]
+    assert vnf.name == "ubuntu16_VF 0"
+    assert vnf.node_template_type == "org.openecomp.resource.vf.Ubuntu16Vf"
+    assert vnf.vf_modules
+    assert vnf.vf_modules[0].name == "ubuntu16_vf0..Ubuntu16Vf..base_ubuntu16..module-0"
+    assert len(list(vnf.vf_modules[0].properties)) == 1
 
-def test_pnf_modules_one():
+@mock.patch("onapsdk.sdc.service.Service.send_message_json")
+@mock.patch("onapsdk.sdc.service.SdcResource.import_from_sdc")
+@mock.patch("onapsdk.sdc.service.Service.resource_inputs_url", new_callable=mock.PropertyMock)
+def test_pnf_modules_one(mock_service_resource_inputs_url, mock_import_from_sdc, mock_send_message_json):
     """Test parsing TOSCA file with one PNF which has associated one PNFmodule"""
     service = Service(name="test")
-    with open(Path(Path(__file__).resolve().parent, "data/service-TestPnfVsp-template.yml"), "r") as pnf:
-        service._tosca_template = yaml.safe_load(pnf.read())
-        assert len(service.pnfs) == 1
-        pnf = service.pnfs[0]
-        assert pnf.name == "test_pnf_vsp 0"
-        assert pnf.node_template_type == "org.openecomp.resource.pnf.TestPnfVsp"
+    mock_send_message_json.side_effect = [{
+        "componentInstances": [{
+            "actualComponentUid": "123",
+            "originType": "PNF",
+            "name": "test_pnf_vsp 0",
+            "toscaComponentName": "org.openecomp.resource.pnf.TestPnfVsp",
+            "createdFromCsar": False,
+            "uniqueId": "123",
+            "normalizedName": "123",
+            "customizationUUID": "123",
+            "componentUid": "123",
+            "componentVersion": "123",
+            "componentName": "123",
+            "groupInstances": None
+        }]
+    }, MagicMock()
+    ]
+    pnfs = list(service.pnfs)
+    assert len(pnfs) == 1
+    pnf = pnfs[0]
+    assert pnf.name == "test_pnf_vsp 0"
+    assert pnf.node_template_type == "org.openecomp.resource.pnf.TestPnfVsp"
 
-
-def test_vnf_vf_modules_two():
+@mock.patch("onapsdk.sdc.service.Service.send_message_json")
+@mock.patch("onapsdk.sdc.service.SdcResource.import_from_sdc")
+@mock.patch("onapsdk.sdc.service.Service.resource_inputs_url", new_callable=mock.PropertyMock)
+def test_vnf_vf_modules_two(mock_service_resource_inputs_url, mock_import_from_sdc, mock_send_message_json):
     """Test parsing TOSCA file with two VNF which has associated one VFmodule"""
     service = Service(name="test")
-    with open(Path(Path(__file__).resolve().parent, "data/service-Foo-template.yml"), "r") as ubuntu:
-        service._tosca_template = yaml.safe_load(ubuntu.read())
-        assert len(service.vnfs) == 2
-        vnf = service.vnfs[0]
-        assert vnf.name == "vFWCL_vPKG-vf 0"
-        assert vnf.node_template_type == "org.openecomp.resource.vf.VfwclVpkgVf"
-        assert vnf.vf_modules
-        assert vnf.vf_modules[0].name == "vfwcl_vpkgvf0..VfwclVpkgVf..base_vpkg..module-0"
+    mock_send_message_json.side_effect = [{
+        "componentInstances": [{
+            "actualComponentUid": "123",
+            "originType": "VF",
+            "name": "vFWCL_vPKG-vf 0",
+            "toscaComponentName": "org.openecomp.resource.vf.VfwclVpkgVf",
+            "createdFromCsar": False,
+            "uniqueId": "123",
+            "normalizedName": "123",
+            "customizationUUID": "123",
+            "componentUid": "123",
+            "componentVersion": "123",
+            "componentName": "123",
+            "groupInstances": [
+                {
+                    "name": "vfwcl_vpkgvf0..VfwclVpkgVf..base_vpkg..module-0",
+                    "type": "org.openecomp.groups.VfModule",
+                    "groupName": "Ubuntu16Vf..base_ubuntu16..module-0",
+                    "groupUUID": "ed041b38-63fc-486d-9d4d-4e2531bc7e54",
+                    "invariantUUID": "f47c3a9b-6a5f-4d1a-8a0b-b7f56ebb9a90",
+                    "version": "1",
+                    "customizationUUID": "d946ea06-ec4b-4ed2-921a-117e1379b913",
+                    "properties": [
+                        {
+                            "name": "123",
+                            "type": "test type",
+                            "value": "val",
+                            "description": "12234",
+                        },
+                        {
+                            "name": "333",
+                            "type": "test type",
+                            "value": "val",
+                            "description": "12234",
+                        },
+                        {
+                            "name": "123",
+                            "type": "test type",
+                            "value": None,
+                            "description": "12234",
+                        }
+                    ]
+                },
+                {
+                    "name": "vfwcl_vpkgvf0..base_template_dummy_ignore..base_vpkg..module-0",
+                    "type": "org.openecomp.groups.VfModule",
+                    "groupName": "Ubuntu16Vf..base_ubuntu16..module-0",
+                    "groupUUID": "ed041b38-63fc-486d-9d4d-4e2531bc7e54",
+                    "invariantUUID": "f47c3a9b-6a5f-4d1a-8a0b-b7f56ebb9a90",
+                    "version": "1",
+                    "customizationUUID": "d946ea06-ec4b-4ed2-921a-117e1379b913",
+                    "properties": [
+                        {
+                            "name": "123",
+                            "type": "test type",
+                            "value": "val",
+                            "description": "12234",
+                        },
+                        {
+                            "name": "333",
+                            "type": "test type",
+                            "value": "val",
+                            "description": "12234",
+                        },
+                        {
+                            "name": "vf_module_label",
+                            "type": "test type",
+                            "value": "base_template_dummy_ignore",
+                            "description": "12234",
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "actualComponentUid": "123",
+            "originType": "VF",
+            "name": "vFWCL_vFWSNK-vf 0",
+            "toscaComponentName": "org.openecomp.resource.vf.VfwclVfwsnkVf",
+            "createdFromCsar": False,
+            "uniqueId": "123",
+            "normalizedName": "123",
+            "customizationUUID": "123",
+            "componentUid": "123",
+            "componentVersion": "123",
+            "componentName": "123",
+            "groupInstances": [
+                {
+                    "name": "vfwcl_vfwsnkvf0..VfwclVfwsnkVf..base_vfw..module-0",
+                    "type": "org.openecomp.groups.VfModule",
+                    "groupName": "Ubuntu16Vf..base_ubuntu16..module-0",
+                    "groupUUID": "ed041b38-63fc-486d-9d4d-4e2531bc7e54",
+                    "invariantUUID": "f47c3a9b-6a5f-4d1a-8a0b-b7f56ebb9a90",
+                    "version": "1",
+                    "customizationUUID": "d946ea06-ec4b-4ed2-921a-117e1379b913",
+                    "properties": [
+                        {
+                            "name": "123",
+                            "type": "test type",
+                            "value": "val",
+                            "description": "12234",
+                        },
+                        {
+                            "name": "123",
+                            "type": "test type",
+                            "value": None,
+                            "description": "12234",
+                        }
+                    ]
+                }
+            ]
+        }]
+    }, MagicMock(), MagicMock()
+    ]
+    vnfs = list(service.vnfs)
+    assert len(vnfs) == 2
+    vnf = vnfs[0]
+    assert vnf.name == "vFWCL_vPKG-vf 0"
+    assert vnf.node_template_type == "org.openecomp.resource.vf.VfwclVpkgVf"
+    assert vnf.vf_modules
+    assert len(vnf.vf_modules) == 1
+    assert vnf.vf_modules[0].name == "vfwcl_vpkgvf0..VfwclVpkgVf..base_vpkg..module-0"
+    assert len(list(vnf.vf_modules[0].properties)) == 2
 
-        vnf = service.vnfs[1]
-        assert vnf.name == "vFWCL_vFWSNK-vf 0"
-        assert vnf.node_template_type == "org.openecomp.resource.vf.VfwclVfwsnkVf"
-        assert vnf.vf_modules
-        assert vnf.vf_modules[0].name == "vfwcl_vfwsnkvf0..VfwclVfwsnkVf..base_vfw..module-0"
-
-
-def test_vnf_two_vf_modules():
-    """Test parsing TOSCA file with two VNF which has associated one VFmodule"""
-    service = Service(name="test")
-    with open(Path(Path(__file__).resolve().parent, "data/service-VfwcdsService-template.yml"), "r") as template:
-        service._tosca_template = yaml.safe_load(template.read())
-        assert len(service.vnfs) == 1
-        vnf = service.vnfs[0]
-        assert len(vnf.vf_modules) == 4
+    vnf = vnfs[1]
+    assert vnf.name == "vFWCL_vFWSNK-vf 0"
+    assert vnf.node_template_type == "org.openecomp.resource.vf.VfwclVfwsnkVf"
+    assert vnf.vf_modules
+    assert vnf.vf_modules[0].name == "vfwcl_vfwsnkvf0..VfwclVfwsnkVf..base_vfw..module-0"
+    assert len(list(vnf.vf_modules[0].properties)) == 1
 
 
 @mock.patch.object(Service, 'send_message_json')
@@ -948,13 +1103,32 @@ def test_add_artifact_to_service(mock_send_message, mock_load):
     assert url == ("https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/rest/v1/catalog/services/"
                     f"{svc.unique_identifier}/artifacts")
 
-def test_service_networks():
-    service = Service(name="test")
-    with open(Path(Path(__file__).resolve().parent, "data/service-TestServiceFyx-template.yml"), "r") as service_file:
-        service._tosca_template = yaml.safe_load(service_file.read())
-    assert len(service.networks) == 1
+@mock.patch("onapsdk.sdc.service.Service.send_message_json")
+@mock.patch("onapsdk.sdc.service.SdcResource.import_from_sdc")
+@mock.patch("onapsdk.sdc.service.Service.resource_inputs_url", new_callable=mock.PropertyMock)
+def test_service_networks(mock_service_resource_inputs_url, mock_import_from_sdc, mock_send_message_json):
+    mock_send_message_json.side_effect = [{
+        "componentInstances": [{
+            "actualComponentUid": "123",
+            "originType": "VL",
+            "name": "NeutronNet 0",
+            "toscaComponentName": "org.openecomp.resource.vl.nodes.heat.network.neutron.Net",
+            "createdFromCsar": False,
+            "uniqueId": "123",
+            "normalizedName": "123",
+            "customizationUUID": "123",
+            "componentUid": "123",
+            "componentVersion": "123",
+            "componentName": "123",
+            "groupInstances": None
+        }]
+    }, MagicMock()
+    ]
 
-    network = service.networks[0]
+    service = Service(name="test")
+    networks = list(service.networks)
+    assert len(networks) == 1
+    network = networks[0]
     assert network.name == "NeutronNet 0"
     assert network.node_template_type == "org.openecomp.resource.vl.nodes.heat.network.neutron.Net"
 
@@ -1038,7 +1212,8 @@ def test_component_properties():
             component_uid="123",
             component_version="123",
             sdc_resource=sdc_resource,
-            parent_sdc_resource=service
+            parent_sdc_resource=service,
+            group_instances=None
     )
     sdc_resource.send_message_json.return_value = {}
     assert not len(list(component.properties))
@@ -1076,7 +1251,8 @@ def test_component_property_set_value(mock_component_properties):
             component_uid="123",
             component_version="123",
             sdc_resource=mock_sdc_resource,
-            parent_sdc_resource=service
+            parent_sdc_resource=service,
+            group_instances=None
     )
     mock_component_properties.return_value = [
         ComponentProperty(
@@ -1159,3 +1335,14 @@ def test_service_instantiation_type(mock_metadata_url, mock_send_message_json, m
     mock_send_message_json.return_value = {"metadata": {"instantiationType": "Macro"}}
     service = Service(name="test")
     assert service.instantiation_type == ServiceInstantiationType.MACRO
+
+
+@mock.patch.object(Service, "get_all")
+def test_service_get_by_unique_uuid(mock_get_all):
+    mock_get_all.return_value = []
+    with pytest.raises(ResourceNotFound):
+        Service.get_by_unique_uuid("test")
+    mock_service = MagicMock()
+    mock_service.unique_uuid = "test"
+    mock_get_all.return_value = [mock_service]
+    Service.get_by_unique_uuid("test")

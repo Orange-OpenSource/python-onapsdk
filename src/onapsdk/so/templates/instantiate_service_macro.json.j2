@@ -30,7 +30,7 @@
         },
         "requestParameters": {
             {% block subscriptionServiceType %}
-            "subscriptionServiceType": "{{ sdc_service.name }}",
+            "subscriptionServiceType": "{{ service_subscription.service_type }}",
             {% endblock %}
             "userParams": [
                 {
@@ -53,7 +53,7 @@
                                 {
                                     "modelInfo":{
                                         "modelCustomizationName":"{{ pnf.name }}",
-                                        "modelCustomizationId":"{{ pnf.metadata["customizationUUID"] }}",
+                                        "modelCustomizationId":"{{ pnf.model_customization_id }}",
                                         "modelInvariantId":"{{ sdc_service.unique_uuid }}",
                                         "modelVersionId":"{{ sdc_service.identifier }}",
                                         "modelName":"{{ sdc_service.name }}",
@@ -80,12 +80,12 @@
                                 {% for vnf in sdc_service.vnfs %}
                                 {
                                     "modelInfo": {
-                                        "modelName": "{{ vnf.metadata["name"] }}",
-                                        "modelVersionId": "{{ vnf.metadata["UUID"] }}",
-                                        "modelInvariantUuid": "{{ vnf.metadata["invariantUUID"] }}",
-                                        "modelVersion": "{{ vnf.metadata["version"] }}",
-                                        "modelCustomizationId": "{{ vnf.metadata["customizationUUID"] }}",
-                                        "modelInstanceName": "{{ vnf.metadata["name"] }}"
+                                        "modelName": "{{ vnf.model_name }}",
+                                        "modelVersionId": "{{ vnf.model_version_id }}",
+                                        "modelInvariantUuid": "{{ vnf.model_invartiant_id }}",
+                                        "modelVersion": "{{ vnf.model_version }}",
+                                        "modelCustomizationId": "{{ vnf.model_customization_id }}",
+                                        "modelInstanceName": "{{ vnf.model_name }}"
                                     },
                                     "cloudConfiguration": {
                                         "tenantId": "{{ tenant.tenant_id }}",
@@ -99,11 +99,11 @@
                                         "lineOfBusinessName": "{{ line_of_business.name }}"
                                     },
                                     "productFamilyId": "1234",
-                                    "instanceName": "{{ vnf.metadata["name"] }}",
+                                    "instanceName": "{{ vnf.model_name }}",
                                     "instanceParams": [
                                         {
                                             {% for vnf_parameter in vnf_parameters %}
-                                            {% if vnf_parameter.name == vnf.metadata["name"] %}
+                                            {% if vnf_parameter.name == vnf.model_name %}
                                             {% for parameter in vnf_parameter.vnf_parameters %}
                                             "{{ parameter.name }}": "{{ parameter.value }}"{% if not loop.last %},{% endif %}
                                             {% endfor %}
@@ -115,17 +115,17 @@
                                         {% for vf_module in vnf.vf_modules %}
                                         {
                                             "modelInfo": {
-                                                "modelName": "{{ vf_module.metadata["vfModuleModelName"] }}",
-                                                "modelVersionId": "{{ vf_module.metadata["vfModuleModelUUID"] }}",
-                                                "modelInvariantUuid": "{{ vf_module.metadata["vfModuleModelInvariantUUID"] }}",
-                                                "modelVersion": "{{ vf_module.metadata["vfModuleModelVersion"] }}",
-                                                "modelCustomizationId": "{{ vf_module.metadata["vfModuleModelCustomizationUUID"] }}"
+                                                "modelName": "{{ vf_module.model_name }}",
+                                                "modelVersionId": "{{ vf_module.model_version_id }}",
+                                                "modelInvariantUuid": "{{ vf_module.model_invariant_uuid }}",
+                                                "modelVersion": "{{ vf_module.model_version }}",
+                                                "modelCustomizationId": "{{ vf_module.model_customization_id }}"
                                             },
                                             "instanceName": "{{ service_instance_name }}_{{ vf_module.name }}",
                                             "instanceParams": [
                                                 {
                                                     {% for vnf_parameter in vnf_parameters %}
-                                                    {% if vnf_parameter.name == vnf.metadata["name"] %}
+                                                    {% if vnf_parameter.name == vnf.model_name %}
                                                     {% set mylist = vf_module.name.split('..') %}
                                                     {% set item = mylist|length-2 %}
                                                     {% for vf_module_parameter in vnf_parameter.vfmodule_parameters %}

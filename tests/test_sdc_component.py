@@ -20,7 +20,8 @@ def test_sdc_component_delete():
         tosca_component_name="test-tosca-component-name",
         component_name="test-component-name",
         sdc_resource=mock_sdc_resource,
-        parent_sdc_resource=mock_parent_sdc_resource
+        parent_sdc_resource=mock_parent_sdc_resource,
+        group_instances=None
     )
     component.delete()
     mock_sdc_resource.send_message_json.assert_called_once_with(

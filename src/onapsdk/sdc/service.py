@@ -4,14 +4,12 @@
 """Service module."""
 import base64
 import pathlib as Path
-import re
-import string
 import time
 from dataclasses import dataclass, field
 from enum import Enum
 from io import BytesIO, TextIOWrapper
 from os import makedirs
-from typing import Dict, List, Callable, Optional, Union, Any, BinaryIO
+from typing import Dict, List, Callable, Iterator, Optional, Type, Union, Any, BinaryIO
 from zipfile import ZipFile, BadZipFile
 
 import oyaml as yaml
@@ -30,17 +28,21 @@ from onapsdk.utils.jinja import jinja_env
 
 
 @dataclass
-class VfModule:
+class VfModule:  # pylint: disable=too-many-instance-attributes
     """VfModule dataclass."""
 
     name: str
     group_type: str
-    metadata: dict
-    properties: dict
+    model_name: str
+    model_version_id: str
+    model_invariant_uuid: str
+    model_version: str
+    model_customization_id: str
+    properties: Iterator[Property]
 
 
 @dataclass
-class NodeTemplate:
+class NodeTemplate:  # pylint: disable=too-many-instance-attributes
     """Node template dataclass.
 
     Base class for Vnf, Pnf and Network classes.
@@ -48,10 +50,23 @@ class NodeTemplate:
 
     name: str
     node_template_type: str
-    metadata: dict
-    properties: dict
-    capabilities: dict
+    model_name: str
+    model_version_id: str
+    model_invartiant_id: str
+    model_version: str
+    model_customization_id: str
+    model_instance_name: str
+    component: "Component"
 
+    @property
+    def properties(self) -> Iterator["Property"]:
+        """Node template properties.
+
+        Returns:
+            Iterator[Property]: Node template properties iterator
+
+        """
+        return self.component.properties
 
 
 @dataclass
@@ -59,23 +74,6 @@ class Vnf(NodeTemplate):
     """Vnf dataclass."""
 
     vf_modules: List[VfModule] = field(default_factory=list)
-
-    @property
-    def tosca_groups_parsed_name(self) -> str:
-        """Property used to associate vf modules.
-
-        It's created using the vnf name by with all
-            characters before first `_` lowercase, then
-            from all letters and numbers after first `_` are concatenated.
-
-        Returns:
-            str: String used to associate vf modules from tosca template
-
-        """
-        prefix, suffix = self.name.split("_", 1)
-        return "_".join([prefix.lower(),
-                         "".join(filter(lambda x: x in [*string.ascii_letters,
-                                                        *string.digits], suffix)).lower()])
 
 
 @dataclass
@@ -166,6 +164,23 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
         self._pnfs: list = None
         self._networks: list = None
         self._vf_modules: list = None
+
+    @classmethod
+    def get_by_unique_uuid(cls, unique_uuid: str) -> "Service":
+        """Get the service model using unique uuid.
+
+        Returns:
+            Service: object with provided unique_uuid
+
+        Raises:
+            ResourceNotFound: No service with given unique_uuid exists
+
+        """
+        services: List["Service"] = cls.get_all()
+        for service in services:
+            if service.unique_uuid == unique_uuid:
+                return service
+        raise ResourceNotFound("Service with given unique uuid doesn't exist")
 
     def onboard(self) -> None:
         """Onboard the Service in SDC.
@@ -259,123 +274,167 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
                 headers=headers).content
         return self._tosca_model
 
+    def create_node_template(self,
+                             node_template_type: Type[NodeTemplate],
+                             component: "Component") -> NodeTemplate:
+        """Create a node template type object.
+
+        The base of the all node template types objects (Vnf, Pnf, Network) is the
+        same. The difference is only for the Vnf which can have vf modules associated with.
+        Vf modules could have "vf_module_label" property with"base_template_dummy_ignore"
+        value. These vf modules should be ignored/
+
+        Args:
+            node_template_type (Type[NodeTemplate]): Node template class type
+            component (Component): Component on which base node template object should be created
+
+        Returns:
+            NodeTemplate: Node template object created from component
+
+        """
+        node_template: NodeTemplate = node_template_type(
+            name=component.name,
+            node_template_type=component.tosca_component_name,
+            model_name=component.component_name,
+            model_version_id=component.sdc_resource.identifier,
+            model_invartiant_id=component.sdc_resource.unique_uuid,
+            model_version=component.sdc_resource.version,
+            model_customization_id=component.component_name,
+            model_instance_name=self.name,
+            component=component
+        )
+        if node_template_type is Vnf:
+            if component.group_instances:
+                for vf_module in component.group_instances:
+                    if not any([property_def["name"] == "vf_module_label"] and \
+                            property_def["value"] == "base_template_dummy_ignore" for \
+                                property_def in vf_module["properties"]):
+                        node_template.vf_modules.append(VfModule(
+                            name=vf_module["name"],
+                            group_type=vf_module["type"],
+                            model_name=vf_module["groupName"],
+                            model_version_id=vf_module["groupUUID"],
+                            model_invariant_uuid=vf_module["invariantUUID"],
+                            model_version=vf_module["version"],
+                            model_customization_id=vf_module["customizationUUID"],
+                            properties=(
+                                Property(
+                                    name=property_def["name"],
+                                    property_type=property_def["type"],
+                                    description=property_def["description"],
+                                    value=property_def["value"]
+                                ) for property_def in vf_module["properties"] \
+                                    if property_def["value"] and not (
+                                        property_def["name"] == "vf_module_label" and \
+                                            property_def["value"] == "base_template_dummy_ignore"
+                                    )
+                            )
+                        ))
+        return node_template
+
     @property
     def vnfs(self) -> List[Vnf]:
         """Service Vnfs.
 
-        Load VNFs from service's tosca file
-
-        Raises:
-            ParameterError: Service has no TOSCA template
+        Load VNFs from components generator.
+        It creates a generator of the vf modules as well, but without
+            vf modules which has "vf_module_label" property value equal
+            to "base_template_dummy_ignore".
 
         Returns:
-            List[Vnf]: Vnf objects list
+            Iterator[Vnf]: Vnf objects iterator
 
         """
-        if not self.tosca_template:
-            raise ParameterError("Service has no TOSCA template.")
-        if self._vnfs is None:
-            self._vnfs = []
-            for node_template_name, values in \
-                self.tosca_template.get("topology_template", {}).get(
-                        "node_templates", {}).items():
-                if re.match("org.openecomp.resource.vf.*", values["type"]):
-                    vnf: Vnf = Vnf(
-                        name=node_template_name,
-                        node_template_type=values["type"],
-                        metadata=values["metadata"],
-                        properties=values["properties"],
-                        capabilities=values.get("capabilities", {})
-                    )
-                    # vnf.associate_vf_module(self.vf_modules)
-                    self._vnfs.append(vnf)
-            self.associate_vf_modules()
-        return self._vnfs
+        for component in self.components:
+            if component.origin_type == "VF":
+                yield self.create_node_template(Vnf, component)
+        #         vnf: Vnf = Vnf(
+        #             name=component.name,
+        #             node_template_type=component.tosca_component_name,
+        #             model_name=component.component_name,
+        #             model_version_id=component.sdc_resource.identifier,
+        #             model_invartiant_id=component.sdc_resource.unique_uuid,
+        #             model_version=component.sdc_resource.version,
+        #             model_customization_id=component.component_name,
+        #             model_instance_name=self.name,
+        #             component=component
+        #         )
+        #         if component.group_instances:
+        #             for vf_module in component.group_instances:
+        #                 if "dummy" not in vf_module["name"]:
+        #                     vnf.vf_modules.append(VfModule(
+        #                         name=vf_module["name"],
+        #                         group_type=vf_module["type"],
+        #                         model_name=vf_module["groupName"],
+        #                         model_version_id=vf_module["groupUUID"],
+        #                         model_invariant_uuid=vf_module["invariantUUID"],
+        #                         model_version=vf_module["version"],
+        #                         model_customization_id=vf_module["customizationUUID"],
+        #                         properties=(
+        #                             Property(
+        #                                 name=property_def["name"],
+        #                                 property_type=property_def["type"],
+        #                                 description=property_def["description"],
+        #                                 value=property_def["value"]
+        #                             ) for property_def in vf_module["properties"] \
+        #                                 if property_def["value"]
+        #                         )
+        #                     ))
+        #         yield vnf
 
     @property
-    def pnfs(self) -> List[Pnf]:
+    def pnfs(self) -> Iterator[Pnf]:
         """Service Pnfs.
 
-        Load PNFs from service's tosca file
-
-        Raises:
-            ParameterError: Service has no TOSCA template
+        Load PNFS from components generator.
 
         Returns:
-            List[Pnf]: Pnf objects list
+            Iterator[Pnf]: Pnf objects generator
 
         """
-        if not self.tosca_template:
-            raise ParameterError("Service has no TOSCA template")
-        if self._pnfs is None:
-            self._pnfs = []
-            for node_template_name, values in \
-                self.tosca_template.get("topology_template", {}).get(
-                        "node_templates", {}).items():
-                if re.match("org.openecomp.resource.pnf.*", values["type"]):
-                    pnf: Pnf = Pnf(
-                        name=node_template_name,
-                        node_template_type=values["type"],
-                        metadata=values["metadata"],
-                        properties=values["properties"],
-                        capabilities=values.get("capabilities", {})
-                    )
-                    self._pnfs.append(pnf)
-        return self._pnfs
+        for component in self.components:
+            if component.origin_type == "PNF":
+                yield self.create_node_template(Pnf, component)
+        # for component in self.components:
+        #     if component.origin_type == "PNF":
+        #         yield Pnf(
+        #             name=component.name,
+        #             node_template_type=component.tosca_component_name,
+        #             model_name=component.component_name,
+        #             model_version_id=component.sdc_resource.identifier,
+        #             model_invartiant_id=component.sdc_resource.unique_uuid,
+        #             model_version=component.sdc_resource.version,
+        #             model_customization_id=component.component_name,
+        #             model_instance_name=self.name,
+        #             component=component
+        #         )
 
     @property
-    def networks(self) -> List[Network]:
+    def networks(self) -> Iterator[Network]:
         """Service networks.
 
-        Load networks from service's tosca file
-
-        Raises:
-            ParameterError: Service has no TOSCA template
+        Load networks from service's components generator.
 
         Returns:
-            List[Network]: Network objects list
+            Iterator[Network]: Network objects generator
 
         """
-        if not self.tosca_template:
-            raise ParameterError("Service has no TOSCA template")
-        if self._networks is None:
-            self._networks = []
-            for node_template_name, values in \
-                self.tosca_template.get("topology_template", {}).get(
-                        "node_templates", {}).items():
-                if re.match("org.openecomp.resource.vl.*", values["type"]):
-                    self._networks.append(Network(
-                        name=node_template_name,
-                        node_template_type=values["type"],
-                        metadata=values["metadata"],
-                        properties=values["properties"],
-                        capabilities=values.get("capabilities", {})
-                    ))
-        return self._networks
-
-    @property
-    def vf_modules(self) -> List[VfModule]:
-        """Service VF modules.
-
-        Load VF modules from service's tosca file
-
-        Returns:
-            List[VfModule]: VfModule objects list
-
-        """
-        if self._vf_modules is None:
-            self._vf_modules = []
-            groups: dict = self.tosca_template.get(
-                "topology_template", {}).get("groups", {})
-            for group_name, values in groups.items():
-                self._vf_modules.append(VfModule(
-                    name=group_name,
-                    group_type=values["type"],
-                    metadata=values["metadata"],
-                    properties=values["properties"]
-                ))
-        return self._vf_modules
-
+        for component in self.components:
+            if component.origin_type == "VL":
+                yield self.create_node_template(Network, component)
+        # for component in self.components:
+        #     if component.origin_type == "VL":
+        #         yield Network(
+        #             name=component.name,
+        #             node_template_type=component.tosca_component_name,
+        #             model_name=component.component_name,
+        #             model_version_id=component.sdc_resource.identifier,
+        #             model_invartiant_id=component.sdc_resource.unique_uuid,
+        #             model_version=component.sdc_resource.version,
+        #             model_customization_id=component.component_name,
+        #             model_instance_name=self.name,
+        #             component=component
+        #         )
 
     @property
     def deployment_artifacts_url(self) -> str:
@@ -484,41 +543,6 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
                      name=self.name,
                      instantiation_type=self.instantiation_type.value,
                      category=self.category)
-
-    def add_resource(self, resource: SdcResource) -> None:
-        """
-        Add a Resource to the service.
-
-        Args:
-            resource (SdcResource): the resource to add
-
-        """
-        if self.status == const.DRAFT:
-            url = "{}/{}/{}/resourceInstance".format(self._base_create_url(),
-                                                     self._sdc_path(),
-                                                     self.unique_identifier)
-
-            template = jinja_env().get_template(
-                "add_resource_to_service.json.j2")
-            data = template.render(resource=resource,
-                                   resource_type=resource.origin_type)
-            result = self.send_message("POST",
-                                       "Add {} to service".format(
-                                           resource.origin_type),
-                                       url,
-                                       data=data)
-            if result:
-                self._logger.info("Resource %s %s has been added on serice %s",
-                                  resource.origin_type, resource.name,
-                                  self.name)
-                return result
-            self._logger.error(("an error occured during adding resource %s %s"
-                                " on service %s in SDC"),
-                               resource.origin_type, resource.name,
-                               self.name)
-            return None
-        self._logger.error("Service is not in Draft mode")
-        return None
 
     def declare_resources_and_properties(self) -> None:
         """Delcare resources and properties.
@@ -894,30 +918,6 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
             return super().get_component_properties_value_set_url(component)
         return (f"{self.resource_inputs_url}/"
                 f"resourceInstance/{component.unique_id}/inputs")
-
-    def associate_vf_modules(self) -> None:
-        """Associate vf modules to vnfs.
-
-        This is experimental! To be honest we are not sure if it works
-            correctly, it should be clarified with ONAP community.
-
-        Sometimes vnf has one vf module, but it can have assosicated
-            more than one. There can be also more than one vnf in
-            TOSCA template and it't difficult to determine which
-            vnf should be associated with which vf module. Usually
-            their name are similar, but not always.
-
-        """
-        if len(self.vnfs) == 0:
-            return
-        if len(self.vnfs) == 1:
-            self.vnfs[0].vf_modules = self.vf_modules[:]
-        else:
-            for vnf in self.vnfs:
-                vnf.vf_modules = list(filter(\
-                    lambda vf_module: vf_module.name.startswith(
-                        vnf.tosca_groups_parsed_name),  # pylint: disable=cell-var-from-loop
-                    self.vf_modules))
 
     def get_category_for_new_resource(self) -> ServiceCategory:
         """Get category for service not created in SDC yet.

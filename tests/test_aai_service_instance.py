@@ -173,7 +173,8 @@ def test_service_instance_network_instances(mock_aai_element_send_message_json):
 
 
 @mock.patch.object(VnfInstantiation, "instantiate_ala_carte")
-def test_service_instance_add_vnf(mock_vnf_instantiation):
+@mock.patch.object(ServiceInstance, "sdc_service", new_callable=mock.PropertyMock)
+def test_service_instance_add_vnf(mock_sdc_service, mock_vnf_instantiation):
     service_instance = ServiceInstance(service_subscription=mock.MagicMock(),
                                        instance_id="test_service_instance_id")
     service_instance.orchestration_status = "Inactive"
@@ -190,7 +191,8 @@ def test_service_instance_add_vnf(mock_vnf_instantiation):
 
 
 @mock.patch.object(NetworkInstantiation, "instantiate_ala_carte")
-def test_service_instance_add_network(mock_network_instantiation):
+@mock.patch.object(ServiceInstance, "sdc_service", new_callable=mock.PropertyMock)
+def test_service_instance_add_network(mock_sdc_service, mock_network_instantiation):
     service_instance = ServiceInstance(service_subscription=mock.MagicMock(),
                                        instance_id="test_service_instance_id")
     service_instance.orchestration_status = "Inactive"
@@ -207,8 +209,20 @@ def test_service_instance_add_network(mock_network_instantiation):
 
 
 @mock.patch.object(ServiceDeletionRequest, "send_request")
-def test_service_instance_deletion(mock_service_deletion_request):
+@mock.patch.object(ServiceInstance, "sdc_service", new_callable=mock.PropertyMock)
+def test_service_instance_deletion(mock_sdc_service, mock_service_deletion_request):
     service_instance = ServiceInstance(service_subscription=mock.MagicMock(),
                                        instance_id="test_service_instance_id")
     service_instance.delete()
     mock_service_deletion_request.assert_called_once_with(service_instance, True)
+
+
+@mock.patch("onapsdk.aai.business.service.Service.get_by_unique_uuid")
+def test_service_instance_sdc_service(mock_service_get_by_unique_uuid):
+    si = ServiceInstance(service_subscription=mock.MagicMock(),
+                         instance_id="test_service_instance_id",
+                         model_invariant_id="1234")
+    si.sdc_service
+    mock_service_get_by_unique_uuid.assert_called_once_with("1234")
+    si.sdc_service
+    mock_service_get_by_unique_uuid.assert_called_once_with("1234")

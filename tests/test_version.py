@@ -6,4 +6,4 @@ import onapsdk.version as version
 
 def test_version():
   """Check version is the right one."""
-  assert version.__version__ == '7.8.0'
+  assert version.__version__ == '7.9.0'

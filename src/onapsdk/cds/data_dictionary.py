@@ -83,6 +83,24 @@ class DataDictionary(CdsElement):
         """
         return f"{self._url}/api/v1/dictionary"
 
+    @classmethod
+    def get_by_name(cls, name: str) -> "DataDictionary":
+        """Get data dictionary by the provided name.
+
+        Returns:
+            DataDictionary: Data dicionary object with the given name
+
+        """
+        cls.logger.debug("Get CDS data dictionary with %s name", name)
+        return DataDictionary(
+            data_dictionary_json=cls.send_message_json(
+                "GET",
+                f"Get {name} CDS data dictionary",
+                f"{cls._url}/api/v1/dictionary/{name}",
+                auth=cls.auth),
+            fix_schema=False
+        )
+
     def upload(self) -> None:
         """Upload data dictionary using CDS API."""
         self.logger.debug("Upload %s data dictionary", self.name)
