@@ -359,7 +359,7 @@ def test_customer_create(mock_send_json, mock_send):
     assert customer.subscriber_type == "INFRA"
     assert customer.resource_version is not None
 
-    customer = Customer.create("generic", "generic", "INFRA", services_to_subscribe=[mock.MagicMock])
+    customer = Customer.create("generic", "generic", "INFRA", service_subscriptions=["test-service-type"])
     assert customer.global_customer_id == "generic"
     assert customer.subscriber_name == "generic"
     assert customer.subscriber_type == "INFRA"
@@ -416,10 +416,8 @@ def test_customer_subscribe_service(mock_send_message, mock_send_message_json):
     customer = Customer(global_customer_id="test_customer_id",
                         subscriber_name="test_subscriber_name",
                         subscriber_type="test_subscriber_type")
-    service = SdcService("test_service")
-    service._unique_uuid = "1234"
     mock_send_message_json.side_effect = (ResourceNotFound, SERVICE_SUBSCRIPTION)
-    customer.subscribe_service(service)
+    customer.subscribe_service("test_service")
 
 
 #test the Cloud Region Class

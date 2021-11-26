@@ -15,4 +15,4 @@ class CdsElement(OnapService, ABC):
 
     # These should be stored in configuration. There is even a task in Orange repo.
     _url: str = settings.CDS_URL
-    auth: tuple = ("ccsdkapps", "ccsdkapps")
+    auth: tuple = settings.CDS_AUTH

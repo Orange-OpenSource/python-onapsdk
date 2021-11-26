@@ -3,14 +3,16 @@
 # SPDX-License-Identifier: Apache-2.0
 """Instantion module."""
 from abc import ABC
-from dataclasses import dataclass
-from typing import Iterable, Optional
+from dataclasses import dataclass, field
+from typing import Any, Dict, Iterable, List, Optional
 from uuid import uuid4
 from warnings import warn
+
+from dacite import from_dict
+
 from onapsdk.exceptions import (
     APIError, InvalidResponse, ParameterError, ResourceNotFound, StatusError
 )
-
 from onapsdk.onap_service import OnapService
 from onapsdk.sdnc import NetworkPreload, VfModulePreload
 from onapsdk.sdc.service import Network, Service as SdcService, Vnf, VfModule
@@ -22,16 +24,25 @@ from .so_element import OrchestrationRequest
 
 
 @dataclass
-class VnfParameter:
-    """Class to store vnf parameter used for preload.
+class SoServiceVfModule:
+    """Class to store a VfModule instance parameters."""
 
-    IT'S DEPRECATED! `InstantiationParameter` SHOULD BE USED
+    model_name: str
+    instance_name: str
+    parameters: Dict[str, Any] = field(default_factory=dict)
+    processing_priority: Optional[int] = None
 
-    Contains two values: name of vnf parameter and it's value
-    """
 
-    name: str
-    value: str
+@dataclass
+class SoServiceVnf:
+    """Class to store a Vnf instance parameters."""
+
+    model_name: str
+    instance_name: str
+    parameters: Dict[str, Any] = field(default_factory=dict)
+    vf_modules: List[SoServiceVfModule] = field(default_factory=list)
+    processing_priority: Optional[int] = None
+
 
 @dataclass
 class SoService:
@@ -42,7 +53,22 @@ class SoService:
     """
 
     subscription_service_type: str
-    vnfs: list = None
+    vnfs: List[SoServiceVnf] = field(default_factory=list)
+    instance_name: Optional[str] = None
+
+    @classmethod
+    def load(cls, data: Dict[str, Any]) -> "SoService":
+        """Create a service instance description object from the dict.
+
+        Useful if you keep your instance data in file.
+
+        Returns:
+            SoService: SoService object created from the dictionary
+
+        """
+        return from_dict(data_class=cls, data=data)
+
+
 
 @dataclass
 class VnfParameters:
@@ -192,7 +218,6 @@ class VfModuleInstantiation(Instantiation):  # pytest: disable=too-many-ancestor
             Iterator[VfModuleInstantiation]: VfModuleInstantiation class object.
 
         """
-        sdc_service: SdcService = vnf_instance.service_instance.service_subscription.sdc_service
         if vf_module_instance_name is None:
             vf_module_instance_name = \
                 f"Python_ONAP_SDK_vf_module_instance_{str(uuid4())}"
@@ -204,6 +229,7 @@ class VfModuleInstantiation(Instantiation):  # pytest: disable=too-many-ancestor
                 vnf_parameters
             )
             vnf_parameters = None
+        sdc_service: SdcService = vnf_instance.service_instance.sdc_service
         response: dict = cls.send_message_json(
             "POST",
             (f"Instantiate {sdc_service.name} "
@@ -358,8 +384,9 @@ class VnfInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-many-a
                               vnf_object: "Vnf",
                               line_of_business_object: "LineOfBusiness",
                               platform_object: "Platform",
-                              cloud_region: "CloudRegion" = None,
-                              tenant: "Tenant" = None,
+                              cloud_region: "CloudRegion",
+                              tenant: "Tenant",
+                              sdc_service: "SdcService",
                               vnf_instance_name: str = None,
                               vnf_parameters: Iterable["InstantiationParameter"] = None
                               ) -> "VnfInstantiation":
@@ -385,13 +412,12 @@ class VnfInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-many-a
             VnfInstantiation: VnfInstantiation object
 
         """
-        sdc_service: SdcService = aai_service_instance.service_subscription.sdc_service
         if vnf_instance_name is None:
             vnf_instance_name = \
                 f"Python_ONAP_SDK_vnf_instance_{str(uuid4())}"
         response: dict = cls.send_message_json(
             "POST",
-            (f"Instantiate {aai_service_instance.service_subscription.sdc_service.name} "
+            (f"Instantiate {sdc_service.name} "
              f"service vnf {vnf_object.name}"),
             (f"{cls.base_url}/onap/so/infra/serviceInstantiation/{cls.api_version}/"
              f"serviceInstances/{aai_service_instance.instance_id}/vnfs"),
@@ -462,6 +488,7 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
                                  customer: "Customer",
                                  owning_entity: "OwningEntity",
                                  project: "Project",
+                                 service_subscription: "ServiceSubscription",
                                  service_instance_name: str = None) -> "ServiceInstantiation":
         """Instantiate service using SO a'la carte request.
 
@@ -475,6 +502,7 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
             owning_entity (OwningEntity): Owning entity to use in instantiation request
             project (Project): Project to use in instantiation request
             service_instance_name (str, optional): Service instance name. Defaults to None.
+            service_subscription (ServiceSubscription): Customer's service subsription.
 
         Returns:
             ServiceInstantiation: instantiation request object
@@ -482,7 +510,8 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
         """
         warn("This method is deprecated, use `instantiate_ala_carte`.", DeprecationWarning)
         return cls.instantiate_ala_carte(sdc_service, cloud_region, tenant, customer,
-                                         owning_entity, project, service_instance_name)
+                                         owning_entity, project, service_subscription,
+                                         service_instance_name)
 
     @classmethod
     def instantiate_ala_carte(cls,  # pylint: disable=too-many-arguments
@@ -492,6 +521,7 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
                               customer: "Customer",
                               owning_entity: "OwningEntity",
                               project: "Project",
+                              service_subscription: "ServiceSubscription",
                               service_instance_name: str = None,
                               enable_multicloud: bool = False) -> "ServiceInstantiation":
         """Instantiate service using SO a'la carte request.
@@ -503,6 +533,7 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
             customer (Customer): Customer to use in instantiation request
             owning_entity (OwningEntity): Owning entity to use in instantiation request
             project (Project): Project to use in instantiation request
+            service_subscription (ServiceSubscription): Customer's service subsription.
             service_instance_name (str, optional): Service instance name. Defaults to None.
             enable_multicloud (bool, optional): Determines if Multicloud should be enabled
                 for instantiation request. Defaults to False.
@@ -533,7 +564,8 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
                 owning_entity=owning_entity,
                 service_instance_name=service_instance_name,
                 project=project,
-                enable_multicloud=enable_multicloud
+                enable_multicloud=enable_multicloud,
+                service_subscription=service_subscription
             ),
             headers=headers_so_creator(OnapService.headers)
         )
@@ -564,7 +596,8 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
                           service_instance_name: str = None,
                           vnf_parameters: Iterable["VnfParameters"] = None,
                           enable_multicloud: bool = False,
-                          so_service: "SoService" = None
+                          so_service: "SoService" = None,
+                          service_subscription: "ServiceSubscription" = None
                           ) -> "ServiceInstantiation":
         """Instantiate service using SO macro request.
 
@@ -585,6 +618,8 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
             enable_multicloud (bool, optional): Determines if Multicloud should be enabled
                 for instantiation request. Defaults to False.
             so_service (SoService, optional): SO values to use in instantiation request
+            service_subscription(ServiceSubscription, optional): Customer service subscription
+                for the instantiated service. Required if so_service is not provided.
 
         Raises:
             StatusError: if a service is not distributed.
@@ -596,11 +631,17 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
         template_file = "instantiate_service_macro.json.j2"
         if so_service:
             template_file = "instantiate_multi_vnf_service_macro.json.j2"
+            if so_service.instance_name:
+                service_instance_name = so_service.instance_name
+        else:
+            if not service_subscription:
+                raise ParameterError("If no so_service is provided, "
+                                     "service_subscription parameter is required!")
+            if service_instance_name is None:
+                service_instance_name = f"Python_ONAP_SDK_service_instance_{str(uuid4())}"
         if not sdc_service.distributed:
             msg = f"Service {sdc_service.name} is not distributed."
             raise StatusError(msg)
-        if service_instance_name is None:
-            service_instance_name = f"Python_ONAP_SDK_service_instance_{str(uuid4())}"
 
         response: dict = cls.send_message_json(
             "POST",
@@ -621,7 +662,8 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
                     platform=platform,
                     service_instance_name=service_instance_name,
                     vnf_parameters=vnf_parameters,
-                    enable_multicloud=enable_multicloud
+                    enable_multicloud=enable_multicloud,
+                    service_subscription=service_subscription
                 ),
             headers=headers_so_creator(OnapService.headers)
             )
@@ -718,7 +760,6 @@ class NetworkInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-ma
             NetworkInstantiation: NetworkInstantiation object
 
         """
-        sdc_service: SdcService = aai_service_instance.service_subscription.sdc_service
         if network_instance_name is None:
             network_instance_name = \
                 f"Python_ONAP_SDK_network_instance_{str(uuid4())}"
@@ -727,7 +768,7 @@ class NetworkInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-ma
                                               subnets=subnets)
         response: dict = cls.send_message_json(
             "POST",
-            (f"Instantiate {aai_service_instance.service_subscription.sdc_service.name} "
+            (f"Instantiate {aai_service_instance.sdc_service.name} "
              f"service network {network_object.name}"),
             (f"{cls.base_url}/onap/so/infra/serviceInstantiation/{cls.api_version}/"
              f"serviceInstances/{aai_service_instance.instance_id}/networks"),
@@ -735,7 +776,7 @@ class NetworkInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-ma
             render(
                 instance_name=network_instance_name,
                 network=network_object,
-                service=sdc_service,
+                service=aai_service_instance.sdc_service,
                 cloud_region=cloud_region or \
                     aai_service_instance.service_subscription.cloud_region,
                 tenant=tenant or aai_service_instance.service_subscription.tenant,

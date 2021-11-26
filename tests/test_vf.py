@@ -179,7 +179,7 @@ def test_create_issue_in_creation(mock_category, mock_send, mock_exists):
     vsp.create_csar = MagicMock(return_value=True)
     vsp.vendor = vendor
     vf.vsp = vsp
-    expected_data = '{\n    "artifacts": {},\n    "attributes": [],\n    "capabilities": {},\n      "categories": [\n    {\n      "normalizedName": "generic",\n      "name": "Generic",\n      "uniqueId": "resourceNewCategory.generic",\n      "subcategories": [{"empty": false, "groupings": null, "icons": ["objectStorage", "compute"], "name": "Abstract", "normalizedName": "abstract", "ownerId": null, "type": null, "uniqueId": "resourceNewCategory.generic.abstract", "version": null}],\n      "version": null,\n      "ownerId": null,\n      "empty": false,\n      "type": null,\n      "icons": null\n    }\n  ],\n    "componentInstances": [],\n    "componentInstancesAttributes": {},\n    "componentInstancesProperties": {},\n    "componentType": "RESOURCE",\n    "contactId": "cs0008",\n    "csarUUID": "None",\n    "csarVersion": "1.0",\n    "deploymentArtifacts": {},\n    "description": "VF",\n    "icon": "defaulticon",\n    "name": "ONAP-test-VF",\n    "properties": [],\n    "groups": [],\n    "requirements": {},\n    "resourceType": "VF",\n    "tags": ["ONAP-test-VF"],\n    "toscaArtifacts": {},\n    "vendorName": "Generic-Vendor",\n    "vendorRelease": "1.0"\n}'
+    expected_data = '{\n    "artifacts": {},\n    "attributes": [],\n    "capabilities": {},\n      "categories": [\n    {\n      "normalizedName": "generic",\n      "name": "Generic",\n      "uniqueId": "resourceNewCategory.generic",\n      "subcategories": [{"empty": false, "groupings": null, "icons": ["objectStorage", "compute"], "name": "Abstract", "normalizedName": "abstract", "ownerId": null, "type": null, "uniqueId": "resourceNewCategory.generic.abstract", "version": null}],\n      "version": null,\n      "ownerId": null,\n      "empty": false,\n      "type": null,\n      "icons": null\n    }\n  ],\n    "componentInstances": [],\n    "componentInstancesAttributes": {},\n    "componentInstancesProperties": {},\n    "componentType": "RESOURCE",\n    "contactId": "cs0008",\n    \n        "csarUUID": "None",\n        "csarVersion": "1.0",\n    \n    "deploymentArtifacts": {},\n    "description": "VF",\n    "icon": "defaulticon",\n    "name": "ONAP-test-VF",\n    "properties": [],\n    "groups": [],\n    "requirements": {},\n    "resourceType": "VF",\n    "tags": ["ONAP-test-VF"],\n    "toscaArtifacts": {},\n    "vendorName": "Generic-Vendor",\n    "vendorRelease": "1.0"\n}'
     mock_exists.return_value = False
     mock_send.side_effect = RequestError
     rc = ResourceCategory(
@@ -212,7 +212,7 @@ def test_create_OK(mock_category, mock_send, mock_exists):
     vf.vsp = vsp
     vsp.vendor = vendor
     vsp._csar_uuid = "1234"
-    expected_data = '{\n    "artifacts": {},\n    "attributes": [],\n    "capabilities": {},\n      "categories": [\n    {\n      "normalizedName": "generic",\n      "name": "Generic",\n      "uniqueId": "resourceNewCategory.generic",\n      "subcategories": [{"empty": false, "groupings": null, "icons": ["objectStorage", "compute"], "name": "Abstract", "normalizedName": "abstract", "ownerId": null, "type": null, "uniqueId": "resourceNewCategory.generic.abstract", "version": null}],\n      "version": null,\n      "ownerId": null,\n      "empty": false,\n      "type": null,\n      "icons": null\n    }\n  ],\n    "componentInstances": [],\n    "componentInstancesAttributes": {},\n    "componentInstancesProperties": {},\n    "componentType": "RESOURCE",\n    "contactId": "cs0008",\n    "csarUUID": "1234",\n    "csarVersion": "1.0",\n    "deploymentArtifacts": {},\n    "description": "VF",\n    "icon": "defaulticon",\n    "name": "ONAP-test-VF",\n    "properties": [],\n    "groups": [],\n    "requirements": {},\n    "resourceType": "VF",\n    "tags": ["ONAP-test-VF"],\n    "toscaArtifacts": {},\n    "vendorName": "Generic-Vendor",\n    "vendorRelease": "1.0"\n}'
+    expected_data = '{\n    "artifacts": {},\n    "attributes": [],\n    "capabilities": {},\n      "categories": [\n    {\n      "normalizedName": "generic",\n      "name": "Generic",\n      "uniqueId": "resourceNewCategory.generic",\n      "subcategories": [{"empty": false, "groupings": null, "icons": ["objectStorage", "compute"], "name": "Abstract", "normalizedName": "abstract", "ownerId": null, "type": null, "uniqueId": "resourceNewCategory.generic.abstract", "version": null}],\n      "version": null,\n      "ownerId": null,\n      "empty": false,\n      "type": null,\n      "icons": null\n    }\n  ],\n    "componentInstances": [],\n    "componentInstancesAttributes": {},\n    "componentInstancesProperties": {},\n    "componentType": "RESOURCE",\n    "contactId": "cs0008",\n    \n        "csarUUID": "1234",\n        "csarVersion": "1.0",\n    \n    "deploymentArtifacts": {},\n    "description": "VF",\n    "icon": "defaulticon",\n    "name": "ONAP-test-VF",\n    "properties": [],\n    "groups": [],\n    "requirements": {},\n    "resourceType": "VF",\n    "tags": ["ONAP-test-VF"],\n    "toscaArtifacts": {},\n    "vendorName": "Generic-Vendor",\n    "vendorRelease": "1.0"\n}'
     mock_exists.return_value = False
     mock_send.return_value = {'resourceType': 'VF', 'name': 'one', 'uuid': '1234', 'invariantUUID': '5678', 'version': '1.0', 'uniqueId': '91011', 'lifecycleState': 'NOT_CERTIFIED_CHECKOUT'}
     rc = ResourceCategory(
@@ -303,7 +303,8 @@ def test_submit_OK(mock_send, mock_load, mock_exists):
 @mock.patch.object(Vf, 'load')
 @mock.patch.object(Vf, 'submit')
 @mock.patch.object(Vf, 'create')
-def test_onboard_new_vf(mock_create, mock_submit, mock_load):
+@mock.patch.object(Vf, 'add_resource')
+def test_onboard_new_vf(mock_add_resource, mock_create, mock_submit, mock_load):
     getter_mock = mock.Mock(wraps=Vf.status.fget)
     mock_status = Vf.status.getter(getter_mock)
     with mock.patch.object(Vf, 'status', mock_status):
@@ -314,13 +315,15 @@ def test_onboard_new_vf(mock_create, mock_submit, mock_load):
         vf._time_wait = 0
         vf.onboard()
         mock_create.assert_called_once()
+        mock_add_resource.assert_not_called()
         mock_submit.assert_not_called()
         mock_load.assert_not_called()
 
 @mock.patch.object(Vf, 'load')
 @mock.patch.object(Vf, 'submit')
 @mock.patch.object(Vf, 'create')
-def test_onboard_vf_submit(mock_create, mock_submit, mock_load):
+@mock.patch.object(Vf, 'add_resource')
+def test_onboard_vf_submit(mock_add_resource, mock_create, mock_submit, mock_load):
     getter_mock = mock.Mock(wraps=Vf.status.fget)
     mock_status = Vf.status.getter(getter_mock)
     with mock.patch.object(Vf, 'status', mock_status):
@@ -330,13 +333,15 @@ def test_onboard_vf_submit(mock_create, mock_submit, mock_load):
         vf._time_wait = 0
         vf.onboard()
         mock_create.assert_not_called()
+        mock_add_resource.assert_not_called()
         mock_submit.assert_called_once()
         mock_load.assert_not_called()
 
 @mock.patch.object(Vf, 'load')
 @mock.patch.object(Vf, 'submit')
 @mock.patch.object(Vf, 'create')
-def test_onboard_vf_load(mock_create, mock_submit, mock_load):
+@mock.patch.object(Vf, 'add_resource')
+def test_onboard_vf_load(mock_add_resource, mock_create, mock_submit, mock_load):
     getter_mock = mock.Mock(wraps=Vf.status.fget)
     mock_status = Vf.status.getter(getter_mock)
     with mock.patch.object(Vf, 'status', mock_status):
@@ -347,13 +352,15 @@ def test_onboard_vf_load(mock_create, mock_submit, mock_load):
         vf._time_wait = 0
         vf.onboard()
         mock_create.assert_not_called()
+        mock_add_resource.assert_not_called()
         mock_submit.assert_not_called()
         mock_load.assert_called_once()
 
 @mock.patch.object(Vf, 'load')
 @mock.patch.object(Vf, 'submit')
 @mock.patch.object(Vf, 'create')
-def test_onboard_whole_vf(mock_create, mock_submit, mock_load):
+@mock.patch.object(Vf, 'add_resource')
+def test_onboard_whole_vf(mock_add_resource, mock_create, mock_submit, mock_load):
     getter_mock = mock.Mock(wraps=Vf.status.fget)
     mock_status = Vf.status.getter(getter_mock)
     with mock.patch.object(Vf, 'status', mock_status):
@@ -365,6 +372,7 @@ def test_onboard_whole_vf(mock_create, mock_submit, mock_load):
         vf._time_wait = 0
         vf.onboard()
         mock_create.assert_called_once()
+        mock_add_resource.assert_not_called()
         mock_submit.assert_called_once()
         mock_load.assert_called_once()
 
@@ -410,6 +418,11 @@ def test_vf_category(mock_resource_category, mock_created):
     mock_resource_category.assert_called_once_with(name="Generic", subcategory="Abstract")
     mock_resource_category.reset_mock()
 
+    vf = Vf(name="test", category="Allotted Resource", subcategory="Allotted Resource")
+    _ = vf.category
+    mock_resource_category.assert_called_once_with(name="Allotted Resource", subcategory="Allotted Resource")
+    mock_resource_category.reset_mock()
+
     vf = Vf(name="test", category="test", subcategory="test")
     _ = vf.category
     mock_resource_category.assert_called_once_with(name="test", subcategory="test")
@@ -442,3 +455,53 @@ def test_update_vsp(mock_send):
     mock_call_kwargs_data = json.loads(mock_send.mock_calls[-1][2]["data"])  # Get kward from `unittest.mock.call` tuple
     assert mock_call_kwargs_data["csarUUID"] == "122333"
     assert mock_call_kwargs_data["csarVersion"] == "1.0"
+
+@mock.patch.object(Vf, 'exists')
+@mock.patch.object(Vf, 'send_message')
+def test_add_resource_not_draft(mock_send, mock_exists):
+    mock_exists.return_value = False
+    vf = Vf()
+    resource = SdcResource()
+    with pytest.raises(StatusError):
+        vf.add_resource(resource)
+    mock_send.assert_not_called()
+
+@mock.patch.object(Vf, 'load')
+@mock.patch.object(Vf, 'send_message')
+def test_add_resource_bad_result(mock_send, mock_load):
+    vf = Vf()
+    vf.unique_identifier = "45"
+    vf.identifier = "93"
+    vf.status = const.DRAFT
+    mock_send.return_value = {}
+    resource = SdcResource()
+    resource.unique_identifier = "12"
+    resource.created = MagicMock(return_value=True)
+    resource.version = "40"
+    resource.name = "test"
+    assert vf.add_resource(resource) is None
+    mock_send.assert_called_once_with(
+        'POST', 'Add SDCRESOURCE to VF',
+        'https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/rest/v1/catalog/resources/45/resourceInstance',
+        data='{\n  "name": "test",\n  "componentVersion": "40",\n  "posY": 100,\n  "posX": 200,\n  "uniqueId": "12",\n  "originType": "SDCRESOURCE",\n  "componentUid": "12",\n  "icon": "defaulticon"\n}')
+
+@mock.patch.object(Vf, 'load')
+@mock.patch.object(Vf, 'send_message')
+def test_add_resource_OK(mock_send, mock_load):
+    vf = Vf()
+    vf.unique_identifier = "45"
+    vf.identifier = "93"
+    vf.status = const.DRAFT
+    mock_send.return_value = {'yes': 'indeed'}
+    resource = SdcResource()
+    resource.unique_identifier = "12"
+    resource.created = MagicMock(return_value=True)
+    resource.version = "40"
+    resource.name = "test"
+    result = vf.add_resource(resource)
+    assert result['yes'] == "indeed"
+    mock_send.assert_called_once_with(
+        'POST', 'Add SDCRESOURCE to VF',
+        'https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/rest/v1/catalog/resources/45/resourceInstance',
+        data='{\n  "name": "test",\n  "componentVersion": "40",\n  "posY": 100,\n  "posX": 200,\n  "uniqueId": "12",\n  "originType": "SDCRESOURCE",\n  "componentUid": "12",\n  "icon": "defaulticon"\n}')
+

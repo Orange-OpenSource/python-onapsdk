@@ -227,15 +227,15 @@ def test_vnf_instance_vnf():
                                is_closed_loop_disabled=True,
                                model_version_id="test_model_version_id")
     assert vnf_instance._vnf is None
-    service_instance.service_subscription.sdc_service.vnfs = []
+    service_instance.sdc_service.vnfs = []
     with pytest.raises(ResourceNotFound) as exc:
         vnf_instance.vnf
     assert exc.type == ResourceNotFound
     assert vnf_instance._vnf is None
 
     vnf = mock.MagicMock()
-    vnf.metadata = {"UUID": "test_model_version_id"}
-    service_instance.service_subscription.sdc_service.vnfs = [vnf]
+    vnf.model_version_id = "test_model_version_id"
+    service_instance.sdc_service.vnfs = [vnf]
     assert vnf == vnf_instance.vnf
     assert vnf_instance._vnf is not None
     assert vnf_instance.vnf == vnf_instance._vnf
