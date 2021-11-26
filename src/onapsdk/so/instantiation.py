@@ -6,10 +6,10 @@ from abc import ABC
 from dataclasses import dataclass, field
 from typing import Any, Dict, Iterable, List, Optional
 from uuid import uuid4
+from warnings import warn
 
 from dacite import from_dict
 
-from onapsdk.aai.business.owning_entity import OwningEntity
 from onapsdk.exceptions import (
     APIError, InvalidResponse, ParameterError, ResourceNotFound, StatusError
 )
@@ -488,6 +488,7 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
                                  customer: "Customer",
                                  owning_entity: "OwningEntity",
                                  project: "Project",
+                                 service_subscription: "ServiceSubscription",
                                  service_instance_name: str = None) -> "ServiceInstantiation":
         """Instantiate service using SO a'la carte request.
 
@@ -501,6 +502,7 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
             owning_entity (OwningEntity): Owning entity to use in instantiation request
             project (Project): Project to use in instantiation request
             service_instance_name (str, optional): Service instance name. Defaults to None.
+            service_subscription (ServiceSubscription): Customer's service subsription.
 
         Returns:
             ServiceInstantiation: instantiation request object
@@ -508,7 +510,8 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
         """
         warn("This method is deprecated, use `instantiate_ala_carte`.", DeprecationWarning)
         return cls.instantiate_ala_carte(sdc_service, cloud_region, tenant, customer,
-                                         owning_entity, project, service_instance_name)
+                                         owning_entity, project, service_subscription,
+                                         service_instance_name)
 
     @classmethod
     def instantiate_ala_carte(cls,  # pylint: disable=too-many-arguments
