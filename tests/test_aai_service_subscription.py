@@ -143,14 +143,6 @@ def test_get_service_instance_by_name(mock_get):
     assert service_instance.instance_name == "test"
 
 
-def test_sdc_service_subscription():
-    """Test service subscription sdc property"""
-    service_subscription = ServiceSubscription(customer=None,
-                                               service_type="test_service_type",
-                                               resource_version="test_resource_version")  
-    assert service_subscription.sdc_service == SdcService("test_service_type")
-
-
 @mock.patch.object(ServiceSubscription, "send_message_json")
 @mock.patch.object(CloudRegion, "get_by_id")
 def test_cloud_regions(mock_cloud_region_get_by_id, mock_send_message_json):

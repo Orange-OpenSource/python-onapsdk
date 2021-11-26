@@ -6,15 +6,15 @@
 		},
 		"modelInfo": {
             "modelType": "service",
-            "modelName": "{{ service_instance.service_subscription.sdc_service.name }}",
-            "modelInvariantId": "{{ service_instance.service_subscription.sdc_service.unique_uuid }}",
+            "modelName": "{{ service_instance.sdc_service.name }}",
+            "modelInvariantId": "{{ service_instance.sdc_service.unique_uuid }}",
             "modelVersion": "1.0",
-            "modelVersionId": "{{ service_instance.service_subscription.sdc_service.identifier }}"
+            "modelVersionId": "{{ service_instance.sdc_service.identifier }}"
 		},
 		"requestParameters": {
 			"testApi": "GR_API",
 			"aLaCarte": {{ a_la_carte | tojson }}
-		}{% if service_instance.service_subscription.sdc_service.vnfs %},
+		}{% if service_instance.sdc_service.vnfs %},
 		{# the code below is needed to be refactored #}
 		{# https://gitlab.com/Orange-OpenSource/lfn/onap/python-onapsdk/-/issues/133 #}
         "cloudConfiguration": {

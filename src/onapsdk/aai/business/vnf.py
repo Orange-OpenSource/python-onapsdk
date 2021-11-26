@@ -2,9 +2,9 @@
 
 from typing import Iterable, Iterator
 
+from onapsdk.exceptions import ResourceNotFound
 from onapsdk.so.deletion import VnfDeletionRequest
 from onapsdk.so.instantiation import VfModuleInstantiation
-from onapsdk.exceptions import ResourceNotFound
 
 from .instance import Instance
 from .vf_module import VfModuleInstance
@@ -256,8 +256,8 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
 
         """
         if not self._vnf:
-            for vnf in self.service_instance.service_subscription.sdc_service.vnfs:
-                if vnf.metadata["UUID"] == self.model_version_id:
+            for vnf in self.service_instance.sdc_service.vnfs:
+                if vnf.model_version_id == self.model_version_id:
                     self._vnf = vnf
                     return self._vnf
 

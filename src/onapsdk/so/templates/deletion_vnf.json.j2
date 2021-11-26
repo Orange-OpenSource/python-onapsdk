@@ -6,11 +6,11 @@
 		},
 		"modelInfo": {
 			"modelType": "vnf",
-            "modelName": "{{ vnf_instance.vnf.metadata["name"] }}",
-            "modelInvariantId": "{{ vnf_instance.vnf.metadata["invariantUUID"] }}",
-            "modelVersion": "{{ vnf_instance.vnf.metadata["version"] }}",
-            "modelVersionId": "{{ vnf_instance.vnf.metadata["UUID"] }}",
-            "modelCustomizationId": "{{ vnf_instance.vnf.metadata["customizationUUID"] }}",
+            "modelName": "{{ vnf_instance.vnf.model_name }}",
+            "modelInvariantId": "{{ vnf_instance.vnf.model_invariant_id }}",
+            "modelVersion": "{{ vnf_instance.vnf.model_version }}",
+            "modelVersionId": "{{ vnf_instance.vnf.model_version_id }}",
+            "modelCustomizationId": "{{ vnf_instance.vnf.model_customization_id }}",
             "modelCustomizationName": "{{ vnf_instance.vnf.name }}"
 		},
 		"requestParameters": {

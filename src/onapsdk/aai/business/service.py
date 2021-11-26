@@ -1,7 +1,8 @@
 """Service instance module."""
 
-from typing import Iterator, Type, Union, Iterable
+from typing import Iterator, Type, Union, Iterable, Optional
 
+from onapsdk.sdc.service import Service
 from onapsdk.so.deletion import ServiceDeletionRequest
 from onapsdk.so.instantiation import NetworkInstantiation, VnfInstantiation
 from onapsdk.exceptions import StatusError, ParameterError
@@ -100,6 +101,7 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
         self.persona_model_version: str = persona_model_version
         self.widget_model_id: str = widget_model_id
         self.widget_model_version: str = widget_model_version
+        self._sdc_service: Optional[Service] = None
 
     def __repr__(self) -> str:
         """Service instance object representation.
@@ -198,6 +200,20 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
         """
         return self._get_related_instance(PnfInstance, "pnf")
 
+    @property
+    def sdc_service(self) -> Service:
+        """Sdc service related with that instance.
+
+        Sdc service model which was used to create that instance.
+
+        Raises:
+            ResourceNotFound: Service model not found
+
+        """
+        if not self._sdc_service:
+            self._sdc_service = Service.get_by_unique_uuid(self.model_invariant_id)
+        return self._sdc_service
+
     def add_vnf(self,  # pylint: disable=too-many-arguments
                 vnf: "Vnf",
                 line_of_business: "LineOfBusiness",
@@ -249,7 +265,8 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
             cloud_region=cloud_region,
             tenant=tenant,
             vnf_instance_name=vnf_instance_name,
-            vnf_parameters=vnf_parameters
+            vnf_parameters=vnf_parameters,
+            sdc_service=self.sdc_service
         )
 
     def add_network(self,  # pylint: disable=too-many-arguments

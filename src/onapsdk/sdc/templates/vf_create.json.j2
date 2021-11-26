@@ -8,8 +8,10 @@
     "componentInstancesProperties": {},
     "componentType": "RESOURCE",
     "contactId": "cs0008",
-    "csarUUID": "{{ vsp.csar_uuid }}",
-    "csarVersion": "1.0",
+    {% if category.name != "Allotted Resource" %}
+        "csarUUID": "{{ vsp.csar_uuid }}",
+        "csarVersion": "1.0",
+    {% endif %}
     "deploymentArtifacts": {},
     "description": "VF",
     "icon": "defaulticon",
