@@ -52,7 +52,7 @@ class NodeTemplate:  # pylint: disable=too-many-instance-attributes
     node_template_type: str
     model_name: str
     model_version_id: str
-    model_invartiant_id: str
+    model_invariant_id: str
     model_version: str
     model_customization_id: str
     model_instance_name: str
@@ -297,7 +297,7 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
             node_template_type=component.tosca_component_name,
             model_name=component.component_name,
             model_version_id=component.sdc_resource.identifier,
-            model_invartiant_id=component.sdc_resource.unique_uuid,
+            model_invariant_id=component.sdc_resource.unique_uuid,
             model_version=component.sdc_resource.version,
             model_customization_id=component.component_name,
             model_instance_name=self.name,
