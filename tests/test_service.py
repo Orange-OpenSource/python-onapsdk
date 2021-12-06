@@ -214,6 +214,64 @@ def test_version_filter(mock_get_all):
     assert not svc.exists()
     assert not svc.version
 
+@mock.patch.object(Service, 'get_all')
+def test_get_the_latest_version(mock_get_all):
+    svc_1 = Service(name="test_get_max_version")
+    svc_1.identifier = "1111"
+    svc_1.unique_uuid = "2222"
+    svc_1.unique_identifier = "3333"
+    svc_1.status = const.CERTIFIED
+    svc_1.version = "9.0"
+
+    svc_2 = Service(name="test_get_max_version")
+    svc_2.identifier = "1111"
+    svc_2.unique_uuid = "2222"
+    svc_2.unique_identifier = "3333"
+    svc_2.status = const.DRAFT
+    svc_2.version = "10.0"
+
+    mock_get_all.return_value = [svc_1, svc_2]
+    svc = Service(name='test_get_max_version')
+    assert svc.version == "10.0"
+
+    svc_3 = Service(name="test_get_max_version")
+    svc_3.identifier = "1111"
+    svc_3.unique_uuid = "2222"
+    svc_3.unique_identifier = "3333"
+    svc_3.status = const.DRAFT
+    svc_3.version = "10.1"
+    mock_get_all.return_value = [svc_1, svc_2, svc_3]
+    svc = Service(name='test_get_max_version')
+    assert svc.version == "10.1"
+
+    svc_4 = Service(name="test_get_max_version")
+    svc_4.identifier = "1111"
+    svc_4.unique_uuid = "2222"
+    svc_4.unique_identifier = "3333"
+    svc_4.status = const.DRAFT
+    svc_4.version = "20.0"
+    mock_get_all.return_value = [svc_1, svc_2, svc_3, svc_4]
+    svc = Service(name='test_get_max_version')
+    assert svc.version == "20.0"
+
+    svc_5 = Service(name="test_get_max_version")
+    svc_5.identifier = "1111"
+    svc_5.unique_uuid = "2222"
+    svc_5.unique_identifier = "3333"
+    svc_5.status = const.DRAFT
+    svc_5.version = "99.0"
+
+    svc_6 = Service(name="test_get_max_version")
+    svc_6.identifier = "1111"
+    svc_6.unique_uuid = "2222"
+    svc_6.unique_identifier = "3333"
+    svc_6.status = const.DRAFT
+    svc_6.version = "100.0"
+    mock_get_all.return_value = [svc_1, svc_2, svc_3, svc_4, svc_5, svc_6]
+    svc = Service(name='test_get_max_version')
+    assert svc.version == "100.0"
+
+
 def test_equality_really_equals():
     """Check two vfs are equals if name is the same."""
     svc_1 = Service(name="equal")
