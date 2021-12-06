@@ -60,7 +60,7 @@ class AaiElement(OnapService):
     def filter_none_key_values(cls, dict_to_filter: Dict[str, Optional[str]]) -> Dict[str, str]:
         """Filter out None key values from dictionary.
 
-        Iterate throught given dictionary and filter None values.
+        Iterate through given dictionary and filter None values.
 
         Args:
             dict_to_filter (Dict): Dictionary to filter out None
@@ -130,3 +130,14 @@ class AaiElement(OnapService):
             .get_template("aai_add_relationship.json.j2")
             .render(relationship=relationship),
         )
+
+    def get_guis(self) -> Dict:
+        """retrieve the status of the AAI GUI.
+        Only one GUI is referenced for AAI
+        the AAI sparky GUI"""
+        gui_url = settings.AAI_GUI_URL + settings.AAI_GUI_SERVICE
+        aai_gui_response  = self.send_message(
+            "GET", "Get AAI GUI Status", gui_url)
+
+        return [{ 'url': gui_url,
+                  'status': aai_gui_response.status_code }]

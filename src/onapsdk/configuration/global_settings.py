@@ -7,6 +7,7 @@
 #                    #
 ######################
 
+## API
 AAI_URL         = "https://aai.api.sparky.simpledemo.onap.org:30233"
 AAI_API_VERSION = "v23"
 AAI_AUTH        = "Basic QUFJOkFBSQ=="
@@ -29,3 +30,21 @@ VES_URL         = "http://ves.api.simpledemo.onap.org:30417"
 DMAAP_URL       = "http://dmaap.api.simpledemo.onap.org:3904"
 NBI_URL         = "https://nbi.api.simpledemo.onap.org:30274"
 NBI_API_VERSION = "/nbi/api/v4"
+DCAEMOD_URL = ""
+HOLMES_URL = "https://aai.api.sparky.simpledemo.onap.org:30293"
+POLICY_URL = ""
+POLICY_CLAMP_URL = "https://aai.api.sparky.simpledemo.onap.org:30258"
+
+## GUI
+AAI_GUI_URL = "https://portal.api.simpledemo.onap.org:30220"
+AAI_GUI_SERVICE = "/services/aai/webapp/index.html#/browse"
+CDS_GUI_SERVICE = "/"
+SO_MONITOR_GUI_SERVICE = "/"
+SDC_GUI_SERVICE = "/sdc1/portal"
+SDNC_DG_GUI_SERVICE = "/nifi/"
+SDNC_ODL_GUI_SERVICE = "/odlux/index.html"
+
+DCAEMOD_GUI_SERVICE = "/"
+HOLMES_GUI_SERVICE = "/iui/holmes/default.html"
+POLICY_GUI_SERVICE = "/onap/login.html"
+POLICY_CLAMP_GUI_SERVICE = "/"

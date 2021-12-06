@@ -5,7 +5,7 @@ import pytest
 from unittest import mock
 
 from onapsdk.aai.aai_element import AaiElement, Relationship
-from onapsdk.exceptions import ResourceNotFound, RelationshipNotFound
+from onapsdk.exceptions import RequestError, ResourceNotFound, RelationshipNotFound
 
 @mock.patch.object(AaiElement, "send_message_json")
 @mock.patch.object(AaiElement, "url")
@@ -36,3 +36,13 @@ def test_relationship_get_relationship_data():
     )
     assert r.get_relationship_data("invalid key") is None
     assert r.get_relationship_data("test") == "test"
+
+@mock.patch.object(AaiElement, "send_message")
+def test_get_guis_request_error(send_message_mock):
+    aai_element = AaiElement()
+    gui_status = {'url': 'https://portal.api.simpledemo.onap.org:30220/services/aai/webapp/index.html#/browse', 'status': 200}
+
+    send_message_mock.return_value.status_code = 200
+    gui_results = aai_element.get_guis()
+    assert gui_results[0]['url'] == gui_status['url']
+    assert gui_results[0]['status'] == gui_status['status']

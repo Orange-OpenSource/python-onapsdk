@@ -308,3 +308,8 @@ class OnapService(ABC):
         else:
             OnapService.permanent_headers.ph_dict.update(header)
         OnapService._logger.debug("Set permanent header %s", header)
+
+    @staticmethod
+    def get_guis():
+        """Return the list of GUI and its status"""
+        return {}
