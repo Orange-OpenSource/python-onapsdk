@@ -132,12 +132,16 @@ class AaiElement(OnapService):
         )
 
     def get_guis(self) -> Dict:
-        """retrieve the status of the AAI GUI.
+        """Retrieve the status of the AAI GUIs.
+
         Only one GUI is referenced for AAI
-        the AAI sparky GUI"""
+        the AAI sparky GUI
+
+        Return the list of GUIs
+        """
         gui_url = settings.AAI_GUI_URL + settings.AAI_GUI_SERVICE
-        aai_gui_response  = self.send_message(
+        aai_gui_response = self.send_message(
             "GET", "Get AAI GUI Status", gui_url)
 
-        return [{ 'url': gui_url,
-                  'status': aai_gui_response.status_code }]
+        return [{'url': gui_url,
+                 'status': aai_gui_response.status_code}]
