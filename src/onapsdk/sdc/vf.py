@@ -106,11 +106,11 @@ class Vf(SdcResource):
         if not isinstance(input_to_declare, ComponentProperty):
             super().declare_input(input_to_declare)
         else:
-            self.send_message_json("POST",
-                                   f"Declare new input for {input_to_declare.name} property",
-                                   f"{self.resource_inputs_url}/create/inputs",
-                                   data=jinja_env().get_template(\
-                                       "component_declare_input.json.j2").\
-                                           render(\
-                                               component=input_to_declare.component,
-                                               property=input_to_declare))
+            self.send_message("POST",
+                              f"Declare new input for {input_to_declare.name} property",
+                              f"{self.resource_inputs_url}/create/inputs",
+                              data=jinja_env().get_template(\
+                                  "component_declare_input.json.j2").\
+                                      render(\
+                                          component=input_to_declare.component,
+                                          property=input_to_declare))
