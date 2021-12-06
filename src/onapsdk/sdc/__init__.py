@@ -187,7 +187,8 @@ class SDC(OnapService, ABC):
                 return False
 
         else:
-            versioned_object = max(relevant_objects, key=attrgetter('version'))
+            versioned_object = max(relevant_objects, key=lambda item: float(item.version) if \
+                hasattr(item, "version") and item.version is not None else None)
 
         self._logger.info("%s found, updating information", type(self).__name__)
         self._copy_object(versioned_object)
