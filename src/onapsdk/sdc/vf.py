@@ -2,14 +2,18 @@
 # -*- coding: utf-8 -*-
 # SPDX-License-Identifier: Apache-2.0
 """Vf module."""
-from typing import Any, Dict, List, Union
+from __future__ import annotations
+from typing import Any, Dict, List, Optional, TYPE_CHECKING, Union
 
 from onapsdk.exceptions import ParameterError
 from onapsdk.sdc.sdc_resource import SdcResource
-from onapsdk.sdc.properties import NestedInput, Property
-from onapsdk.sdc.vsp import Vsp
+from onapsdk.sdc.vendor import Vendor
 from onapsdk.utils.jinja import jinja_env
 import onapsdk.constants as const
+
+if TYPE_CHECKING:
+    from onapsdk.sdc.properties import NestedInput, Property
+    from onapsdk.sdc.vsp import Vsp
 
 
 class Vf(SdcResource):
@@ -31,19 +35,52 @@ class Vf(SdcResource):
     def __init__(self, name: str = None, version: str = None, sdc_values: Dict[str, str] = None,  # pylint: disable=too-many-arguments
                  vsp: Vsp = None, properties: List[Property] = None,
                  inputs: Union[Property, NestedInput] = None,
-                 category: str = None, subcategory: str = None):
+                 category: str = None, subcategory: str = None,
+                 vendor: Vendor = None):
         """
         Initialize vf object.
 
         Args:
             name (optional): the name of the vf
             version (str, optional): the version of the vf
+            vsp (Vsp, optional): VSP object related with the Vf object.
+                Defaults to None.
+            vendor (Vendor, optional): Vendor object used if VSP was not provided.
+                Defaults to None.
 
         """
         super().__init__(sdc_values=sdc_values, version=version, properties=properties,
                          inputs=inputs, category=category, subcategory=subcategory)
         self.name: str = name or "ONAP-test-VF"
-        self.vsp: Vsp = vsp or None
+        self.vsp: Vsp = vsp
+        self._vendor: Vendor = vendor
+
+    @property
+    def vendor(self) -> Optional[Vendor]:
+        """Vendor related wth Vf.
+
+        If Vf is created vendor is get from it's resource metadata.
+        Otherwise it's vendor provided by the user or the vendor from vsp.
+        It's possible that method returns None, but it won't be possible then
+            to create that Vf resource.
+
+        Returns:
+            Optional[Vendor]: Vendor object related with Vf
+
+        """
+        if self._vendor:
+            return self._vendor
+        if self.created():
+            resource_data: Dict[str, Any] = self.send_message_json(
+                "GET",
+                "Get VF data to update VSP",
+                self.resource_inputs_url
+            )
+            self._vendor = Vendor(name=resource_data.get("vendorName"))
+        elif self.vsp:
+            self._vendor = self.vsp.vendor
+        return self._vendor
+
 
     def create(self) -> None:
         """Create the Vf in SDC if not already existing.
@@ -52,9 +89,10 @@ class Vf(SdcResource):
             ParameterError: VSP is not provided during VF object initalization
 
         """
-        if not self.vsp:
-            raise ParameterError("No Vsp was given")
-        self._create("vf_create.json.j2", name=self.name, vsp=self.vsp, category=self.category)
+        if not any([self.vsp, self.vendor]):
+            raise ParameterError("At least vsp or vendor needs to be given")
+        self._create("vf_create.json.j2", name=self.name, vsp=self.vsp,
+                     category=self.category, vendor=self.vendor)
 
     def _really_submit(self) -> None:
         """Really submit the SDC Vf in order to enable it."""

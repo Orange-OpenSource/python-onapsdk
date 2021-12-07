@@ -151,7 +151,7 @@ def test_create_no_vsp(mock_send, mock_exists):
     with pytest.raises(ParameterError) as err:
         vf.create()
     assert err.type == ParameterError
-    assert str(err.value) == "No Vsp was given"
+    assert str(err.value) == "At least vsp or vendor needs to be given"
 
 
 @mock.patch.object(Vf, 'exists')
@@ -159,7 +159,7 @@ def test_create_no_vsp(mock_send, mock_exists):
 @mock.patch.object(Vf, "category", new_callable=mock.PropertyMock)
 def test_create_already_exists(mock_category, mock_send, mock_exists):
     """Do nothing if already created in SDC."""
-    vf = Vf()
+    vf = Vf(vendor=MagicMock())
     vsp = Vsp()
     vsp._identifier = "1232"
     vf.vsp = vsp
@@ -505,3 +505,20 @@ def test_add_resource_OK(mock_send, mock_load):
         'https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/rest/v1/catalog/resources/45/resourceInstance',
         data='{\n  "name": "test",\n  "componentVersion": "40",\n  "posY": 100,\n  "posX": 200,\n  "uniqueId": "12",\n  "originType": "SDCRESOURCE",\n  "componentUid": "12",\n  "icon": "defaulticon"\n}')
 
+@mock.patch.object(Vf, 'created')
+@mock.patch.object(Vf, "send_message_json")
+@mock.patch.object(Vf, "resource_inputs_url")
+def test_vf_vendor_property(mock_resource_inputs_url, mock_send_message_json, mock_created):
+    mock_created.return_value = False
+    vf = Vf()
+    assert vf.vendor is None
+
+    vsp_mock = MagicMock()
+    vsp_mock.vendor = MagicMock()
+    vf.vsp = vsp_mock
+    assert vf.vendor == vsp_mock.vendor
+
+    vf._vendor = None
+    mock_created.return_value = True
+    mock_send_message_json.return_value = {"vendorName": "123"}
+    assert vf.vendor.name == "123"
