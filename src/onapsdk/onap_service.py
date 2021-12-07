@@ -312,4 +312,4 @@ class OnapService(ABC):
     @staticmethod
     def get_guis():
         """Return the list of GUI and its status."""
-        return {}
+        raise NotImplementedError

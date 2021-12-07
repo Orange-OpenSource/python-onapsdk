@@ -9,6 +9,7 @@ from onapsdk.configuration import settings
 from onapsdk.onap_service import OnapService
 from onapsdk.utils.headers_creator import headers_aai_creator
 from onapsdk.utils.jinja import jinja_env
+from onapsdk.utils.gui import GuiItem, GuiList
 
 from onapsdk.exceptions import RelationshipNotFound, ResourceNotFound
 
@@ -46,7 +47,6 @@ class Relationship:
                 return data["relationship-value"]
         return None
 
-
 class AaiElement(OnapService):
     """Mother Class of all A&AI elements."""
 
@@ -65,7 +65,7 @@ class AaiElement(OnapService):
         Args:
             dict_to_filter (Dict): Dictionary to filter out None
 
-        Returns:
+        Returns:dataclasse init a field
             Dict[str, str]: Filtered dictionary
 
         """
@@ -78,7 +78,7 @@ class AaiElement(OnapService):
         """Resource's url.
 
         Returns:
-            str: Resource's url
+            str: Resource's urldataclasse init a field
 
         """
         raise NotImplementedError
@@ -131,7 +131,8 @@ class AaiElement(OnapService):
             .render(relationship=relationship),
         )
 
-    def get_guis(self) -> Dict:
+    @classmethod
+    def get_guis(cls) -> GuiItem:
         """Retrieve the status of the AAI GUIs.
 
         Only one GUI is referenced for AAI
@@ -139,9 +140,11 @@ class AaiElement(OnapService):
 
         Return the list of GUIs
         """
-        gui_url = settings.AAI_GUI_URL + settings.AAI_GUI_SERVICE
-        aai_gui_response = self.send_message(
+        gui_url = settings.AAI_GUI_SERVICE
+        aai_gui_response = cls.send_message(
             "GET", "Get AAI GUI Status", gui_url)
-
-        return [{'url': gui_url,
-                 'status': aai_gui_response.status_code}]
+        guilist = GuiList([])
+        guilist.add(GuiItem(
+            gui_url,
+            aai_gui_response.status_code))
+        return guilist

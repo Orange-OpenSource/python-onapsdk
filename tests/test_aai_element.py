@@ -6,6 +6,7 @@ from unittest import mock
 
 from onapsdk.aai.aai_element import AaiElement, Relationship
 from onapsdk.exceptions import RequestError, ResourceNotFound, RelationshipNotFound
+from onapsdk.utils.gui import GuiItem, GuiList
 
 @mock.patch.object(AaiElement, "send_message_json")
 @mock.patch.object(AaiElement, "url")
@@ -38,11 +39,11 @@ def test_relationship_get_relationship_data():
     assert r.get_relationship_data("test") == "test"
 
 @mock.patch.object(AaiElement, "send_message")
-def test_get_guis_request_error(send_message_mock):
-    aai_element = AaiElement()
-    gui_status = {'url': 'https://portal.api.simpledemo.onap.org:30220/services/aai/webapp/index.html#/browse', 'status': 200}
-
+def test_get_guis(send_message_mock):
+    component = AaiElement()
     send_message_mock.return_value.status_code = 200
-    gui_results = aai_element.get_guis()
-    assert gui_results[0]['url'] == gui_status['url']
-    assert gui_results[0]['status'] == gui_status['status']
+    send_message_mock.return_value.url = "https://aai.api.sparky.simpledemo.onap.org:30220/services/aai/webapp/index.html#/browse"
+    gui_results = component.get_guis()
+    assert type(gui_results) == GuiList
+    assert gui_results.guilist[0].url == send_message_mock.return_value.url
+    assert gui_results.guilist[0].status == send_message_mock.return_value.status_code
