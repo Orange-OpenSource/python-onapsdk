@@ -17,7 +17,11 @@
         "schemaType": null,
         "type": "{{ property.property_type }}",
         "uniqueId": "{{ property.unique_id }}",
-        "value": null,
+        {% if property.value is not none %}
+        "value":"{{ property.value }}",
+        {% else %}
+        "value":null,
+        {% endif %}
         "definition": false,
         "getInputValues": null,
         "parentPropertyType": null,
