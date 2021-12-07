@@ -11,7 +11,7 @@ from onapsdk.exceptions import ModuleError
 
 def test_global_settings():
     """Test global settings."""
-    assert len(settings._settings) == 22
+    assert len(settings._settings) == 37
     assert settings.AAI_URL == "https://aai.api.sparky.simpledemo.onap.org:30233"
     assert settings.CDS_URL == "http://portal.api.simpledemo.onap.org:30449"
     assert settings.SDNC_URL == "https://sdnc.api.simpledemo.onap.org:30267"
@@ -24,6 +24,21 @@ def test_global_settings():
     assert settings.VES_URL == "http://ves.api.simpledemo.onap.org:30417"
     assert settings.DMAAP_URL   == "http://dmaap.api.simpledemo.onap.org:3904"
     assert settings.NBI_URL == "https://nbi.api.simpledemo.onap.org:30274"
+    assert settings.DCAEMOD_URL == ""
+    assert settings.HOLMES_URL == "https://aai.api.sparky.simpledemo.onap.org:30293"
+    assert settings.POLICY_URL == ""
+    assert settings.POLICY_CLAMP_URL == "https://aai.api.sparky.simpledemo.onap.org:30258"
+    assert settings.AAI_GUI_URL == "https://portal.api.simpledemo.onap.org:30220"
+    assert settings.AAI_GUI_SERVICE == "/services/aai/webapp/index.html#/browse"
+    assert settings.CDS_GUI_SERVICE == "/"
+    assert settings.SO_MONITOR_GUI_SERVICE == "/"
+    assert settings.SDC_GUI_SERVICE == "/sdc1/portal"
+    assert settings.SDNC_DG_GUI_SERVICE == "/nifi/"
+    assert settings.SDNC_ODL_GUI_SERVICE == "/odlux/index.html"
+    assert settings.DCAEMOD_GUI_SERVICE == "/"
+    assert settings.HOLMES_GUI_SERVICE == "/iui/holmes/default.html"
+    assert settings.POLICY_GUI_SERVICE == "/onap/login.html"
+    assert settings.POLICY_CLAMP_GUI_SERVICE == "/"
     assert hasattr(settings, "AAI_AUTH")
     assert hasattr(settings, "CDS_AUTH")
     assert hasattr(settings, "SDC_AUTH")
