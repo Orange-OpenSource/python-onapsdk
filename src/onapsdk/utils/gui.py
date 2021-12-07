@@ -8,12 +8,14 @@ from typing import List
 @dataclass
 class GuiItem:
     """Class for keeping track of a GUI."""
+
     url: str
     status: int
 
 @dataclass
 class GuiList:
     """Class to list all the GUIs."""
+
     guilist: List[GuiItem]
 
     def add(self, element):
