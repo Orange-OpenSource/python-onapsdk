@@ -6,13 +6,13 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional, TYPE_CHECKING, Union
 
 from onapsdk.exceptions import ParameterError
+from onapsdk.sdc.properties import ComponentProperty, NestedInput, Property
 from onapsdk.sdc.sdc_resource import SdcResource
 from onapsdk.sdc.vendor import Vendor
 from onapsdk.utils.jinja import jinja_env
 import onapsdk.constants as const
 
 if TYPE_CHECKING:
-    from onapsdk.sdc.properties import ComponentProperty, NestedInput, Property
     from onapsdk.sdc.vsp import Vsp
 
 
