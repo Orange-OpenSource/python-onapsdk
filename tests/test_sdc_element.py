@@ -74,3 +74,25 @@ def test_get_guis(send_message_mock):
     assert type(gui_results) == GuiList
     assert gui_results.guilist[0].url == send_message_mock.return_value.url
     assert gui_results.guilist[0].status == send_message_mock.return_value.status_code
+
+@mock.patch.object(SDC, "get_all")
+@mock.patch.object(Vsp, "created")
+def test_exists_versions(mock_vsp_created, mock_get_all):
+    mock_vsp_created.return_value = True
+    sdc_el1 = Vsp(name="test1")
+    sdc_el1._version = "1.0"
+    sdc_el1._identifier = "123"
+    sdc_el2 = Vsp(name="test2")
+    sdc_el2._version = "2.0"
+    sdc_el2._identifier = "123"
+    mock_get_all.return_value = [sdc_el1, sdc_el2]
+    assert sdc_el1.exists()
+
+    sdc_el1 = Vsp(name="test1")
+    sdc_el1._version = "anything"
+    sdc_el1._identifier = "123"
+    sdc_el2 = Vsp(name="test2")
+    sdc_el2._version = "what_is_not_a_float"
+    sdc_el2._identifier = "123"
+    mock_get_all.return_value = [sdc_el1, sdc_el2]
+    assert sdc_el1.exists()
