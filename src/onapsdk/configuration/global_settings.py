@@ -33,7 +33,6 @@ NBI_API_VERSION = "/nbi/api/v4"
 DCAEMOD_URL = ""
 HOLMES_URL = "https://aai.api.sparky.simpledemo.onap.org:30293"
 POLICY_URL = ""
-POLICY_CLAMP_URL = "https://aai.api.sparky.simpledemo.onap.org:30258"
 
 ## GUI
 AAI_GUI_URL = "https://aai.api.sparky.simpledemo.onap.org:30220"
@@ -47,4 +46,4 @@ SDNC_ODL_GUI_SERVICE = f"{SDNC_URL}/odlux/index.html"
 DCAEMOD_GUI_SERVICE = f"{DCAEMOD_URL}/"
 HOLMES_GUI_SERVICE = f"{HOLMES_URL}/iui/holmes/default.html"
 POLICY_GUI_SERVICE = f"{POLICY_URL}/onap/login.html"
-POLICY_CLAMP_GUI_SERVICE = f"{POLICY_CLAMP_URL}/"
+POLICY_CLAMP_GUI_SERVICE = f"{CLAMP_URL}/"

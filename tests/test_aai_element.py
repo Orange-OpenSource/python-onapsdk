@@ -6,7 +6,7 @@ from unittest import mock
 
 from onapsdk.aai.aai_element import AaiElement, Relationship
 from onapsdk.exceptions import RequestError, ResourceNotFound, RelationshipNotFound
-from onapsdk.utils.gui import GuiItem, GuiList
+from onapsdk.utils.gui import GuiList
 
 @mock.patch.object(AaiElement, "send_message_json")
 @mock.patch.object(AaiElement, "url")

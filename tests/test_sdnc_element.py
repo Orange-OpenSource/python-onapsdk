@@ -5,7 +5,7 @@ import pytest
 from unittest import mock
 
 from onapsdk.sdnc.sdnc_element import SdncElement
-from onapsdk.utils.gui import GuiItem, GuiList
+from onapsdk.utils.gui import GuiList
 
 @mock.patch.object(SdncElement, "send_message")
 def test_get_guis(send_message_mock):

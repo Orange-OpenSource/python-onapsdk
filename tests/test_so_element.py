@@ -5,7 +5,7 @@ import pytest
 from unittest import mock
 
 from onapsdk.so.so_element import SoElement
-from onapsdk.utils.gui import GuiItem, GuiList
+from onapsdk.utils.gui import GuiList
 
 @mock.patch.object(SoElement, "send_message")
 def test_get_guis(send_message_mock):

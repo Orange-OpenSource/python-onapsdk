@@ -7,6 +7,7 @@ import unittest
 
 from onapsdk.nbi.nbi import Nbi
 from onapsdk.utils.gui import GuiItem, GuiList
+from onapsdk.exceptions import NoGuiError
 
 class GuiTestingBase(unittest.TestCase):
 
@@ -15,7 +16,7 @@ class GuiTestingBase(unittest.TestCase):
 
     def test_get_guis_request_error(self):
         nbi_element = Nbi()
-        with self.assertRaises(NotImplementedError):
+        with self.assertRaises(NoGuiError):
             nbi_element.get_guis()
 
     def test_create_bad_gui_item(self):

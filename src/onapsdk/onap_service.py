@@ -19,7 +19,7 @@ from requests import (  # pylint: disable=redefined-builtin
 
 from onapsdk.exceptions import (
     RequestError, APIError, ResourceNotFound, InvalidResponse,
-    ConnectionFailed
+    ConnectionFailed, NoGuiError
 )
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -312,4 +312,4 @@ class OnapService(ABC):
     @staticmethod
     def get_guis():
         """Return the list of GUI and its status."""
-        raise NotImplementedError
+        raise NoGuiError
