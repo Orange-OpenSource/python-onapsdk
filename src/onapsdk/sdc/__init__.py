@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # SPDX-License-Identifier: Apache-2.0
 """SDC Element module."""
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional, Union
 from operator import attrgetter
 from abc import ABC, abstractmethod
 
@@ -117,6 +117,34 @@ class SDC(OnapService, ABC):
 
         """
 
+    @staticmethod
+    def _get_mapped_version(item: "SDC") -> Optional[Union[float, str]]:
+        """Map Sdc objects version to float.
+
+        Mostly we need to get the newest version of the requested objects. To do
+            so we use the version property of them. In most cases it's string
+            formatted float value, but in some cases (like VSP objects) it isn't.
+        That method checks if given object has "version" attribute and if it's not
+            a None it tries to map it's value to float. If it's not possible it
+            returns the alrady existing value.
+
+        Args:
+            item (SDC): SDC item to map version to float
+
+        Returns:
+            Optional[Union[float, str]]: Float format version if possible,
+                string otherwise. If object doesn't have "version"
+                attribut returns None.
+
+        """
+        if hasattr(item, "version") and item.version is not None:
+            try:
+                return float(item.version)
+            except ValueError:
+                return item.version
+        else:
+            return None
+
     @classmethod
     def get_all(cls, **kwargs) -> List['SDC']:
         """
@@ -187,8 +215,7 @@ class SDC(OnapService, ABC):
                 return False
 
         else:
-            versioned_object = max(relevant_objects, key=lambda item: float(item.version) if \
-                hasattr(item, "version") and item.version is not None else None)
+            versioned_object = max(relevant_objects, key=self._get_mapped_version)
 
         self._logger.info("%s found, updating information", type(self).__name__)
         self._copy_object(versioned_object)
