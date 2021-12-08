@@ -16,7 +16,7 @@ from onapsdk.utils.headers_creator import headers_so_creator
 from onapsdk.utils.jinja import jinja_env
 from onapsdk.utils.mixins import WaitForFinishMixin
 from onapsdk.utils.tosca_file_handler import get_modules_list_from_tosca_file
-
+from onapsdk.utils.gui import GuiItem, GuiList
 
 @dataclass
 class SoElement(OnapService):
@@ -77,7 +77,7 @@ class SoElement(OnapService):
         # Usually it is found like that
         # name: toto
         # instance name: toto 0
-        # it can be retrieved from the tosca
+        # it can be retrieved from the toscafrom onapsdk.configuration import settings
         return json.dumps(parsed, indent=4)
 
     @classmethod
@@ -100,6 +100,23 @@ class SoElement(OnapService):
         return "{}/onap/so/infra/serviceInstantiation/{}/serviceInstances".format(
             cls.base_url, cls.api_version
         )
+
+    @classmethod
+    def get_guis(cls) -> GuiItem:
+        """Retrieve the status of the SO GUIs.
+
+        Only one GUI is referenced for SO: SO monitor
+
+        Return the list of GUIs
+        """
+        gui_url = settings.SO_MONITOR_GUI_SERVICE
+        so_gui_response = cls.send_message(
+            "GET", "Get SO GUI Status", gui_url)
+        guilist = GuiList([])
+        guilist.add(GuiItem(
+            gui_url,
+            so_gui_response.status_code))
+        return guilist
 
 
 class OrchestrationRequest(SoElement, WaitForFinishMixin, ABC):
