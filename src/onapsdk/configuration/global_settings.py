@@ -7,6 +7,7 @@
 #                    #
 ######################
 
+## API
 AAI_URL         = "https://aai.api.sparky.simpledemo.onap.org:30233"
 AAI_API_VERSION = "v20"
 AAI_AUTH        = "Basic QUFJOkFBSQ=="
@@ -29,3 +30,20 @@ VES_URL         = "http://ves.api.simpledemo.onap.org:30417"
 DMAAP_URL       = "http://dmaap.api.simpledemo.onap.org:3904"
 NBI_URL         = "https://nbi.api.simpledemo.onap.org:30274"
 NBI_API_VERSION = "/nbi/api/v4"
+DCAEMOD_URL = ""
+HOLMES_URL = "https://aai.api.sparky.simpledemo.onap.org:30293"
+POLICY_URL = ""
+
+## GUI
+AAI_GUI_URL = "https://aai.api.sparky.simpledemo.onap.org:30220"
+AAI_GUI_SERVICE = f"{AAI_GUI_URL}/services/aai/webapp/index.html#/browse"
+CDS_GUI_SERVICE = f"{CDS_URL}/"
+SO_MONITOR_GUI_SERVICE = f"{SO_URL}/"
+SDC_GUI_SERVICE = f"{SDC_FE_URL}/sdc1/portal"
+SDNC_DG_GUI_SERVICE = f"{SDNC_URL}/nifi/"
+SDNC_ODL_GUI_SERVICE = f"{SDNC_URL}/odlux/index.html"
+
+DCAEMOD_GUI_SERVICE = f"{DCAEMOD_URL}/"
+HOLMES_GUI_SERVICE = f"{HOLMES_URL}/iui/holmes/default.html"
+POLICY_GUI_SERVICE = f"{POLICY_URL}/onap/login.html"
+POLICY_CLAMP_GUI_SERVICE = f"{CLAMP_URL}/"
