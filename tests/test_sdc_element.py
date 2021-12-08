@@ -7,6 +7,8 @@ from onapsdk.onap_service import OnapService
 from onapsdk.sdc.sdc_element import SdcElement
 from onapsdk.sdc.vendor import Vendor
 from onapsdk.sdc.vsp import Vsp
+from onapsdk.sdc import SDC
+from onapsdk.utils.gui import GuiList
 
 def test_init():
     """Test the initialization."""
@@ -63,3 +65,12 @@ def test__get_items_version_details(mock_send):
     mock_send.return_value = {'return': 'value'}
     assert vsp._get_item_version_details() == {'return': 'value'}
     mock_send.assert_called_once_with('GET', 'get item version', "{}/items/1234/versions/4567".format(vsp._base_url()))
+
+@mock.patch.object(SDC, "send_message")
+def test_get_guis(send_message_mock):
+    send_message_mock.return_value.status_code = 200
+    send_message_mock.return_value.url = "https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/portal"
+    gui_results = SDC.get_guis()
+    assert type(gui_results) == GuiList
+    assert gui_results.guilist[0].url == send_message_mock.return_value.url
+    assert gui_results.guilist[0].status == send_message_mock.return_value.status_code

@@ -19,7 +19,7 @@ from requests import (  # pylint: disable=redefined-builtin
 
 from onapsdk.exceptions import (
     RequestError, APIError, ResourceNotFound, InvalidResponse,
-    ConnectionFailed
+    ConnectionFailed, NoGuiError
 )
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -308,3 +308,8 @@ class OnapService(ABC):
         else:
             OnapService.permanent_headers.ph_dict.update(header)
         OnapService._logger.debug("Set permanent header %s", header)
+
+    @classmethod
+    def get_guis(cls):
+        """Return the list of GUI and its status."""
+        raise NoGuiError
