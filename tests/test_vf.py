@@ -13,7 +13,7 @@ import pytest
 import onapsdk.constants as const
 from onapsdk.exceptions import ParameterError, StatusError, RequestError, ValidationError
 from onapsdk.sdc.category_management import ResourceCategory
-from onapsdk.sdc.properties import Property
+from onapsdk.sdc.properties import ComponentProperty, NestedInput, Property
 from onapsdk.sdc.sdc_resource import SdcResource
 from onapsdk.sdc.vf import Vf
 from onapsdk.sdc.vsp import Vsp
@@ -505,3 +505,20 @@ def test_add_resource_OK(mock_send, mock_load):
         'https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/rest/v1/catalog/resources/45/resourceInstance',
         data='{\n  "name": "test",\n  "componentVersion": "40",\n  "posY": 100,\n  "posX": 200,\n  "uniqueId": "12",\n  "originType": "SDCRESOURCE",\n  "componentUid": "12",\n  "icon": "defaulticon"\n}')
 
+@mock.patch.object(SdcResource, "declare_input")
+@mock.patch.object(Vf, "send_message")
+def test_vf_declare_input(mock_send_message, mock_sdc_resource_declare_input):
+    vf = Vf()
+    prop = Property(name="test_prop", property_type="string")
+    nested_input = NestedInput(MagicMock(), MagicMock())
+    vf.declare_input(prop)
+    mock_sdc_resource_declare_input.assert_called_once()
+    mock_send_message.assert_not_called()
+    mock_sdc_resource_declare_input.reset_mock()
+    vf.declare_input(nested_input)
+    mock_sdc_resource_declare_input.assert_called_once()
+    mock_send_message.assert_not_called()
+    mock_sdc_resource_declare_input.reset_mock()
+    vf.declare_input(ComponentProperty("test_unique_id", "test_property_type", "test_name", MagicMock()))
+    mock_send_message.assert_called()
+    mock_sdc_resource_declare_input.assert_not_called()

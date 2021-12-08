@@ -5,7 +5,7 @@
       {
         "constraints": null,
         "defaultValue": null,
-        "description": "The depending service invariant uuid in order to map the allotted resource to the specific service version",
+        "description": "",
         "name": "{{ property.name }}",
         "origName": "{{ property.name }}",
         "parentUniqueId": null,
@@ -16,8 +16,12 @@
         },
         "schemaType": null,
         "type": "{{ property.property_type }}",
-        "uniqueId": "{{ component.actual_component_uid }}.{{ property.name }}",
-        "value": null,
+        "uniqueId": "{{ property.unique_id }}",
+        {% if property.value is not none %}
+        "value":"{{ property.value }}",
+        {% else %}
+        "value":null,
+        {% endif %}
         "definition": false,
         "getInputValues": null,
         "parentPropertyType": null,
