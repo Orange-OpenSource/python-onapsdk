@@ -150,21 +150,3 @@ class Component:  # pylint: disable=too-many-instance-attributes
             f"Delete {self.name} component",
             f"{self.parent_sdc_resource.resource_inputs_url}/resourceInstance/{self.unique_id}"
         )
-
-    # def declare_input_for_own_property(self, property_obj: ComponentProperty) -> None:
-    #     """Declare input for component's property.
-
-    #     For each property input can be declared.
-
-    #     Args:
-    #         property_obj (ComponentProperty): Property to declare input
-
-    #     """
-    #     self.sdc_resource.send_message_json("POST",
-    #                            f"Declare new input for {property_obj.name} property",
-    #                            f"{self.parent_sdc_resource.resource_inputs_url}/create/inputs",
-    #                            data=jinja_env().get_template(\
-    #                                "component_declare_input.json.j2").\
-    #                                    render(\
-    #                                        component=self,
-    #                                        property=property_obj))
