@@ -13,7 +13,7 @@ from onapsdk.exceptions import APIError, RequestError
 from onapsdk.onap_service import OnapService
 import onapsdk.constants as const
 from onapsdk.utils.jinja import jinja_env
-
+from onapsdk.utils.gui import GuiItem, GuiList
 
 class SDC(OnapService, ABC):
     """Mother Class of all SDC elements."""
@@ -194,6 +194,23 @@ class SDC(OnapService, ABC):
         self._copy_object(versioned_object)
         return True
 
+    @classmethod
+    def get_guis(cls) -> GuiItem:
+        """Retrieve the status of the SDC GUIs.
+
+        Only one GUI is referenced for SDC
+        the SDC Front End
+
+        Return the list of GUIs
+        """
+        gui_url = settings.SDC_GUI_SERVICE
+        sdc_gui_response = cls.send_message(
+            "GET", "Get SDC GUI Status", gui_url)
+        guilist = GuiList([])
+        guilist.add(GuiItem(
+            gui_url,
+            sdc_gui_response.status_code))
+        return guilist
 
 class SdcOnboardable(SDC, ABC):
     """Base class for onboardable SDC resources (Vendors, Services, ...)."""

@@ -12,7 +12,7 @@ from onapsdk.cds.blueprint_processor import Blueprintprocessor
 from onapsdk.cds.cds_element import CdsElement
 from onapsdk.cds.data_dictionary import DataDictionary, DataDictionarySet
 from onapsdk.exceptions import FileError, ParameterError, RequestError, ValidationError
-
+from onapsdk.utils.gui import GuiItem, GuiList
 
 DD_1 = {
     "name": "vf-module-name",
@@ -330,3 +330,14 @@ def test_data_dictionary_get_by_name(mock_send_message_json):
     DataDictionary.get_by_name("test_name")
     mock_send_message_json.assert_called_once()
     assert "test_name" in mock_send_message_json.call_args[0][2]
+
+
+@patch.object(CdsElement, "send_message")
+def test_get_guis(send_message_mock):
+    component = CdsElement()
+    send_message_mock.return_value.status_code = 200
+    send_message_mock.return_value.url = "http://portal.api.simpledemo.onap.org:30449/"
+    gui_results = component.get_guis()
+    assert type(gui_results) == GuiList
+    assert gui_results.guilist[0].url == send_message_mock.return_value.url
+    assert gui_results.guilist[0].status == send_message_mock.return_value.status_code
