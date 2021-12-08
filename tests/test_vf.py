@@ -13,7 +13,7 @@ import pytest
 import onapsdk.constants as const
 from onapsdk.exceptions import ParameterError, StatusError, RequestError, ValidationError
 from onapsdk.sdc.category_management import ResourceCategory
-from onapsdk.sdc.properties import Property
+from onapsdk.sdc.properties import ComponentProperty, NestedInput, Property
 from onapsdk.sdc.sdc_resource import SdcResource
 from onapsdk.sdc.vf import Vf
 from onapsdk.sdc.vsp import Vsp
@@ -522,3 +522,21 @@ def test_vf_vendor_property(mock_resource_inputs_url, mock_send_message_json, mo
     mock_created.return_value = True
     mock_send_message_json.return_value = {"vendorName": "123"}
     assert vf.vendor.name == "123"
+
+@mock.patch.object(SdcResource, "declare_input")
+@mock.patch.object(Vf, "send_message")
+def test_vf_declare_input(mock_send_message, mock_sdc_resource_declare_input):
+    vf = Vf()
+    prop = Property(name="test_prop", property_type="string")
+    nested_input = NestedInput(MagicMock(), MagicMock())
+    vf.declare_input(prop)
+    mock_sdc_resource_declare_input.assert_called_once()
+    mock_send_message.assert_not_called()
+    mock_sdc_resource_declare_input.reset_mock()
+    vf.declare_input(nested_input)
+    mock_sdc_resource_declare_input.assert_called_once()
+    mock_send_message.assert_not_called()
+    mock_sdc_resource_declare_input.reset_mock()
+    vf.declare_input(ComponentProperty("test_unique_id", "test_property_type", "test_name", MagicMock()))
+    mock_send_message.assert_called()
+    mock_sdc_resource_declare_input.assert_not_called()

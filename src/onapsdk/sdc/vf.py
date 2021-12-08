@@ -12,7 +12,7 @@ from onapsdk.utils.jinja import jinja_env
 import onapsdk.constants as const
 
 if TYPE_CHECKING:
-    from onapsdk.sdc.properties import NestedInput, Property
+    from onapsdk.sdc.properties import ComponentProperty, NestedInput, Property
     from onapsdk.sdc.vsp import Vsp
 
 
@@ -126,3 +126,29 @@ class Vf(SdcResource):
                     csarUUID=vsp.csar_uuid,
                     csarVersion=vsp.human_readable_version)
         )
+
+    def declare_input(self,
+                      input_to_declare: Union[Property, NestedInput, ComponentProperty]) -> None:
+        """Declare input for given property, nested input or component property object.
+
+        Call SDC FE API to declare input for given property.
+
+        Args:
+            input_declaration (Union[Property, NestedInput]): Property or ComponentProperty
+                to declare input or NestedInput object
+
+        Raises:
+            ParameterError: if the given property is not SDC resource property
+
+        """
+        if not isinstance(input_to_declare, ComponentProperty):
+            super().declare_input(input_to_declare)
+        else:
+            self.send_message("POST",
+                              f"Declare new input for {input_to_declare.name} property",
+                              f"{self.resource_inputs_url}/create/inputs",
+                              data=jinja_env().get_template(\
+                                  "component_declare_input.json.j2").\
+                                      render(\
+                                          component=input_to_declare.component,
+                                          property=input_to_declare))
