@@ -113,6 +113,33 @@ Onboard a VF with Deployment Artifact
 
    vf.onboard()
 
+Onboard a VF with it's component's property input
+-------------------------------------------------
+
+.. code:: Python
+
+   from onapsdk.sdc.properties import ComponentProperty
+   from onapsdk.sdc.vsp import Vsp
+   from onapsdk.sdc.vf import Vf
+   from onapsdk.sdc.vfc import Vfc
+
+   # We assume here that the VSP has been already onboarded
+   vsp = Vsp(name="myVSP")
+
+   vfc = Vfc(name="AllottedResource")
+
+   logger.info("******** Onboard VF *******")
+   vf = Vf(name="myVF")
+   vf.vsp = vsp
+   vf.create()
+   vf.add_resource(vfc)
+   vfc_comp = vf.get_component(vfc)
+   comp_prop = vfc_comp.get_property("min_instances")
+   comp_prop.value = 11
+   vf.declare_input(comp_prop)
+
+   vf.onboard()
+
 Onboard a PNF with VSP
 ----------------------
 .. code:: Python
@@ -195,6 +222,23 @@ Onboard a Service with properties assignement
                         property_2
                      ],
                      inputs=[property_1])
+   service.onboard()
+
+Onboard a Service with Nested inputs
+------------------------------------
+
+.. code:: Python
+
+   from onapsdk.sdc.properties import NestedInput
+   from onapsdk.sdc.vf import Vf
+   from onapsdk.sdc.service import Service
+
+   # We assume here that the VF has been already onboarded
+   vf = Vf(name="myVF")
+   inp = vf.get_input("input_name_we_want_to_declare_in_service")
+   service = Service(name="myService",
+                     resources=[vf],
+                     inputs=[NestedInput(vf, inp)])
    service.onboard()
 
 Onboard a Service with VL
