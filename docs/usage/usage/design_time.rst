@@ -135,7 +135,7 @@ Onboard a VF with it's component's property input
    vf.add_resource(vfc)
    vfc_comp = vf.get_component(vfc)
    comp_prop = vfc_comp.get_property("min_instances")
-   comp_prop.value = "test"
+   comp_prop.value = 11
    vf.declare_input(comp_prop)
 
    vf.onboard()
