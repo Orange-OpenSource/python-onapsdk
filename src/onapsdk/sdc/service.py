@@ -333,7 +333,7 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
         return node_template
 
     @property
-    def vnfs(self) -> List[Vnf]:
+    def vnfs(self) -> Iterator[Vnf]:
         """Service Vnfs.
 
         Load VNFs from components generator.

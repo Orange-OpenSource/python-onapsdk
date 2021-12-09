@@ -18,7 +18,7 @@
 			"modelName": "{{ sdc_service.name }}",
             "modelVersion": "1.0"
         },
-        {% if sdc_service.vnfs %}
+        {% if sdc_service.vnfs|list %}
         "cloudConfiguration": {
             "tenantId": "{{ tenant.tenant_id }}",
             "cloudOwner": "{{ cloud_region.cloud_owner }}",
@@ -47,6 +47,7 @@
                         "instanceParams": [],
                         "instanceName": "{{ service_instance_name }}",
                         "resources": {
+                            {% block pnfs %}
                             {% if sdc_service.pnfs %}
                             "pnfs":[
                                 {% for pnf in sdc_service.pnfs  %}
@@ -74,6 +75,7 @@
                             ]
                                 {% if sdc_service.vnfs %},{% endif %}
                             {% endif %}
+                            {% endblock %}
                             {% block vnfs %}
                             {% if sdc_service.vnfs %}
                             "vnfs": [
