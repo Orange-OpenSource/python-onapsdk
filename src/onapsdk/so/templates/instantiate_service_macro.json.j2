@@ -18,7 +18,7 @@
 			"modelName": "{{ sdc_service.name }}",
             "modelVersion": "1.0"
         },
-        {% if sdc_service.vnfs|list %}
+        {% if sdc_service.has_vnfs %}
         "cloudConfiguration": {
             "tenantId": "{{ tenant.tenant_id }}",
             "cloudOwner": "{{ cloud_region.cloud_owner }}",
