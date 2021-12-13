@@ -464,3 +464,10 @@ def test_sdc_resource_undo_checkout(mock_action_to_sdc):
     sdc_resource = SdcResource()
     sdc_resource.undo_checkout()
     mock_action_to_sdc.assert_called_once_with(const.UNDOCHECKOUT, "lifecycleState")
+
+@mock.patch.object(SdcResource, "_action_to_sdc")
+def test_sdc_resource_certify(mock_action_to_sdc):
+    mock_action_to_sdc.return_value = None
+    sdc_resource = SdcResource()
+    sdc_resource.certify()
+    mock_action_to_sdc.assert_called_once_with(const.CERTIFY, "lifecycleState")
