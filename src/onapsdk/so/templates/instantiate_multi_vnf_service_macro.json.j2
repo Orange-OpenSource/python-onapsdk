@@ -4,6 +4,42 @@
     "subscriptionServiceType": "{{ so_service.subscription_service_type }}",
 {% endblock %}
 
+{% block pnfs %}
+    {% if so_service.pnfs %}
+    "pnfs": [
+        {% for pnf in so_service.pnfs %}
+        {
+            "modelInfo":{
+                {% for sdc_pnf in sdc_service.pnfs %}
+                {% if sdc_pnf.model_name == pnf.model_name %}
+                "modelCustomizationName":"{{ sdc_pnf.name }}",
+                "modelCustomizationId":"{{ sdc_pnf.model_customization_id }}",
+                "modelInvariantId":"{{ sdc_service.unique_uuid }}",
+                "modelVersionId":"{{ sdc_service.identifier }}",
+                "modelName":"{{ sdc_service.name }}",
+                "modelType":"pnf",
+                "modelVersion":"{{ sdc_pnf.model_version }}"
+                {% endif %}
+                {% endfor %}
+            },
+            "platform":{
+                "platformName":"{{ platform }}"
+            },
+            "lineOfBusiness":{
+                "lineOfBusinessName":"{{ line_of_business }}"
+            },
+            "productFamilyId":"{{ aai_service.service_id }}",
+            "instanceParams":[],
+            {% if pnf.processing_priority %}
+            "processingPriority": "{{ pnf.processing_priority }}",
+            {% endif %}
+            "instanceName": "{{ pnf.instance_name }}"
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ]{% if so_service.vnfs %},{% endif %}
+    {% endif %}
+{% endblock %}
+
 {% block vnfs %}
     {% if so_service.vnfs %}
     "vnfs": [
