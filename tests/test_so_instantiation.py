@@ -13,6 +13,7 @@ from onapsdk.so.instantiation import (
     NetworkInstantiation,
     ServiceInstantiation,
     SoService,
+    SoServicePnf,
     SoServiceVfModule,
     SoServiceVnf,
     VfModuleInstantiation,
@@ -594,6 +595,16 @@ def test_service_instantiation_so_service(mock_send_message_json):
                     ),
                 ]
             )
+        ],
+        pnfs=[
+            SoServicePnf(
+                model_name="test_so_service_pnf_model_name_1",
+                instance_name="test_so_service_pnf_instance_name_1"
+            ),
+            SoServicePnf(
+                model_name="test_so_service_pnf_model_name_2",
+                instance_name="test_so_service_pnf_instance_name_2"
+            )
         ]
     )
 
@@ -610,11 +621,14 @@ def test_service_instantiation_so_service(mock_send_message_json):
                               so_service=so_service)
     _, kwargs = mock_send_message_json.call_args
     data = json.loads(kwargs["data"])
-    print(data)
     assert data["requestDetails"]["requestParameters"]["subscriptionServiceType"] == "test_so_service"
     assert len(data["requestDetails"]["requestParameters"]["userParams"][1]["service"]["resources"]["vnfs"]) == 2
+    assert len(data["requestDetails"]["requestParameters"]["userParams"][1]["service"]["resources"]["pnfs"]) == 2
     vnf_1_data = data["requestDetails"]["requestParameters"]["userParams"][1]["service"]["resources"]["vnfs"][0]
     vnf_2_data = data["requestDetails"]["requestParameters"]["userParams"][1]["service"]["resources"]["vnfs"][1]
+    pnf_1_data = data["requestDetails"]["requestParameters"]["userParams"][1]["service"]["resources"]["pnfs"][0]
+    pnf_2_data = data["requestDetails"]["requestParameters"]["userParams"][1]["service"]["resources"]["pnfs"][1]
+
     assert vnf_1_data["instanceName"] == "test_so_service_vnf_instance_name_1"
     assert len(vnf_1_data["instanceParams"][0]) == 2
     assert vnf_1_data["instanceParams"][0]["param_1"] == "param_1_value"
@@ -636,6 +650,10 @@ def test_service_instantiation_so_service(mock_send_message_json):
     assert len(vf_module_2_data["instanceParams"][0]) == 2
     assert vf_module_2_data["instanceParams"][0]["vf_module_param_1"] == "vf_module_param_1_value"
     assert vf_module_2_data["instanceParams"][0]["vf_module_param_2"] == "vf_module_param_2_value"
+
+    assert pnf_1_data["instanceName"] == "test_so_service_pnf_instance_name_1"
+
+    assert pnf_2_data["instanceName"] == "test_so_service_pnf_instance_name_2"
 
 
 def test_so_service_load_from_yaml():
@@ -675,14 +693,19 @@ def test_so_service_load_from_yaml():
                 processing_priority: 2
                 parameters:
                     param-vfm1: value-vfm1
+    pnfs:
+        - model_name: mypnfmodel
+          instance_name: myfirstpnf
     """
     so_service = SoService.load(yaml.safe_load(so_service_yaml))
     assert so_service.subscription_service_type == "myservice"
     assert not so_service.instance_name
     assert len(so_service.vnfs) == 2
+    assert len(so_service.pnfs) == 1
 
     so_service_vnf_1 = so_service.vnfs[0]
     so_service_vnf_2 = so_service.vnfs[1]
+    so_service_pnf = so_service.pnfs[0]
 
     assert so_service_vnf_1.model_name == "myvfmodel"
     assert so_service_vnf_1.instance_name == "myfirstvnf"
@@ -725,6 +748,9 @@ def test_so_service_load_from_yaml():
     assert so_service_vnf_1_vf_module_2.processing_priority == 2
     assert len(so_service_vnf_1_vf_module_2.parameters) == 1
     assert so_service_vnf_1_vf_module_2.parameters["param-vfm1"] == "value-vfm1"
+
+    assert so_service_pnf.model_name == "mypnfmodel"
+    assert so_service_pnf.instance_name == "myfirstpnf"
 
 
 def test_so_service_load_from_file():
