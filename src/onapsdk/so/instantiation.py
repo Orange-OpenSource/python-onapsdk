@@ -33,14 +33,25 @@ class SoServiceVfModule:
 
 
 @dataclass
-class SoServiceVnf:
-    """Class to store a Vnf instance parameters."""
+class SoServiceXnf:
+    """Class to store a Xnf instance parameters."""
 
     model_name: str
     instance_name: str
     parameters: Dict[str, Any] = field(default_factory=dict)
-    vf_modules: List[SoServiceVfModule] = field(default_factory=list)
     processing_priority: Optional[int] = None
+
+
+@dataclass
+class SoServiceVnf(SoServiceXnf):
+    """Class to store a Vnf instance parameters."""
+
+    vf_modules: List[SoServiceVfModule] = field(default_factory=list)
+
+
+@dataclass
+class SoServicePnf(SoServiceXnf):
+    """Class to store a Pnf instance parameters."""
 
 
 @dataclass
@@ -53,6 +64,7 @@ class SoService:
 
     subscription_service_type: str
     vnfs: List[SoServiceVnf] = field(default_factory=list)
+    pnfs: List[SoServicePnf] = field(default_factory=list)
     instance_name: Optional[str] = None
 
     @classmethod
