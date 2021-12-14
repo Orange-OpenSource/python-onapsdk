@@ -378,6 +378,11 @@ class SdcResource(SdcOnboardable, ABC):  # pylint: disable=too-many-instance-att
             self.submit()
             time.sleep(self._time_wait)
             self.onboard()
+        elif self.status == const.CHECKED_IN:
+            # Checked in status check added
+            self.certify()
+            time.sleep(self._time_wait)
+            self.onboard()
         elif self.status == const.CERTIFIED:
             self.load()
 
@@ -879,6 +884,13 @@ class SdcResource(SdcOnboardable, ABC):  # pylint: disable=too-many-instance-att
         """Undo Checkout SDC resource."""
         self._logger.debug("Undo Checkout %s SDC resource", self.name)
         result = self._action_to_sdc(const.UNDOCHECKOUT, "lifecycleState")
+        if result:
+            self.load()
+
+    def certify(self) -> None:
+        """Certify SDC resource."""
+        self._logger.debug("Certify %s SDC resource", self.name)
+        result = self._action_to_sdc(const.CERTIFY, "lifecycleState")
         if result:
             self.load()
 
