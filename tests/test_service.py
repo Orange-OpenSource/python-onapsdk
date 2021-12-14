@@ -139,6 +139,54 @@ COMPONENT_PROPERTIES = [
 ]
 
 
+COMPONENTS_WITH_ALL_ORIGIN_TYPES = {
+    "componentInstances":[
+        {
+            "actualComponentUid":"374f0a98-a280-43f1-9e6c-00b436782ce7",
+            "createdFromCsar":True,
+            "uniqueId":"bcfa7544-6e3d-4666-93b1-c5973356d069.374f0a98-a280-43f1-9e6c-00b436782ce7.abstract_vsn",
+            "normalizedName":"abstract_vsn",
+            "name":"abstract_vsn",
+            "originType":"VF",
+            "customizationUUID":"971043e1-495b-4b75-901e-3d09baed7521",
+            "componentUid":"374f0a98-a280-43f1-9e6c-00b436782ce7",
+            "componentVersion":"1.0",
+            "toscaComponentName":"org.openecomp.resource.vfc.11111cvfc.abstract.abstract.nodes.vsn",
+            "componentName":"11111-nodes.vsnCvfc",
+            "groupInstances":None
+        },
+        {
+            "actualComponentUid":"374f0a98-a280-43f1-9e6c-00b436782ce7",
+            "createdFromCsar":True,
+            "uniqueId":"bcfa7544-6e3d-4666-93b1-c5973356d069.374f0a98-a280-43f1-9e6c-00b436782ce7.abstract_vsn",
+            "normalizedName":"abstract_vsn",
+            "name":"abstract_vsn",
+            "originType":"PNF",
+            "customizationUUID":"971043e1-495b-4b75-901e-3d09baed7521",
+            "componentUid":"374f0a98-a280-43f1-9e6c-00b436782ce7",
+            "componentVersion":"1.0",
+            "toscaComponentName":"org.openecomp.resource.vfc.11111cvfc.abstract.abstract.nodes.vsn",
+            "componentName":"11111-nodes.vsnCvfc",
+            "groupInstances":None
+        },
+        {
+            "actualComponentUid":"374f0a98-a280-43f1-9e6c-00b436782ce7",
+            "createdFromCsar":True,
+            "uniqueId":"bcfa7544-6e3d-4666-93b1-c5973356d069.374f0a98-a280-43f1-9e6c-00b436782ce7.abstract_vsn",
+            "normalizedName":"abstract_vsn",
+            "name":"abstract_vsn",
+            "originType":"VL",
+            "customizationUUID":"971043e1-495b-4b75-901e-3d09baed7521",
+            "componentUid":"374f0a98-a280-43f1-9e6c-00b436782ce7",
+            "componentVersion":"1.0",
+            "toscaComponentName":"org.openecomp.resource.vfc.11111cvfc.abstract.abstract.nodes.vsn",
+            "componentName":"11111-nodes.vsnCvfc",
+            "groupInstances":None
+        }
+    ]
+}
+
+
 def test_init_no_name():
     """Check init with no names."""
     svc = Service()
@@ -1404,3 +1452,20 @@ def test_service_get_by_unique_uuid(mock_get_all):
     mock_service.unique_uuid = "test"
     mock_get_all.return_value = [mock_service]
     Service.get_by_unique_uuid("test")
+
+@mock.patch.object(Service, "send_message_json")
+def test_service_components(mock_send_message_json):
+    service = Service(name="test")
+    service.unique_identifier = "toto"
+
+    mock_send_message_json.side_effect = [COMPONENTS, COMPONENT, COMPONENTS, COMPONENT, COMPONENTS, COMPONENT]
+    assert not service.has_vnfs
+    assert not service.has_pnfs
+    assert not service.has_vls
+
+    mock_send_message_json.side_effect = [COMPONENTS_WITH_ALL_ORIGIN_TYPES, COMPONENT,
+                                          COMPONENTS_WITH_ALL_ORIGIN_TYPES, COMPONENT, COMPONENT,
+                                          COMPONENTS_WITH_ALL_ORIGIN_TYPES, COMPONENT, COMPONENT, COMPONENT]
+    assert service.has_vnfs
+    assert service.has_pnfs
+    assert service.has_vls

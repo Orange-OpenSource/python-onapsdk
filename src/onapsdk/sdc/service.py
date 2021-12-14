@@ -332,8 +332,41 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
                         ))
         return node_template
 
+    def __has_component_type(self, origin_type: str) -> bool:
+        """Check if any of Service's component type is provided origin type.
+
+        In template generation is checked if Service has some types of components,
+            based on that blocks are added to the request template. It's not
+            the best option to get all components to check if at least one with
+            given type exists for conditional statement.
+
+        Args:
+            origin_type (str): Type to check if any component exists.
+
+        Returns:
+            bool: True if service has at least one component with given origin type,
+                False otherwise
+
+        """
+        return any((component.origin_type == origin_type for component in self.components))
+
     @property
-    def vnfs(self) -> List[Vnf]:
+    def has_vnfs(self) -> bool:
+        """Check if service has at least one VF component."""
+        return self.__has_component_type("VF")
+
+    @property
+    def has_pnfs(self) -> bool:
+        """Check if service has at least one PNF component."""
+        return self.__has_component_type("PNF")
+
+    @property
+    def has_vls(self) -> bool:
+        """Check if service has at least one VL component."""
+        return self.__has_component_type("VL")
+
+    @property
+    def vnfs(self) -> Iterator[Vnf]:
         """Service Vnfs.
 
         Load VNFs from components generator.
