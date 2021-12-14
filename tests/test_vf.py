@@ -301,15 +301,16 @@ def test_submit_OK(mock_send, mock_load, mock_exists):
         data=expected_data)
 
 @mock.patch.object(Vf, 'load')
+@mock.patch.object(Vf, 'certify')
 @mock.patch.object(Vf, 'submit')
 @mock.patch.object(Vf, 'create')
 @mock.patch.object(Vf, 'add_resource')
-def test_onboard_new_vf(mock_add_resource, mock_create, mock_submit, mock_load):
+def test_onboard_new_vf(mock_add_resource, mock_create, mock_submit, mock_certify, mock_load):
     getter_mock = mock.Mock(wraps=Vf.status.fget)
     mock_status = Vf.status.getter(getter_mock)
     with mock.patch.object(Vf, 'status', mock_status):
         getter_mock.side_effect = [None, const.APPROVED, const.APPROVED,
-                               const.APPROVED]
+                                   const.APPROVED, const.APPROVED]
         vsp = Vsp()
         vf = Vf(vsp=vsp)
         vf._time_wait = 0
@@ -317,18 +318,21 @@ def test_onboard_new_vf(mock_add_resource, mock_create, mock_submit, mock_load):
         mock_create.assert_called_once()
         mock_add_resource.assert_not_called()
         mock_submit.assert_not_called()
+        mock_certify.assert_not_called()
         mock_load.assert_not_called()
 
 @mock.patch.object(Vf, 'load')
 @mock.patch.object(Vf, 'submit')
 @mock.patch.object(Vf, 'create')
 @mock.patch.object(Vf, 'add_resource')
-def test_onboard_vf_submit(mock_add_resource, mock_create, mock_submit, mock_load):
+@mock.patch.object(Vf, "certify")
+def test_onboard_vf_submit(mock_certify, mock_add_resource, mock_create, mock_submit, mock_load):
     getter_mock = mock.Mock(wraps=Vf.status.fget)
     mock_status = Vf.status.getter(getter_mock)
     with mock.patch.object(Vf, 'status', mock_status):
-        getter_mock.side_effect = [const.DRAFT, const.DRAFT, const.APPROVED,
-                               const.APPROVED, const.APPROVED]
+        getter_mock.side_effect = [const.DRAFT, const.DRAFT,
+                                   const.CHECKED_IN, const.CHECKED_IN, const.CHECKED_IN,
+                                   const.APPROVED, const.APPROVED, const.APPROVED, const.APPROVED]
         vf = Vf()
         vf._time_wait = 0
         vf.onboard()
@@ -336,18 +340,21 @@ def test_onboard_vf_submit(mock_add_resource, mock_create, mock_submit, mock_loa
         mock_add_resource.assert_not_called()
         mock_submit.assert_called_once()
         mock_load.assert_not_called()
+        mock_certify.assert_called_once()
 
 @mock.patch.object(Vf, 'load')
 @mock.patch.object(Vf, 'submit')
 @mock.patch.object(Vf, 'create')
 @mock.patch.object(Vf, 'add_resource')
-def test_onboard_vf_load(mock_add_resource, mock_create, mock_submit, mock_load):
+@mock.patch.object(Vf, "certify")
+def test_onboard_vf_load(mock_certify, mock_add_resource, mock_create, mock_submit, mock_load):
     getter_mock = mock.Mock(wraps=Vf.status.fget)
     mock_status = Vf.status.getter(getter_mock)
     with mock.patch.object(Vf, 'status', mock_status):
         getter_mock.side_effect = [const.CERTIFIED, const.CERTIFIED,
-                               const.CERTIFIED, const.APPROVED, const.APPROVED,
-                               const.APPROVED]
+                                   const.CERTIFIED, const.CERTIFIED,
+                                   const.APPROVED, const.APPROVED,
+                                   const.APPROVED, const.APPROVED]
         vf = Vf()
         vf._time_wait = 0
         vf.onboard()
@@ -355,18 +362,21 @@ def test_onboard_vf_load(mock_add_resource, mock_create, mock_submit, mock_load)
         mock_add_resource.assert_not_called()
         mock_submit.assert_not_called()
         mock_load.assert_called_once()
+        mock_certify.assert_not_called()
 
 @mock.patch.object(Vf, 'load')
 @mock.patch.object(Vf, 'submit')
 @mock.patch.object(Vf, 'create')
 @mock.patch.object(Vf, 'add_resource')
-def test_onboard_whole_vf(mock_add_resource, mock_create, mock_submit, mock_load):
+@mock.patch.object(Vf, "certify")
+def test_onboard_whole_vf(mock_certify, mock_add_resource, mock_create, mock_submit, mock_load):
     getter_mock = mock.Mock(wraps=Vf.status.fget)
     mock_status = Vf.status.getter(getter_mock)
     with mock.patch.object(Vf, 'status', mock_status):
-        getter_mock.side_effect = [None, const.DRAFT, const.DRAFT, const.CERTIFIED,
-                               const.CERTIFIED, const.CERTIFIED, const.APPROVED,
-                               const.APPROVED, const.APPROVED]
+        getter_mock.side_effect = [None, const.DRAFT, const.DRAFT,
+                                   const.CHECKED_IN, const.CHECKED_IN, const.CHECKED_IN,
+                                   const.CERTIFIED, const.CERTIFIED, const.CERTIFIED, const.CERTIFIED,
+                                   const.APPROVED, const.APPROVED, const.APPROVED, const.APPROVED]
         vsp = Vsp()
         vf = Vf(vsp=vsp)
         vf._time_wait = 0
@@ -375,6 +385,7 @@ def test_onboard_whole_vf(mock_add_resource, mock_create, mock_submit, mock_load
         mock_add_resource.assert_not_called()
         mock_submit.assert_called_once()
         mock_load.assert_called_once()
+        mock_certify.assert_called_once()
 
 
 @mock.patch.object(Vf, "send_message_json")
