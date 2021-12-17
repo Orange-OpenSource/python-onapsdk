@@ -13,7 +13,7 @@ import pytest
 import onapsdk.constants as const
 from onapsdk.exceptions import ParameterError, StatusError, RequestError, ValidationError
 from onapsdk.sdc.category_management import ResourceCategory
-from onapsdk.sdc.properties import Property
+from onapsdk.sdc.properties import ComponentProperty, NestedInput, Property
 from onapsdk.sdc.sdc_resource import SdcResource
 from onapsdk.sdc.vf import Vf
 from onapsdk.sdc.vsp import Vsp
@@ -151,7 +151,7 @@ def test_create_no_vsp(mock_send, mock_exists):
     with pytest.raises(ParameterError) as err:
         vf.create()
     assert err.type == ParameterError
-    assert str(err.value) == "No Vsp was given"
+    assert str(err.value) == "At least vsp or vendor needs to be given"
 
 
 @mock.patch.object(Vf, 'exists')
@@ -159,7 +159,7 @@ def test_create_no_vsp(mock_send, mock_exists):
 @mock.patch.object(Vf, "category", new_callable=mock.PropertyMock)
 def test_create_already_exists(mock_category, mock_send, mock_exists):
     """Do nothing if already created in SDC."""
-    vf = Vf()
+    vf = Vf(vendor=MagicMock())
     vsp = Vsp()
     vsp._identifier = "1232"
     vf.vsp = vsp
@@ -301,15 +301,16 @@ def test_submit_OK(mock_send, mock_load, mock_exists):
         data=expected_data)
 
 @mock.patch.object(Vf, 'load')
+@mock.patch.object(Vf, 'certify')
 @mock.patch.object(Vf, 'submit')
 @mock.patch.object(Vf, 'create')
 @mock.patch.object(Vf, 'add_resource')
-def test_onboard_new_vf(mock_add_resource, mock_create, mock_submit, mock_load):
+def test_onboard_new_vf(mock_add_resource, mock_create, mock_submit, mock_certify, mock_load):
     getter_mock = mock.Mock(wraps=Vf.status.fget)
     mock_status = Vf.status.getter(getter_mock)
     with mock.patch.object(Vf, 'status', mock_status):
         getter_mock.side_effect = [None, const.APPROVED, const.APPROVED,
-                               const.APPROVED]
+                                   const.APPROVED, const.APPROVED]
         vsp = Vsp()
         vf = Vf(vsp=vsp)
         vf._time_wait = 0
@@ -317,18 +318,21 @@ def test_onboard_new_vf(mock_add_resource, mock_create, mock_submit, mock_load):
         mock_create.assert_called_once()
         mock_add_resource.assert_not_called()
         mock_submit.assert_not_called()
+        mock_certify.assert_not_called()
         mock_load.assert_not_called()
 
 @mock.patch.object(Vf, 'load')
 @mock.patch.object(Vf, 'submit')
 @mock.patch.object(Vf, 'create')
 @mock.patch.object(Vf, 'add_resource')
-def test_onboard_vf_submit(mock_add_resource, mock_create, mock_submit, mock_load):
+@mock.patch.object(Vf, "certify")
+def test_onboard_vf_submit(mock_certify, mock_add_resource, mock_create, mock_submit, mock_load):
     getter_mock = mock.Mock(wraps=Vf.status.fget)
     mock_status = Vf.status.getter(getter_mock)
     with mock.patch.object(Vf, 'status', mock_status):
-        getter_mock.side_effect = [const.DRAFT, const.DRAFT, const.APPROVED,
-                               const.APPROVED, const.APPROVED]
+        getter_mock.side_effect = [const.DRAFT, const.DRAFT,
+                                   const.CHECKED_IN, const.CHECKED_IN, const.CHECKED_IN,
+                                   const.APPROVED, const.APPROVED, const.APPROVED, const.APPROVED]
         vf = Vf()
         vf._time_wait = 0
         vf.onboard()
@@ -336,18 +340,21 @@ def test_onboard_vf_submit(mock_add_resource, mock_create, mock_submit, mock_loa
         mock_add_resource.assert_not_called()
         mock_submit.assert_called_once()
         mock_load.assert_not_called()
+        mock_certify.assert_called_once()
 
 @mock.patch.object(Vf, 'load')
 @mock.patch.object(Vf, 'submit')
 @mock.patch.object(Vf, 'create')
 @mock.patch.object(Vf, 'add_resource')
-def test_onboard_vf_load(mock_add_resource, mock_create, mock_submit, mock_load):
+@mock.patch.object(Vf, "certify")
+def test_onboard_vf_load(mock_certify, mock_add_resource, mock_create, mock_submit, mock_load):
     getter_mock = mock.Mock(wraps=Vf.status.fget)
     mock_status = Vf.status.getter(getter_mock)
     with mock.patch.object(Vf, 'status', mock_status):
         getter_mock.side_effect = [const.CERTIFIED, const.CERTIFIED,
-                               const.CERTIFIED, const.APPROVED, const.APPROVED,
-                               const.APPROVED]
+                                   const.CERTIFIED, const.CERTIFIED,
+                                   const.APPROVED, const.APPROVED,
+                                   const.APPROVED, const.APPROVED]
         vf = Vf()
         vf._time_wait = 0
         vf.onboard()
@@ -355,18 +362,21 @@ def test_onboard_vf_load(mock_add_resource, mock_create, mock_submit, mock_load)
         mock_add_resource.assert_not_called()
         mock_submit.assert_not_called()
         mock_load.assert_called_once()
+        mock_certify.assert_not_called()
 
 @mock.patch.object(Vf, 'load')
 @mock.patch.object(Vf, 'submit')
 @mock.patch.object(Vf, 'create')
 @mock.patch.object(Vf, 'add_resource')
-def test_onboard_whole_vf(mock_add_resource, mock_create, mock_submit, mock_load):
+@mock.patch.object(Vf, "certify")
+def test_onboard_whole_vf(mock_certify, mock_add_resource, mock_create, mock_submit, mock_load):
     getter_mock = mock.Mock(wraps=Vf.status.fget)
     mock_status = Vf.status.getter(getter_mock)
     with mock.patch.object(Vf, 'status', mock_status):
-        getter_mock.side_effect = [None, const.DRAFT, const.DRAFT, const.CERTIFIED,
-                               const.CERTIFIED, const.CERTIFIED, const.APPROVED,
-                               const.APPROVED, const.APPROVED]
+        getter_mock.side_effect = [None, const.DRAFT, const.DRAFT,
+                                   const.CHECKED_IN, const.CHECKED_IN, const.CHECKED_IN,
+                                   const.CERTIFIED, const.CERTIFIED, const.CERTIFIED, const.CERTIFIED,
+                                   const.APPROVED, const.APPROVED, const.APPROVED, const.APPROVED]
         vsp = Vsp()
         vf = Vf(vsp=vsp)
         vf._time_wait = 0
@@ -375,6 +385,7 @@ def test_onboard_whole_vf(mock_add_resource, mock_create, mock_submit, mock_load
         mock_add_resource.assert_not_called()
         mock_submit.assert_called_once()
         mock_load.assert_called_once()
+        mock_certify.assert_called_once()
 
 
 @mock.patch.object(Vf, "send_message_json")
@@ -505,3 +516,38 @@ def test_add_resource_OK(mock_send, mock_load):
         'https://sdc.api.fe.simpledemo.onap.org:30207/sdc1/feProxy/rest/v1/catalog/resources/45/resourceInstance',
         data='{\n  "name": "test",\n  "componentVersion": "40",\n  "posY": 100,\n  "posX": 200,\n  "uniqueId": "12",\n  "originType": "SDCRESOURCE",\n  "componentUid": "12",\n  "icon": "defaulticon"\n}')
 
+@mock.patch.object(Vf, 'created')
+@mock.patch.object(Vf, "send_message_json")
+@mock.patch.object(Vf, "resource_inputs_url")
+def test_vf_vendor_property(mock_resource_inputs_url, mock_send_message_json, mock_created):
+    mock_created.return_value = False
+    vf = Vf()
+    assert vf.vendor is None
+
+    vsp_mock = MagicMock()
+    vsp_mock.vendor = MagicMock()
+    vf.vsp = vsp_mock
+    assert vf.vendor == vsp_mock.vendor
+
+    vf._vendor = None
+    mock_created.return_value = True
+    mock_send_message_json.return_value = {"vendorName": "123"}
+    assert vf.vendor.name == "123"
+
+@mock.patch.object(SdcResource, "declare_input")
+@mock.patch.object(Vf, "send_message")
+def test_vf_declare_input(mock_send_message, mock_sdc_resource_declare_input):
+    vf = Vf()
+    prop = Property(name="test_prop", property_type="string")
+    nested_input = NestedInput(MagicMock(), MagicMock())
+    vf.declare_input(prop)
+    mock_sdc_resource_declare_input.assert_called_once()
+    mock_send_message.assert_not_called()
+    mock_sdc_resource_declare_input.reset_mock()
+    vf.declare_input(nested_input)
+    mock_sdc_resource_declare_input.assert_called_once()
+    mock_send_message.assert_not_called()
+    mock_sdc_resource_declare_input.reset_mock()
+    vf.declare_input(ComponentProperty("test_unique_id", "test_property_type", "test_name", MagicMock()))
+    mock_send_message.assert_called()
+    mock_sdc_resource_declare_input.assert_not_called()
