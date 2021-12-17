@@ -22,6 +22,7 @@ SDNC_AUTH       = "Basic YWRtaW46S3A4Yko0U1hzek0wV1hsaGFrM2VIbGNzZTJnQXc4NHZhb0d
 SO_URL          = "http://so.api.simpledemo.onap.org:30277"
 SO_API_VERSION  = "v7"
 SO_AUTH         = "Basic SW5mcmFQb3J0YWxDbGllbnQ6cGFzc3dvcmQxJA=="
+SO_CAT_DB_AUTH  = "Basic YnBlbDpwYXNzd29yZDEk"
 VID_URL         = "https://vid.api.simpledemo.onap.org:30200"
 VID_API_VERSION = "/vid"
 CLAMP_URL       = "https://clamp.api.simpledemo.onap.org:30258"
