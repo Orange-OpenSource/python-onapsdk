@@ -52,3 +52,7 @@ class FileError(ValidationError):
 
 class SettingsError(SDKException):
     """Some settings are wrong."""
+
+
+class NoGuiError(SDKException):
+    """No GUI available for this component."""

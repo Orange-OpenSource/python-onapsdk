@@ -302,66 +302,95 @@ def test_submit_OK(mock_send, mock_load, mock_exists):
 
 
 @mock.patch.object(Pnf, 'load')
+@mock.patch.object(Pnf, 'certify')
 @mock.patch.object(Pnf, 'submit')
 @mock.patch.object(Pnf, 'create')
-def test_onboard_new_pnf(mock_create, mock_submit, mock_load):
+def test_onboard_new_pnf(mock_create, mock_submit, mock_certify, mock_load):
     getter_mock = mock.Mock(wraps=Pnf.status.fget)
     mock_status = Pnf.status.getter(getter_mock)
     with mock.patch.object(Pnf, 'status', mock_status):
         getter_mock.side_effect = [None, const.APPROVED, const.APPROVED,
-                               const.APPROVED]
+                                   const.APPROVED, const.APPROVED]
         vsp = Vsp()
         pnf = Pnf(vsp=vsp)
         pnf._time_wait = 0
         pnf.onboard()
         mock_create.assert_called_once()
         mock_submit.assert_not_called()
+        mock_certify.assert_not_called()
         mock_load.assert_not_called()
 
 @mock.patch.object(Pnf, 'load')
+@mock.patch.object(Pnf, 'certify')
 @mock.patch.object(Pnf, 'submit')
 @mock.patch.object(Pnf, 'create')
-def test_onboard_pnf_submit(mock_create, mock_submit, mock_load):
+def test_onboard_pnf_submit(mock_create, mock_submit, mock_certify, mock_load):
     getter_mock = mock.Mock(wraps=Pnf.status.fget)
     mock_status = Pnf.status.getter(getter_mock)
     with mock.patch.object(Pnf, 'status', mock_status):
         getter_mock.side_effect = [const.DRAFT, const.DRAFT, const.APPROVED,
-                               const.APPROVED, const.APPROVED]
+                                   const.APPROVED, const.APPROVED, const.APPROVED]
         pnf = Pnf()
         pnf._time_wait = 0
         pnf.onboard()
         mock_create.assert_not_called()
         mock_submit.assert_called_once()
+        mock_certify.assert_not_called()
         mock_load.assert_not_called()
 
 @mock.patch.object(Pnf, 'load')
+@mock.patch.object(Pnf, 'certify')
 @mock.patch.object(Pnf, 'submit')
 @mock.patch.object(Pnf, 'create')
-def test_onboard_pnf_load(mock_create, mock_submit, mock_load):
+def test_onboard_pnf_certify(mock_create, mock_submit, mock_certify, mock_load):
     getter_mock = mock.Mock(wraps=Pnf.status.fget)
     mock_status = Pnf.status.getter(getter_mock)
     with mock.patch.object(Pnf, 'status', mock_status):
-        getter_mock.side_effect = [const.CERTIFIED, const.CERTIFIED,
-                               const.CERTIFIED, const.APPROVED, const.APPROVED,
-                               const.APPROVED]
+        getter_mock.side_effect = [const.CHECKED_IN, const.CHECKED_IN, const.CHECKED_IN,
+                                   const.APPROVED, const.APPROVED, const.APPROVED,
+                                   const.APPROVED]
         pnf = Pnf()
         pnf._time_wait = 0
         pnf.onboard()
         mock_create.assert_not_called()
         mock_submit.assert_not_called()
+        mock_certify.assert_called_once()
+        mock_load.assert_not_called()
+
+@mock.patch.object(Pnf, 'load')
+@mock.patch.object(Pnf, 'certify')
+@mock.patch.object(Pnf, 'submit')
+@mock.patch.object(Pnf, 'create')
+def test_onboard_pnf_load(mock_create, mock_submit, mock_certify, mock_load):
+    getter_mock = mock.Mock(wraps=Pnf.status.fget)
+    mock_status = Pnf.status.getter(getter_mock)
+    with mock.patch.object(Pnf, 'status', mock_status):
+        getter_mock.side_effect = [const.CERTIFIED, const.CERTIFIED,
+                                   const.CERTIFIED, const.CERTIFIED,
+                                   const.APPROVED, const.APPROVED,
+                                   const.APPROVED]
+        pnf = Pnf()
+        pnf._time_wait = 0
+        pnf.onboard()
+        mock_create.assert_not_called()
+        mock_submit.assert_not_called()
+        mock_certify.assert_not_called()
         mock_load.assert_called_once()
 
 @mock.patch.object(Pnf, 'load')
 @mock.patch.object(Pnf, 'submit')
 @mock.patch.object(Pnf, 'create')
-def test_onboard_whole_pnf_vsp(mock_create, mock_submit, mock_load):
+@mock.patch.object(Pnf, 'certify')
+def test_onboard_whole_pnf_vsp(mock_certify, mock_create, mock_submit, mock_load):
     """Test onboarding with vsp"""
     getter_mock = mock.Mock(wraps=Pnf.status.fget)
     mock_status = Pnf.status.getter(getter_mock)
     with mock.patch.object(Pnf, 'status', mock_status):
-        getter_mock.side_effect = [None, const.DRAFT, const.DRAFT, const.CERTIFIED,
-                               const.CERTIFIED, const.CERTIFIED, const.APPROVED,
-                               const.APPROVED, const.APPROVED]
+        getter_mock.side_effect = [None, const.DRAFT, const.DRAFT,
+                                   const.CHECKED_IN, const.CHECKED_IN, const.CHECKED_IN,
+                                   const.CERTIFIED, const.CERTIFIED, const.CERTIFIED,
+                                   const.CERTIFIED, const.APPROVED, const.APPROVED,
+                                   const.APPROVED, const.APPROVED]
         vsp = Vsp()
         pnf = Pnf(vsp=vsp)
         pnf._time_wait = 0
@@ -369,18 +398,22 @@ def test_onboard_whole_pnf_vsp(mock_create, mock_submit, mock_load):
         mock_create.assert_called_once()
         mock_submit.assert_called_once()
         mock_load.assert_called_once()
+        mock_certify.assert_called_once()
 
 @mock.patch.object(Pnf, 'load')
 @mock.patch.object(Pnf, 'submit')
 @mock.patch.object(Pnf, 'create')
-def test_onboard_whole_pnf_vendor(mock_create, mock_submit, mock_load):
+@mock.patch.object(Pnf, 'certify')
+def test_onboard_whole_pnf_vendor(mock_certify, mock_create, mock_submit, mock_load):
     """Test onboarding with vendor"""
     getter_mock = mock.Mock(wraps=Pnf.status.fget)
     mock_status = Pnf.status.getter(getter_mock)
     with mock.patch.object(Pnf, 'status', mock_status):
-        getter_mock.side_effect = [None, const.DRAFT, const.DRAFT, const.CERTIFIED,
-                               const.CERTIFIED, const.CERTIFIED, const.APPROVED,
-                               const.APPROVED, const.APPROVED]
+        getter_mock.side_effect = [None, const.DRAFT, const.DRAFT,
+                                   const.CHECKED_IN, const.CHECKED_IN, const.CHECKED_IN,
+                                   const.CERTIFIED, const.CERTIFIED, const.CERTIFIED,
+                                   const.CERTIFIED, const.APPROVED, const.APPROVED,
+                                   const.APPROVED, const.APPROVED]
         vendor = Vendor()
         pnf = Pnf(vendor=vendor)
         pnf._time_wait = 0
@@ -388,6 +421,7 @@ def test_onboard_whole_pnf_vendor(mock_create, mock_submit, mock_load):
         mock_create.assert_called_once()
         mock_submit.assert_called_once()
         mock_load.assert_called_once()
+        mock_certify.assert_called_once()
 
 @mock.patch.object(Pnf, "send_message_json")
 def test_add_properties(mock_send_message_json):
