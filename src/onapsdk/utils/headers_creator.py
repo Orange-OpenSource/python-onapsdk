@@ -145,6 +145,23 @@ def headers_so_creator(base_header: Dict[str, str]):
     headers["cache-control"] = "no-cache"
     return headers
 
+def headers_so_catelog_db_creator(base_header: Dict[str, str]):
+    """
+    Create the right headers for SO creator type.
+
+    Args:
+        base_header (Dict[str, str]): the base header to use
+
+    Returns:
+        Dict[str, str]: the needed headers
+
+    """
+    headers = base_header.copy()
+    headers["x-fromappid"] = "AAI"
+    headers["x-transactionid"] = str(uuid4())
+    headers["authorization"] = settings.SO_CAT_DB_AUTH
+    headers["cache-control"] = "no-cache"
+    return headers
 
 def headers_msb_creator(base_header: Dict[str, str]):
     """
