@@ -14,7 +14,7 @@
 		"requestParameters": {
 			"testApi": "GR_API",
 			"aLaCarte": {{ a_la_carte | tojson }}
-		}{% if service_instance.sdc_service.has_vnfs %}
+		}{% if service_instance.sdc_service.has_vnfs %},
 		{# the code below is needed to be refactored #}
 		{# https://gitlab.com/Orange-OpenSource/lfn/onap/python-onapsdk/-/issues/133 #}
         "cloudConfiguration": {
