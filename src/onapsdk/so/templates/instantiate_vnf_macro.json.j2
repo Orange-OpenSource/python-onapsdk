@@ -1,0 +1,153 @@
+{
+    "requestDetails": {
+        "requestInfo": {
+            "instanceName": "{{ service_instance.instance_name }}",
+            "source": "VID",
+            "suppressRollback": false,
+            "requestorId": "demo",
+            "productFamilyId": "1234"
+        },
+        "modelInfo": {
+            "modelType": "vnf",
+            "modelInvariantId": "{{ vnf.model_invariant_id }}",
+            "modelVersionId": "{{ vnf.model_version_id }}",
+            "modelName": "{{ vnf.model_name }}",
+            "modelVersion": "{{ vnf.model_version }}",
+            "modelCustomizationId": "{{ vnf.model_customization_id }}",
+            "modelInstanceName": "{{ vnf.name }}"
+        },
+        "cloudConfiguration": {
+            "tenantId": "{{ tenant.tenant_id }}",
+            "cloudOwner": "{{ cloud_region.cloud_owner }}",
+            "lcpCloudRegionId": "{{ cloud_region.cloud_region_id }}"
+        },
+        "platform": {
+            "platformName": "{{ platform }}"
+        },
+        "lineOfBusiness": {
+            "lineOfBusinessName": "{{ line_of_business }}"
+        },
+        "subscriberInfo": {
+            "globalSubscriberId": "{{ service_instance.service_subscription.customer.global_customer_id }}"
+        },
+        "requestParameters": {
+            {% block subscriptionServiceType %}
+            "subscriptionServiceType": "{{ service.name }}",
+            {% endblock %}
+            "userParams": [
+                {
+                    "Homing_Solution": "none"
+                },
+                {
+                    "service": {
+                        "instanceParams": [],
+                        "resources": {
+                            {% block vnfs %}
+                            "vnfs": [
+                                {
+                                    "modelInfo": {
+                                        "modelName": "{{ vnf.model_name }}",
+                                        "modelVersionId": "{{ vnf.model_version_id }}",
+                                        "modelInvariantUuid": "{{ vnf.model_invariant_id }}",
+                                        "modelVersion": "{{ vnf.model_version }}",
+                                        "modelCustomizationId": "{{ vnf.model_customization_id }}",
+                                        "modelInstanceName": "{{ vnf.name }}"
+                                    },
+                                    "cloudConfiguration": {
+                                        "tenantId": "{{ tenant.tenant_id }}",
+                                        "cloudOwner": "{{ cloud_region.cloud_owner }}",
+                                        "lcpCloudRegionId": "{{ cloud_region.cloud_region_id }}"
+                                    },
+                                    "platform": {
+                                        "platformName": "{{ platform }}"
+                                    },
+                                    "lineOfBusiness": {
+                                        "lineOfBusinessName": "{{ line_of_business }}"
+                                    },
+                                    "productFamilyId": "1234",
+                                    "instanceName": "{{ instance_name }}",
+                                    "instanceParams": [
+                                        {
+                                            {% for vnf_parameter in vnf_parameters %}
+                                            {% if vnf_parameter.name == vnf.model_name %}
+                                            {% for parameter in vnf_parameter.vnf_parameters %}
+                                            "{{ parameter.name }}": "{{ parameter.value }}"{% if not loop.last %},{% endif %}
+                                            {% endfor %}
+                                            {% endif %}
+                                            {% endfor %}
+                                        }
+                                    ],
+                                    "vfModules": [
+                                        {% for vf_module in vnf.vf_modules %}
+
+                                        {
+                                            "modelInfo": {
+                                                "modelName": "{{ vf_module.model_name }}",
+                                                "modelVersionId": "{{ vf_module.model_version_id }}",
+                                                "modelInvariantUuid": "{{ vf_module.model_invariant_uuid }}",
+                                                "modelVersion": "{{ vf_module.model_version }}",
+                                                "modelCustomizationId": "{{ vf_module.model_customization_id }}"
+                                            },
+                                            "instanceName": "{{instance_name}}_{{ vf_module.name }}",
+                                            "instanceParams": [
+                                                {
+                                                    {% for vnf_parameter in vnf_parameters %}
+                                                    {% if vnf_parameter.name == vnf.model_name %}
+                                                    {% set mylist = vf_module.name.split('..') %}
+                                                    {% set item = mylist|length-2 %}
+                                                    {% for vf_module_parameter in vnf_parameter.vfmodule_parameters %}
+                                                    {% if vf_module_parameter.name == mylist[item] %}
+                                                    {% for parameter in vf_module_parameter.vfmodule_parameters %}
+                                                    "{{ parameter.name }}": "{{ parameter.value }}"{% if not loop.last %},{% endif %}
+                                                    {% endfor %}
+                                                    {% endif %}
+                                                    {% endfor %}
+                                                    {% endif %}
+                                                    {% endfor %}
+                                                }
+                                            ]
+                                        }{% if not loop.last %},{% endif %}
+                                        {% endfor %}
+                                    ]
+                                }
+                            ]
+                            {% endblock %}
+                        },
+                        "modelInfo": {
+                            "modelType": "vnf",
+                            "modelInvariantId": "{{ vnf.model_invariant_id }}",
+                            "modelVersionId": "{{ vnf.model_version_id }}",
+                            "modelName": "{{ vnf.model_name }}",
+                            "modelVersion": "{{ vnf.model_version }}",
+                            "modelCustomizationId": "{{ vnf.model_customization_id }}",
+                            "modelCustomizationName": "{{ vnf.name }}"
+                        }
+                    }
+                }
+            ],
+            "aLaCarte": false
+        },
+        "project": {
+            "projectName": "{{ project }}"
+        },
+        "owningEntity": {
+            "owningEntityId": "{{ owning_entity.owning_entity_id }}",
+            "owningEntityName": "{{ owning_entity.name }}"
+        },
+        "relatedInstanceList": [
+            {
+                "relatedInstance": {
+                    "instanceId": "{{ service_instance.instance_id }}",
+                    "modelInfo": {
+                        "modelType": "service",
+                        "modelInvariantId": "{{ service.unique_uuid }}",
+                        "modelVersionId": "{{ service.identifier }}",
+                        "modelName": "{{ service.name }}",
+                        "modelVersion": "1.0"
+                    }
+                }
+            }
+        ]
+    },
+    "serviceInstanceId": "{{ service_instance.instance_id }}"
+}
