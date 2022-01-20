@@ -41,6 +41,18 @@ class SoServiceXnf:
     parameters: Dict[str, Any] = field(default_factory=dict)
     processing_priority: Optional[int] = None
 
+    @classmethod
+    def load(cls, data: Dict[str, Any]) -> "SoServiceVnf":
+        """Create a vnf instance description object from the dict.
+
+        Useful if you keep your instance data in file.
+
+        Returns:
+            SoServiceVnf: SoServiceVnf object created from the dictionary
+
+        """
+        return from_dict(data_class=cls, data=data)
+
 
 @dataclass
 class SoServiceVnf(SoServiceXnf):
@@ -444,6 +456,93 @@ class VnfInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-many-a
             vnf=vnf_object
         )
 
+    @classmethod
+    def instantiate_macro(cls,  # pylint: disable=too-many-arguments, too-many-locals
+                          aai_service_instance: "ServiceInstance",
+                          vnf_object: "Vnf",
+                          line_of_business: str,
+                          platform: str,
+                          cloud_region: "CloudRegion",
+                          tenant: "Tenant",
+                          sdc_service: "SdcService",
+                          vnf_instance_name: str = None,
+                          vnf_parameters: Iterable["InstantiationParameter"] = None,
+                          so_vnf: "SoServiceVnf" = None
+                          ) -> "VnfInstantiation":
+        """Instantiate Vnf using macro method.
+
+        Args:
+            aai_service_instance (ServiceInstance): Service instance associated with request
+            vnf_object (Vnf): Vnf to instantiate
+            line_of_business (LineOfBusiness): LineOfBusiness to use in instantiation request
+            platform (Platform): Platform to use in instantiation request
+            cloud_region (CloudRegion): Cloud region to use in instantiation request.
+            tenant (Tenant): Tenant to use in instantiation request.
+            vnf_instance_name (str, optional): Vnf instance name. Defaults to None.
+            vnf_parameters (Iterable[InstantiationParameter], optional): Instantiation parameters
+                that are sent in the request. Defaults to None
+            so_vnf (SoServiceVnf): object with vnf instance parameters
+
+        Returns:
+            VnfInstantiation: VnfInstantiation object
+
+        """
+        owning_entity_id = None
+        project = "OnapsdkProject"
+
+        for relationship in aai_service_instance.relationships:
+            if relationship.related_to == "owning-entity":
+                owning_entity_id = relationship.relationship_data.pop().get("relationship-value")
+            if relationship.related_to == "project":
+                project = relationship.relationship_data.pop().get("relationship-value")
+
+        owning_entity = OwningEntity.get_by_owning_entity_id(
+            owning_entity_id=owning_entity_id)
+
+        if so_vnf:
+            template_file = "instantiate_vnf_macro_so_vnf.json.j2"
+            if so_vnf.instance_name:
+                vnf_instance_name = so_vnf.instance_name
+        else:
+            template_file = "instantiate_vnf_macro.json.j2"
+            if vnf_instance_name is None:
+                vnf_instance_name = \
+                    f"Python_ONAP_SDK_vnf_instance_{str(uuid4())}"
+
+        response: dict = cls.send_message_json(
+            "POST",
+            (f"Instantiate {sdc_service.name} "
+             f"service vnf {vnf_object.name}"),
+            (f"{cls.base_url}/onap/so/infra/serviceInstantiation/{cls.api_version}/"
+             f"serviceInstances/{aai_service_instance.instance_id}/vnfs"),
+            data=jinja_env().get_template(template_file).render(
+                instance_name=vnf_instance_name,
+                vnf=vnf_object,
+                service=sdc_service,
+                cloud_region=cloud_region or \
+                             next(aai_service_instance.service_subscription.cloud_regions),
+                tenant=tenant or next(aai_service_instance.service_subscription.tenants),
+                project=project,
+                owning_entity=owning_entity,
+                line_of_business=line_of_business,
+                platform=platform,
+                service_instance=aai_service_instance,
+                vnf_parameters=vnf_parameters or [],
+                so_vnf=so_vnf
+            ),
+            headers=headers_so_creator(OnapService.headers)
+        )
+
+        return VnfInstantiation(
+            name=vnf_instance_name,
+            request_id=response["requestReferences"]["requestId"],
+            instance_id=response["requestReferences"]["instanceId"],
+            line_of_business=line_of_business,
+            platform=platform,
+            vnf=vnf_object
+        )
+
+
 class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
     """Service instantiation class."""
 
@@ -647,7 +746,7 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
 
     @property
     def aai_service_instance(self) -> "ServiceInstance":
-        """Service instane associated with service instantiation request.
+        """Service instance associated with service instantiation request.
 
         Raises:
             StatusError: if a service is not instantiated -
