@@ -20,7 +20,7 @@ from onapsdk.so.instantiation import (
     VnfInstantiation
 )
 from onapsdk.vid import Vid
-
+from onapsdk.aai.business.owning_entity import OwningEntity
 
 @mock.patch.object(ServiceInstantiation, "send_message_json")
 def test_service_ala_carte_instantiation(mock_service_instantiation_send_message):
@@ -218,6 +218,73 @@ def test_vnf_instantiation_with_cr_and_tenant(mock_vnf_instantiation_send_messag
                               vnf_instance_name="test",
                               sdc_service=mock.MagicMock())
     assert vnf_instantiation.name == "test"
+
+
+@mock.patch.object(VnfInstantiation, "send_message_json")
+@mock.patch.object(OwningEntity, "get_by_owning_entity_id")
+def test_vnf_instantiation_macro(mock_owning_entity_get, mock_vnf_instantiation_send_message):
+    aai_service_instance_mock = mock.MagicMock()
+    aai_service_instance_mock.instance_id = "test_instance_id"
+
+    relation_1 = mock.MagicMock()
+    relation_1.related_to = "owning-entity"
+    relation_1.relationship_data = [{"relationship-value": "test"}]
+    relation_2 = mock.MagicMock()
+    relation_2.related_to = "project"
+    relation_2.relationship_data = [{"relationship-value": "test"}]
+
+    aai_service_instance_mock.relationships = (item for item in [relation_1, relation_2])
+
+    vnf_instantiation = VnfInstantiation.\
+        instantiate_macro(aai_service_instance=aai_service_instance_mock,
+                          vnf_object=mock.MagicMock(),
+                          line_of_business="test_lob",
+                          platform="test_platform",
+                          cloud_region=mock.MagicMock(),
+                          tenant=mock.MagicMock(),
+                          sdc_service=mock.MagicMock())
+    assert vnf_instantiation.name.startswith("Python_ONAP_SDK_vnf_instance_")
+    mock_vnf_instantiation_send_message.assert_called_once()
+    method, _, url = mock_vnf_instantiation_send_message.call_args[0]
+    assert method == "POST"
+    assert url == (f"{VnfInstantiation.base_url}/onap/so/infra/serviceInstantiation/"
+                   f"{VnfInstantiation.api_version}/serviceInstances/"
+                   f"{aai_service_instance_mock.instance_id}/vnfs")
+
+    vnf_instantiation = VnfInstantiation. \
+        instantiate_macro(aai_service_instance=aai_service_instance_mock,
+                          vnf_object=mock.MagicMock(),
+                          line_of_business="test_lob",
+                          platform="test_platform",
+                          vnf_instance_name="test",
+                          cloud_region=mock.MagicMock(),
+                          tenant=mock.MagicMock(),
+                          sdc_service=mock.MagicMock())
+    assert vnf_instantiation.name == "test"
+
+    vnf_instantiation = VnfInstantiation. \
+        instantiate_macro(aai_service_instance=aai_service_instance_mock,
+                          vnf_object=mock.MagicMock(),
+                          line_of_business="test_lob",
+                          platform="test_platform",
+                          cloud_region=mock.MagicMock(),
+                          tenant=mock.MagicMock(),
+                          sdc_service=mock.MagicMock(),
+                          so_vnf=mock.MagicMock())
+    assert vnf_instantiation.name.startswith("Python_ONAP_SDK_service_instance_")
+
+    so_vnf_mock = mock.MagicMock()
+    so_vnf_mock.instance_name = "SoVnfInstanceName"
+    vnf_instantiation = VnfInstantiation. \
+        instantiate_macro(aai_service_instance=aai_service_instance_mock,
+                          vnf_object=mock.MagicMock(),
+                          line_of_business="test_lob",
+                          platform="test_platform",
+                          cloud_region=mock.MagicMock(),
+                          tenant=mock.MagicMock(),
+                          sdc_service=mock.MagicMock(),
+                          so_vnf=so_vnf_mock)
+    assert vnf_instantiation.name == "SoVnfInstanceName"
 
 
 @mock.patch.object(NetworkInstantiation, "send_message_json")
@@ -806,3 +873,49 @@ def test_so_service_load_from_file():
     assert so_service_vnf_1_vf_module_2.processing_priority == 2
     assert len(so_service_vnf_1_vf_module_2.parameters) == 1
     assert so_service_vnf_1_vf_module_2.parameters["param-vfm1"] == "value-vfm1"
+
+
+def test_so_service_vnf_load_from_yaml():
+
+    so_vnf_yaml = """
+    model_name: myvnfmodel
+    instance_name: mynewvnf
+    parameters:
+        param1: value1
+    vf_modules:
+        - instance_name: myfirstvfm 
+          model_name: base
+          processing_priority: 1
+          parameters:
+              param-vfm1: value-vfm1
+        - instance_name: mysecondvfm
+          model_name: second_base
+          processing_priority: 2
+          parameters:
+              param-vfm2: value-vfm2
+              param-vfm3: value-vfm3
+    """
+
+    so_vnf = SoServiceVnf.load(yaml.safe_load(so_vnf_yaml))
+    assert so_vnf.model_name == "myvnfmodel"
+    assert so_vnf.instance_name == "mynewvnf"
+
+    assert len(so_vnf.parameters) == 1
+    assert so_vnf.parameters["param1"] == "value1"
+
+    assert len(so_vnf.vf_modules) == 2
+    so_vnf_vf_module_1 = so_vnf.vf_modules[0]
+    so_vnf_vf_module_2 = so_vnf.vf_modules[1]
+
+    assert so_vnf_vf_module_1.model_name == "base"
+    assert so_vnf_vf_module_1.instance_name == "myfirstvfm"
+    assert so_vnf_vf_module_1.processing_priority == 1
+    assert len(so_vnf_vf_module_1.parameters) == 1
+    assert so_vnf_vf_module_1.parameters["param-vfm1"] == "value-vfm1"
+
+    assert so_vnf_vf_module_2.model_name == "second_base"
+    assert so_vnf_vf_module_2.instance_name == "mysecondvfm"
+    assert so_vnf_vf_module_2.processing_priority == 2
+    assert len(so_vnf_vf_module_2.parameters) == 2
+    assert so_vnf_vf_module_2.parameters["param-vfm2"] == "value-vfm2"
+    assert so_vnf_vf_module_2.parameters["param-vfm3"] == "value-vfm3"
