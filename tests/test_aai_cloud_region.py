@@ -2,7 +2,7 @@
 from collections import namedtuple
 from unittest import mock
 
-
+import pytest
 from onapsdk.aai.cloud_infrastructure.cloud_region import CloudRegion, Tenant
 from onapsdk.exceptions import ResourceNotFound
 
@@ -42,3 +42,6 @@ def test_cloud_region_get_tenant_by_name(mock_tenants):
         Tenant(cloud_region="test_cloud_region_id",tenant_id="test-tenant",tenant_name="test-tenant")
     ])
     assert cr.get_tenant_by_name(tenant_name="test-tenant") is not None
+    with pytest.raises(ResourceNotFound) as exc:
+        cr.get_tenant_by_name(tenant_name="test-tenant1")
+    assert exc.type is ResourceNotFound
