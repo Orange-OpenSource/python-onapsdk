@@ -73,3 +73,4 @@ def test_cloud_region_tenants():
     cloud_region.add_tenant(tenant_id="test_tenant_id", tenant_name="test_tenant_name", tenant_context="test_tenant_context")
     assert len(list(cloud_region.tenants)) == 1
     tenant = cloud_region.get_tenant(tenant_id="test_tenant_id")
+    assert cloud_region.get_tenant_by_name(tenant_name="test_tenant_name") is not None
