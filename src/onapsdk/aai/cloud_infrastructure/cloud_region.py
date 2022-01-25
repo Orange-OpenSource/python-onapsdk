@@ -422,23 +422,18 @@ class CloudRegion(AaiElement):  # pylint: disable=too-many-instance-attributes
             resource_version=response.get("resource-version"),
         )
 
-    def get_tenant_by_name(self, tenant_name: str) -> "Tenant":
-        """Get tenant with provided name.
+    def get_tenants_by_name(self, tenant_name: str) -> Iterator["Tenant"]:
+        """Get tenants with given name.
 
         Args:
             tenant_name (str): Tenant name
 
-        Raises:
-            ResourceNotFound: Tenant with given name does not exist.
-
         Returns:
-            Tenant: Tenant object
+            Iterator[Tenant]: Iterate through cloud region tenants with given name
 
         """
-        try:
-            return next((x for x in self.tenants if x.name == tenant_name))
-        except StopIteration:
-            raise ResourceNotFound(f'Tenant with name {tenant_name} not found.')
+        return (tenant for tenant in self.tenants if tenant.name == tenant_name)
+
 
     def get_availability_zone_by_name(self,
                                       zone_name: str) -> "AvailabilityZone":

@@ -36,12 +36,12 @@ def test_cloud_region_complex_property(mock_complex_get, mock_relationships):
     assert cr.complex is None
 
 @mock.patch("onapsdk.aai.cloud_infrastructure.cloud_region.CloudRegion.tenants", new_callable=mock.PropertyMock)
-def test_cloud_region_get_tenant_by_name(mock_tenants):
+def test_cloud_region_get_tenants_by_name(mock_tenants):
     cr = CloudRegion("test_cloud_owner", "test_cloud_region_id", False, False)
     mock_tenants.return_value = iter([
         Tenant(cloud_region="test_cloud_region_id",tenant_id="test-tenant",tenant_name="test-tenant")
     ])
-    assert cr.get_tenant_by_name(tenant_name="test-tenant") is not None
-    with pytest.raises(ResourceNotFound) as exc:
-        cr.get_tenant_by_name(tenant_name="test-tenant1")
-    assert exc.type is ResourceNotFound
+    tenants = list(cr.get_tenants_by_name("test-tenant"))
+    assert len(tenants) == 1
+    assert isinstance(tenants[0], Tenant)
+    assert tenants[0].name == "test-tenant"
