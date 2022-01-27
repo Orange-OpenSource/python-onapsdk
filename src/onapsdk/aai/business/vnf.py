@@ -456,10 +456,20 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
 
         """
         so_vnfs = []
+        so_pnfs = []
+
         if not vnf_params:
             vnf_params = {}
 
-        # to do PNF support?
+        for pnf in self.service_instance.pnfs:
+            pnf_model = next(
+                _pnf_model for _pnf_model in self.service_instance.sdc_service.pnfs
+                if _pnf_model.model_invariant_id == pnf.model_invariant_id)
+            _pnf = {
+                "model_name": pnf_model.model_name,
+                "instance_name": pnf.pnf_name
+            }
+            so_pnfs.append(_pnf)
 
         for vnf in self.service_instance.vnf_instances:
             _vnf = {"model_name": vnf.vnf.model_name,
@@ -484,7 +494,8 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
 
         return SoService.load(data={
             'subscription_service_type': self.service_instance.service_subscription.service_type,
-            'vnfs': so_vnfs
+            'vnfs': so_vnfs,
+            'pnfs': so_pnfs
         })
 
     def delete(self, a_la_carte: bool = True) -> "VnfDeletionRequest":
