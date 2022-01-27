@@ -780,7 +780,7 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
                   sdc_service: "SdcService",
                   so_service: "SoService" = None
                   ) -> "ServiceInstantiation":
-        """ Execute SO action (update or healthcheck) for selected vnf service using SO macro request.
+        """Execute SO action (update or healthcheck) for selected vnf with SO macro request.
 
         Args:
             operation_type (str): name of the operation to trigger
@@ -797,8 +797,8 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
 
         Returns:
             ServiceInstantiation: Instantiation request object
-        """
 
+        """
         if operation_type == "healthcheck":
             request_method = "POST"
             request_suffix = "/healthcheck"

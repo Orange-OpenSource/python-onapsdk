@@ -373,7 +373,7 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
                # vnf_parameters: Iterable["InstantiationParameter"] = None
                vnf_parameters: dict = None
                ) -> ServiceInstantiation:
-        """ Update vnf instance.
+        """Update vnf instance.
 
         Args:
             vnf_parameters (dict, Optional): key value pairs of parameters for update operation.
@@ -384,21 +384,23 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
 
         Returns:
             ServiceInstantiation: ServiceInstantiation request object.
-        """
 
-        skip_flag = next(p for p in self.vnf.properties if p.name == 'skip_post_instantiation_configuration')
+        """
+        skip_flag = next(p for p in self.vnf.properties
+                         if p.name == 'skip_post_instantiation_configuration')
         if not skip_flag.value:
             raise StatusError("Operation for the vnf is not supported! "
-                              "Skip post instantiation configuration for VF should be set to False.")
+                              "Skip post instantiation configuration for VF should be set to False")
 
         return self._execute_so_action(operation_type="update",
                                        vnf_parameters=vnf_parameters)
 
     def healthcheck(self) -> ServiceInstantiation:
-        """ Execute healthcheck operation for vnf instance.
+        """Execute healthcheck operation for vnf instance.
 
         Returns:
             ServiceInstantiation: ServiceInstantiation request object.
+
         """
         return self._execute_so_action(operation_type="healthcheck")
 
@@ -414,8 +416,8 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
 
         Returns:
             ServiceInstantiation: ServiceInstantiation request object.
-        """
 
+        """
         required_status = "Active"
 
         if self.service_instance.orchestration_status != required_status:
@@ -451,13 +453,13 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
 
         Returns:
             SoService: SoService object to store SO Service parameters used for macro instantiation.
-        """
 
+        """
         so_vnfs = []
         if not vnf_params:
             vnf_params = {}
 
-        # todo PNF support?
+        # to do PNF support?
 
         for vnf in self.service_instance.vnf_instances:
             _vnf = {"model_name": vnf.vnf.model_name,
@@ -467,8 +469,9 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
 
             _vf_modules = []
             for vf_module in vnf.vf_modules:
-                sdc_vf_module = next(vf_module for vf_module in vnf.vnf.vf_modules
-                                     if vf_module.model_customization_id == vf_module.model_customization_id)
+                sdc_vf_module = next(
+                    vf_module for vf_module in vnf.vnf.vf_modules
+                    if vf_module.model_customization_id == vf_module.model_customization_id)
                 _vf_module = {
                     "model_name": sdc_vf_module.model_name.split('..')[1],
                     "instance_name": vf_module.vf_module_name,
