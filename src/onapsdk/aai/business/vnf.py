@@ -4,7 +4,7 @@ from typing import Iterable, Iterator
 
 from onapsdk.exceptions import ResourceNotFound, StatusError
 from onapsdk.so.deletion import VnfDeletionRequest
-from onapsdk.so.instantiation import VfModuleInstantiation, ServiceInstantiation, SoService
+from onapsdk.so.instantiation import VfModuleInstantiation, ServiceInstantiation, SoService, InstantiationParameter
 
 from .instance import Instance
 from .vf_module import VfModuleInstance
@@ -370,14 +370,13 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
         )
 
     def update(self,
-               # vnf_parameters: Iterable["InstantiationParameter"] = None
-               vnf_parameters: dict = None
+               vnf_parameters: Iterable["InstantiationParameter"] = None
                ) -> ServiceInstantiation:
         """Update vnf instance.
 
         Args:
-            vnf_parameters (dict, Optional): key value pairs of parameters for update operation.
-
+            vnf_parameters (Iterable["InstantiationParameter"], Optional): list of instantiation parameters
+            for update operation.
         Raises:
             StatusError: Skip post instantiation configuration  flag for VF to True.
                 It might cause problems with SO component.
@@ -406,13 +405,14 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
 
     def _execute_so_action(self,
                            operation_type: str,
-                           vnf_parameters: dict = None
+                           vnf_parameters: Iterable["InstantiationParameter"] = None
                            ) -> ServiceInstantiation:
         """Execute SO workflow for selected operation.
 
         Args:
             operation_type (str): Name of the operation to execute.
-            vnf_parameters (dict, Optional): key value pairs of parameters for so operation.
+            vnf_parameters (Iterable["InstantiationParameter"], Optional): list of instantiation parameters
+            for update operation.
 
         Returns:
             ServiceInstantiation: ServiceInstantiation request object.
@@ -445,11 +445,12 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
             so_service=so_input
         )
 
-    def _build_so_input(self, vnf_params: dict) -> SoService:
+    def _build_so_input(self, vnf_params: Iterable[InstantiationParameter]) -> SoService:
         """Prepare so_input with params retrieved from existing service instance.
 
         Args:
-            vnf_params (dict, Optional): key value pairs of parameters for update operation.
+            vnf_params (Iterable[InstantiationParameter], Optional): list of instantiation parameters
+            for update operation.
 
         Returns:
             SoService: SoService object to store SO Service parameters used for macro instantiation.
@@ -459,7 +460,7 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
         so_pnfs = []
 
         if not vnf_params:
-            vnf_params = {}
+            vnf_params = []
 
         for pnf in self.service_instance.pnfs:
             pnf_model = next(
@@ -473,9 +474,11 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
 
         for vnf in self.service_instance.vnf_instances:
             _vnf = {"model_name": vnf.vnf.model_name,
-                    "instance_name": vnf.vnf_name}
+                    "instance_name": vnf.vnf_name,
+                    "parameters": {}}
             if vnf.vnf_name == self.vnf_name:
-                _vnf["parameters"] = vnf_params
+                for _param in vnf_params:
+                    _vnf["parameters"][_param.name] = _param.value
 
             _vf_modules = []
             for vf_module in vnf.vf_modules:
