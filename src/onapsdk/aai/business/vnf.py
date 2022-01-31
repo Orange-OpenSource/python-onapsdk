@@ -4,7 +4,8 @@ from typing import Iterable, Iterator
 
 from onapsdk.exceptions import ResourceNotFound, StatusError
 from onapsdk.so.deletion import VnfDeletionRequest
-from onapsdk.so.instantiation import VfModuleInstantiation, ServiceInstantiation, SoService, InstantiationParameter
+from onapsdk.so.instantiation import VfModuleInstantiation, ServiceInstantiation, SoService, \
+    InstantiationParameter
 
 from .instance import Instance
 from .vf_module import VfModuleInstance
@@ -375,8 +376,8 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
         """Update vnf instance.
 
         Args:
-            vnf_parameters (Iterable["InstantiationParameter"], Optional): list of instantiation parameters
-            for update operation.
+            vnf_parameters (Iterable["InstantiationParameter"], Optional): list of instantiation
+            parameters for update operation.
         Raises:
             StatusError: Skip post instantiation configuration  flag for VF to True.
                 It might cause problems with SO component.
@@ -411,8 +412,8 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
 
         Args:
             operation_type (str): Name of the operation to execute.
-            vnf_parameters (Iterable["InstantiationParameter"], Optional): list of instantiation parameters
-            for update operation.
+            vnf_parameters (Iterable["InstantiationParameter"], Optional): list of instantiation
+            parameters for update operation.
 
         Returns:
             ServiceInstantiation: ServiceInstantiation request object.
@@ -449,8 +450,8 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
         """Prepare so_input with params retrieved from existing service instance.
 
         Args:
-            vnf_params (Iterable[InstantiationParameter], Optional): list of instantiation parameters
-            for update operation.
+            vnf_params (Iterable[InstantiationParameter], Optional): list of instantiation
+            parameters for update operation.
 
         Returns:
             SoService: SoService object to store SO Service parameters used for macro instantiation.
