@@ -25,6 +25,7 @@ from .so_element import OrchestrationRequest
 
 
 class VnfOperation(Enum):
+    """Class to store possible operations' names for vnfs."""
     UPDATE = "UPDATE"
     HEALTHCHECK = "HEALTHCHECK"
 
