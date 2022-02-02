@@ -733,6 +733,27 @@ class SdcResource(SdcOnboardable, ABC):  # pylint: disable=too-many-instance-att
         msg = f"SDC resource {sdc_resource.name} is not a component"
         raise ResourceNotFound(msg)
 
+    def get_component_by_name(self, component_name: str) -> Component:
+        """Get resource's component by it's name.
+
+        Get component by name.
+
+        Args:
+            component_name (str): Component's name
+
+        Raises:
+            ResourceNotFound: Component with given name does not exist
+
+        Returns:
+            Component: Component object
+
+        """
+        for component in self.components:
+            if component.sdc_resource.name == component_name:
+                return component
+        msg = f"SDC resource {component_name} is not a component"
+        raise ResourceNotFound(msg)
+
     def declare_input_for_own_property(self, property_obj: Property) -> None:
         """Declare input for resource's property.
 
