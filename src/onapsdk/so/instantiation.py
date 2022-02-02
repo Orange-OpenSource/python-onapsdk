@@ -6,6 +6,7 @@ from abc import ABC
 from dataclasses import dataclass, field
 from typing import Any, Dict, Iterable, List, Optional
 from uuid import uuid4
+from enum import Enum
 
 from dacite import from_dict
 
@@ -18,8 +19,14 @@ from onapsdk.sdnc import NetworkPreload, VfModulePreload
 from onapsdk.sdc.service import Network, Service as SdcService, Vnf, VfModule
 from onapsdk.utils.jinja import jinja_env
 from onapsdk.utils.headers_creator import headers_so_creator
+from onapsdk.configuration import settings
 
 from .so_element import OrchestrationRequest
+
+
+class VnfOperation(Enum):
+    UPDATE = "UPDATE"
+    HEALTHCHECK = "HEALTHCHECK"
 
 
 @dataclass
@@ -488,7 +495,7 @@ class VnfInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-many-a
 
         """
         owning_entity_id = None
-        project = "OnapsdkProject"
+        project = settings.PROJECT
 
         for relationship in aai_service_instance.relationships:
             if relationship.related_to == "owning-entity":
@@ -772,7 +779,7 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
 
     @classmethod
     def so_action(cls,
-                  operation_type: str,
+                  operation_type: VnfOperation,
                   vnf_instance_id: str,
                   aai_service_instance: "ServiceInstance",
                   line_of_business: str,
@@ -783,7 +790,7 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
         """Execute SO action (update or healthcheck) for selected vnf with SO macro request.
 
         Args:
-            operation_type (str): name of the operation to trigger
+            operation_type (VnfOperation): name of the operation to trigger
             vnf_instance_id (str): vnf instance identifier
             aai_service_instance (AaiService): Service Instance object from aai
             line_of_business (LineOfBusiness): LineOfBusiness name to use
@@ -799,17 +806,17 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
             ServiceInstantiation: Instantiation request object
 
         """
-        if operation_type == "healthcheck":
+        if operation_type.value == "HEALTHCHECK":
             request_method = "POST"
             request_suffix = "/healthcheck"
-        elif operation_type == "update":
+        elif operation_type.value == "UPDATE":
             request_method = "PUT"
             request_suffix = ""
         else:
             raise StatusError("Operation not supported!")
 
         owning_entity_id = None
-        project = "OnapsdkProject"
+        project = settings.PROJECT
 
         for relationship in aai_service_instance.relationships:
             if relationship.related_to == "owning-entity":
@@ -819,9 +826,6 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
 
         owning_entity = OwningEntity.get_by_owning_entity_id(
             owning_entity_id=owning_entity_id)
-
-        customer = aai_service_instance.service_subscription.customer
-        service_instance_name = aai_service_instance.instance_name
 
         response: dict = cls.send_message_json(
             request_method,
@@ -834,28 +838,29 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
                 sdc_service=sdc_service,
                 cloud_region=next(aai_service_instance.service_subscription.cloud_regions),
                 tenant=next(aai_service_instance.service_subscription.tenants),
-                customer=customer,
+                customer=aai_service_instance.service_subscription.customer,
                 project=project,
                 owning_entity=owning_entity,
                 line_of_business=line_of_business,
                 platform=platform,
-                service_instance_name=service_instance_name,
+                service_instance_name=aai_service_instance.instance_name,
                 so_service=so_service
             ),
             headers=headers_so_creator(OnapService.headers)
         )
 
         return cls(
-            name=service_instance_name,
+            name=aai_service_instance.instance_name,
             request_id=response["requestReferences"].get("requestId"),
             instance_id=response["requestReferences"].get("instanceId"),
             sdc_service=sdc_service,
             cloud_region=next(aai_service_instance.service_subscription.cloud_regions),
             tenant=next(aai_service_instance.service_subscription.tenants),
-            customer=customer,
+            customer=aai_service_instance.service_subscription.customer,
             owning_entity=owning_entity,
             project=project
         )
+
 
 class NetworkInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-many-ancestors
     """Network instantiation class."""

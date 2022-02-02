@@ -5,7 +5,8 @@ from typing import Iterable, Iterator
 from onapsdk.exceptions import ResourceNotFound, StatusError
 from onapsdk.so.deletion import VnfDeletionRequest
 from onapsdk.so.instantiation import VfModuleInstantiation, ServiceInstantiation, SoService, \
-    InstantiationParameter
+    InstantiationParameter, VnfOperation
+from onapsdk.configuration import settings
 
 from .instance import Instance
 from .vf_module import VfModuleInstance
@@ -388,11 +389,11 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
         """
         skip_flag = next(p for p in self.vnf.properties
                          if p.name == 'skip_post_instantiation_configuration')
-        if not skip_flag.value:
+        if not skip_flag.value or skip_flag.value != "false":
             raise StatusError("Operation for the vnf is not supported! "
                               "Skip post instantiation configuration for VF should be set to False")
 
-        return self._execute_so_action(operation_type="update",
+        return self._execute_so_action(operation_type=VnfOperation.UPDATE,
                                        vnf_parameters=vnf_parameters)
 
     def healthcheck(self) -> ServiceInstantiation:
@@ -402,10 +403,10 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
             ServiceInstantiation: ServiceInstantiation request object.
 
         """
-        return self._execute_so_action(operation_type="healthcheck")
+        return self._execute_so_action(operation_type=VnfOperation.HEALTHCHECK)
 
     def _execute_so_action(self,
-                           operation_type: str,
+                           operation_type: VnfOperation,
                            vnf_parameters: Iterable["InstantiationParameter"] = None
                            ) -> ServiceInstantiation:
         """Execute SO workflow for selected operation.
@@ -425,8 +426,8 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
             msg = f'Service orchestration status must be "{required_status}"'
             raise StatusError(msg)
 
-        lob = "Onapsdk_lob"
-        platform = "Onapsdk_platform"
+        lob = settings.LOB
+        platform = settings.PLATFORM
 
         for relationship in self.relationships:
             if relationship.related_to == "line-of-business":
@@ -446,7 +447,7 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
             so_service=so_input
         )
 
-    def _build_so_input(self, vnf_params: Iterable[InstantiationParameter]) -> SoService:
+    def _build_so_input(self, vnf_params: Iterable[InstantiationParameter] = None) -> SoService:
         """Prepare so_input with params retrieved from existing service instance.
 
         Args:
