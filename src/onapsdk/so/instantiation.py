@@ -553,7 +553,7 @@ class VnfInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-many-a
         )
 
     @classmethod
-    def so_action(cls,
+    def so_action(cls,  # pylint: disable=too-many-arguments, too-many-locals
                   vnf_instance: "VnfInstance",
                   operation_type: VnfOperation,
                   aai_service_instance: "ServiceInstance",

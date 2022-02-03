@@ -4,8 +4,8 @@ from typing import Iterable, Iterator
 
 from onapsdk.exceptions import ResourceNotFound, StatusError
 from onapsdk.so.deletion import VnfDeletionRequest
-from onapsdk.so.instantiation import VfModuleInstantiation, ServiceInstantiation, SoService, \
-    InstantiationParameter, VnfOperation, VnfInstantiation
+from onapsdk.so.instantiation import VfModuleInstantiation, VnfInstantiation, SoService, \
+    InstantiationParameter, VnfOperation
 from onapsdk.configuration import settings
 
 from .instance import Instance
