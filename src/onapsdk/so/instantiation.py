@@ -25,7 +25,12 @@ from .so_element import OrchestrationRequest
 
 
 class VnfOperation(Enum):
-    """Class to store possible operations' data for vnfs."""
+    """Class to store possible operations' data for vnfs.
+
+    For each enum element a tuple is assign with data about method and request suffix
+    used for to execute defined action.
+
+    """
 
     UPDATE = ("PUT", "")
     HEALTHCHECK = ("POST", "/healthcheck")
