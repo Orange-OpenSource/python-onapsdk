@@ -420,10 +420,8 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
             VnfInstantiation: VnfInstantiation object.
 
         """
-        required_status = "Active"
-
-        if self.service_instance.orchestration_status != required_status:
-            msg = f'Service orchestration status must be "{required_status}"'
+        if not self.service_instance.active:
+            msg = f'Service orchestration status must be "Active"'
             raise StatusError(msg)
 
         lob = settings.LOB

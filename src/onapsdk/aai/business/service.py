@@ -214,6 +214,14 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
             self._sdc_service = Service.get_by_unique_uuid(self.model_invariant_id)
         return self._sdc_service
 
+    @property
+    def active(self) -> bool:
+        """Information if service instance's orchestration status is active."""
+
+        if self.orchestration_status == "Active":
+            return True
+        return False
+
     def add_vnf(self,  # pylint: disable=too-many-arguments
                 vnf: "Vnf",
                 line_of_business: "LineOfBusiness",
@@ -257,10 +265,8 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
             VnfInstantiation: VnfInstantiation request object
 
         """
-        required_status = "Active"
-
-        if self.orchestration_status != required_status:
-            msg = f'Service orchestration status must be "{required_status}"'
+        if not self.active:
+            msg = f'Service orchestration status must be "Active"'
             raise StatusError(msg)
 
         if a_la_carte:
@@ -325,11 +331,10 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
             NetworkInstantiation: NetworkInstantiation request object
 
         """
-        required_status = "Active"
-
-        if self.orchestration_status != required_status:
-            msg = f'Service orchestration status must be "{required_status}"'
+        if not self.active:
+            msg = f'Service orchestration status must be "Active"'
             raise StatusError(msg)
+
         return NetworkInstantiation.instantiate_ala_carte(
             self,
             network,
