@@ -5,7 +5,7 @@ from typing import Iterable, Iterator
 from onapsdk.exceptions import ResourceNotFound, StatusError
 from onapsdk.so.deletion import VnfDeletionRequest
 from onapsdk.so.instantiation import VfModuleInstantiation, ServiceInstantiation, SoService, \
-    InstantiationParameter, VnfOperation
+    InstantiationParameter, VnfOperation, VnfInstantiation
 from onapsdk.configuration import settings
 
 from .instance import Instance
@@ -373,7 +373,7 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
 
     def update(self,
                vnf_parameters: Iterable["InstantiationParameter"] = None
-               ) -> ServiceInstantiation:
+               ) -> VnfInstantiation:
         """Update vnf instance.
 
         Args:
@@ -384,23 +384,23 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
                 It might cause problems with SO component.
 
         Returns:
-            ServiceInstantiation: ServiceInstantiation request object.
+            VnfInstantiation: VnfInstantiation object.
 
         """
         skip_flag = next(p for p in self.vnf.properties
                          if p.name == 'skip_post_instantiation_configuration')
         if not skip_flag.value or skip_flag.value != "false":
             raise StatusError("Operation for the vnf is not supported! "
-                              "Skip post instantiation configuration for VF should be set to False")
+                              "Skip_post_instantiation_configuration flag for VF should be False")
 
         return self._execute_so_action(operation_type=VnfOperation.UPDATE,
                                        vnf_parameters=vnf_parameters)
 
-    def healthcheck(self) -> ServiceInstantiation:
+    def healthcheck(self) -> VnfInstantiation:
         """Execute healthcheck operation for vnf instance.
 
         Returns:
-            ServiceInstantiation: ServiceInstantiation request object.
+            VnfInstantiation: VnfInstantiation object.
 
         """
         return self._execute_so_action(operation_type=VnfOperation.HEALTHCHECK)
@@ -408,7 +408,7 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
     def _execute_so_action(self,
                            operation_type: VnfOperation,
                            vnf_parameters: Iterable["InstantiationParameter"] = None
-                           ) -> ServiceInstantiation:
+                           ) -> VnfInstantiation:
         """Execute SO workflow for selected operation.
 
         Args:
@@ -417,7 +417,7 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
             parameters for update operation.
 
         Returns:
-            ServiceInstantiation: ServiceInstantiation request object.
+            VnfInstantiation: VnfInstantiation object.
 
         """
         required_status = "Active"
@@ -437,9 +437,9 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
 
         so_input = self._build_so_input(vnf_params=vnf_parameters)
 
-        return ServiceInstantiation.so_action(
+        return VnfInstantiation.so_action(
+            vnf_instance=self,
             operation_type=operation_type,
-            vnf_instance_id=self.vnf_id,
             aai_service_instance=self.service_instance,
             line_of_business=lob,
             platform=platform,

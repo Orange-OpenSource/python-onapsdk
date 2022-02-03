@@ -25,9 +25,10 @@ from .so_element import OrchestrationRequest
 
 
 class VnfOperation(Enum):
-    """Class to store possible operations' names for vnfs."""
-    UPDATE = "UPDATE"
-    HEALTHCHECK = "HEALTHCHECK"
+    """Class to store possible operations' data for vnfs."""
+
+    UPDATE = ("PUT", "")
+    HEALTHCHECK = ("POST", "/healthcheck")
 
 
 @dataclass
@@ -282,6 +283,7 @@ class VfModuleInstantiation(Instantiation):  # pytest: disable=too-many-ancestor
             instance_id=response["requestReferences"].get("instanceId"),
             vf_module=vf_module
         )
+
 
 class NodeTemplateInstantiation(Instantiation, ABC):  # pytest: disable=too-many-ancestors
     """Base class for service's node_template object instantiation."""
@@ -550,6 +552,81 @@ class VnfInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-many-a
             vnf=vnf_object
         )
 
+    @classmethod
+    def so_action(cls,
+                  vnf_instance: "VnfInstance",
+                  operation_type: VnfOperation,
+                  aai_service_instance: "ServiceInstance",
+                  line_of_business: str,
+                  platform: str,
+                  sdc_service: "SdcService",
+                  so_service: "SoService" = None
+                  ) -> "VnfInstantiation":
+        """Execute SO action (update or healthcheck) for selected vnf with SO macro request.
+
+        Args:
+            vnf_instance (VnfInstance): vnf instance object
+            operation_type (VnfOperation): name of the operation to trigger
+            aai_service_instance (AaiService): Service Instance object from aai
+            line_of_business (LineOfBusiness): LineOfBusiness name to use
+                in instantiation request
+            platform (Platform): Platform name to use in instantiation request
+            sdc_service (SdcService): Service model information
+            so_service (SoService, optional): SO values to use in SO request
+
+        Raises:
+            StatusError: if the provided operation is not supported
+
+        Returns:
+            VnfInstantiation: VnfInstantiation object
+
+        """
+        if operation_type not in (VnfOperation.HEALTHCHECK, VnfOperation.UPDATE):
+            raise StatusError("Operation not supported!")
+
+        owning_entity_id = None
+        project = settings.PROJECT
+
+        for relationship in aai_service_instance.relationships:
+            if relationship.related_to == "owning-entity":
+                owning_entity_id = relationship.relationship_data.pop().get("relationship-value")
+            if relationship.related_to == "project":
+                project = relationship.relationship_data.pop().get("relationship-value")
+
+        owning_entity = OwningEntity.get_by_owning_entity_id(
+            owning_entity_id=owning_entity_id)
+
+        response: dict = cls.send_message_json(
+            operation_type.value[0],
+            (f"So Action {sdc_service.name} "
+             f" vnf instance {vnf_instance.vnf_id}"),
+            (f"{cls.base_url}/onap/so/infra/serviceInstantiation/{cls.api_version}/"
+             f"serviceInstances/{aai_service_instance.instance_id}/vnfs/{vnf_instance.vnf_id}"
+             f"{operation_type.value[1]}"),
+            data=jinja_env().get_template("instantiate_multi_vnf_service_macro.json.j2").render(
+                sdc_service=sdc_service,
+                cloud_region=next(aai_service_instance.service_subscription.cloud_regions),
+                tenant=next(aai_service_instance.service_subscription.tenants),
+                customer=aai_service_instance.service_subscription.customer,
+                project=project,
+                owning_entity=owning_entity,
+                line_of_business=line_of_business,
+                platform=platform,
+                service_instance_name=aai_service_instance.instance_name,
+                so_service=so_service
+            ),
+            headers=headers_so_creator(OnapService.headers)
+        )
+
+        return VnfInstantiation(
+            name=vnf_instance.vnf_name,
+            request_id=response["requestReferences"]["requestId"],
+            instance_id=response["requestReferences"]["instanceId"],
+            line_of_business=line_of_business,
+            platform=platform,
+            vnf=vnf_instance
+        )
+
 
 class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
     """Service instantiation class."""
@@ -777,90 +854,6 @@ class ServiceInstantiation(Instantiation):  # pylint: disable=too-many-ancestors
         except APIError as exc:
             self._logger.error("A&AI resources not created properly")
             raise exc
-
-    @classmethod
-    def so_action(cls,
-                  operation_type: VnfOperation,
-                  vnf_instance_id: str,
-                  aai_service_instance: "ServiceInstance",
-                  line_of_business: str,
-                  platform: str,
-                  sdc_service: "SdcService",
-                  so_service: "SoService" = None
-                  ) -> "ServiceInstantiation":
-        """Execute SO action (update or healthcheck) for selected vnf with SO macro request.
-
-        Args:
-            operation_type (VnfOperation): name of the operation to trigger
-            vnf_instance_id (str): vnf instance identifier
-            aai_service_instance (AaiService): Service Instance object from aai
-            line_of_business (LineOfBusiness): LineOfBusiness name to use
-                in instantiation request
-            platform (Platform): Platform name to use in instantiation request
-            sdc_service (SdcService): Service model information
-            so_service (SoService, optional): SO values to use in SO request
-
-        Raises:
-            StatusError: if the name of provided operation is not supported
-
-        Returns:
-            ServiceInstantiation: Instantiation request object
-
-        """
-        if operation_type.value == "HEALTHCHECK":
-            request_method = "POST"
-            request_suffix = "/healthcheck"
-        elif operation_type.value == "UPDATE":
-            request_method = "PUT"
-            request_suffix = ""
-        else:
-            raise StatusError("Operation not supported!")
-
-        owning_entity_id = None
-        project = settings.PROJECT
-
-        for relationship in aai_service_instance.relationships:
-            if relationship.related_to == "owning-entity":
-                owning_entity_id = relationship.relationship_data.pop().get("relationship-value")
-            if relationship.related_to == "project":
-                project = relationship.relationship_data.pop().get("relationship-value")
-
-        owning_entity = OwningEntity.get_by_owning_entity_id(
-            owning_entity_id=owning_entity_id)
-
-        response: dict = cls.send_message_json(
-            request_method,
-            (f"Update {sdc_service.name} "
-             f" vnf insatnce {vnf_instance_id}"),
-            (f"{cls.base_url}/onap/so/infra/serviceInstantiation/{cls.api_version}/"
-             f"serviceInstances/{aai_service_instance.instance_id}/vnfs/{vnf_instance_id}"
-             f"{request_suffix}"),
-            data=jinja_env().get_template("instantiate_multi_vnf_service_macro.json.j2").render(
-                sdc_service=sdc_service,
-                cloud_region=next(aai_service_instance.service_subscription.cloud_regions),
-                tenant=next(aai_service_instance.service_subscription.tenants),
-                customer=aai_service_instance.service_subscription.customer,
-                project=project,
-                owning_entity=owning_entity,
-                line_of_business=line_of_business,
-                platform=platform,
-                service_instance_name=aai_service_instance.instance_name,
-                so_service=so_service
-            ),
-            headers=headers_so_creator(OnapService.headers)
-        )
-
-        return cls(
-            name=aai_service_instance.instance_name,
-            request_id=response["requestReferences"].get("requestId"),
-            instance_id=response["requestReferences"].get("instanceId"),
-            sdc_service=sdc_service,
-            cloud_region=next(aai_service_instance.service_subscription.cloud_regions),
-            tenant=next(aai_service_instance.service_subscription.tenants),
-            customer=aai_service_instance.service_subscription.customer,
-            owning_entity=owning_entity,
-            project=project
-        )
 
 
 class NetworkInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-many-ancestors
