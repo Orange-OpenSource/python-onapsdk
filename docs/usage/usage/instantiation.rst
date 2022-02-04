@@ -272,7 +272,132 @@ To provide more control on the SO macro instantiation, you can define your servi
         so_service=so_service
     )
 
-Instantiate VNF
+
+Instantiate VNF (Macro)
+---------------
+
+Since ONAP Istanbul the creation or deletion of VNFs in macro mode is supported. Examples below:
+
+.. code:: Python
+
+    import time
+    from onapsdk.aai.business import Customer
+    from onapsdk.vid import LineOfBusiness, Platform
+
+    # We assume that
+    #   - service has been already instantiated,
+    #   - line of business and platform are created
+
+    SERVICE_INSTANCE_NAME = "service_instance_demo"
+    VNF_INSTANCE_NAME = "new_vnf_instance"
+
+    customer = Customer.get_by_global_customer_id(GLOBAL_CUSTOMER_ID)
+    service_subscription = next(customer.service_subscriptions)
+    service_instance = service_subscription.get_service_instance_by_name(SERVICE_INSTANCE_NAME)
+    vnf = service_subscription.sdc_service.vnfs[0]
+    vid_line_of_business = LineOfBusiness.create(LINE_OF_BUSINESS)
+    vid_platform = Platform.create(PLATFORM)
+
+    ###########################################################################
+    ######## VFModule parameters ##############################################
+    ###########################################################################
+
+    myfirstvfm_params = [
+        InstantiationParameter(name="param-vfm1", value="value-vfm1")
+    ]
+
+    vf1_params = VfmoduleParameters("myfirstvfm", myfirstvfm_params)
+
+    ###########################################################################
+    ######## VNF parameters ###################################################
+    ###########################################################################
+
+    vnf_param_list = [
+        InstantiationParameter(name="param1", value="value1")
+    ]
+
+    vnf_paras = VnfParameters("myvfmodel", vnf_param_list, [vf1_params])
+
+    vnf_instantiation = service_instance.add_vnf(
+        vnf=vnf,
+        line_of_business=vid_line_of_business,
+        platform=vid_platform,
+        vnf_instance_name=VNF_INSTANCE_NAME,
+        vnf_parameters=[vnf_paras],
+        a_la_carte=False
+    )
+
+    vnf_instantiation.wait_for_finish():
+        print("Success")
+    else:
+        print("Instantiation failed, check logs")
+
+
+Instantiate VNF using SO service template (Macro)
+---------------
+
+To provide more control on the SO macro instantiation for new vnf, you can define your vnf as follows:
+
+.. code:: Yaml
+
+    model_name: myvfmodel
+    instance_name: mynewvnf
+    parameters:
+        param1: value1
+    vf_modules:
+        - instance_name: mysecondvfm
+          model_name: base
+          processing_priority: 2
+          parameters:
+              param-vfm1: value-vfm1
+        - instance_name: myfirstvfm
+          model_name: base
+          processing_priority: 1
+          parameters:
+              param-vfm1: value-vfm1
+
+.. code:: Python
+
+    import time
+    from onapsdk.aai.business import Customer
+    from onapsdk.vid import LineOfBusiness, Platform
+
+    SERVICE_INSTANCE_NAME = "service_instance_demo"
+    VNF_INSTANCE_NAME = "new_vnf_instance"
+
+    # We assume that
+    #   - service has been already instantiated,
+    #   - line of business and platform are created
+
+    customer = Customer.get_by_global_customer_id(GLOBAL_CUSTOMER_ID)
+    service_subscription = next(customer.service_subscriptions)
+    service_instance = service_subscription.get_service_instance_by_name(SERVICE_INSTANCE_NAME)
+    vnf = service_subscription.sdc_service.vnfs[0]
+    vid_line_of_business = LineOfBusiness.create(LINE_OF_BUSINESS)
+    vid_platform = Platform.create(PLATFORM)
+
+    so_yaml_vnf = "/path/to/yaml/vnf"
+    with open(so_yaml_vnf, "r") as yaml_template:
+        so_vnf_data = load(yaml_template)
+
+    so_vnf = SoServiceVnf.load(so_vnf_data)
+
+    vnf_instantiation = service_instance.add_vnf(
+        vnf=vnf,
+        line_of_business=vid_line_of_business,
+        platform=vid_platform,
+        vnf_instance_name=VNF_INSTANCE_NAME,
+        so_vnfs=so_vnfs,
+        a_la_carte=False
+    )
+
+    vnf_instantiation.wait_for_finish():
+        print("Success")
+    else:
+        print("Instantiation failed, check logs")
+
+
+Instantiate VNF (ALaCarte)
 ---------------
 
 .. code:: Python
@@ -297,7 +422,7 @@ Instantiate VNF
     else:
         print("Instantiation failed, check logs")
 
-Instantiate Vf module
+Instantiate Vf module (ALaCarte)
 ---------------------
 
 .. code:: Python
@@ -322,7 +447,7 @@ Instantiate Vf module
     else:
         print("Instantiation failed, check logs")
 
-Instantiate Vl module
+Instantiate Vl module (ALaCarte)
 ---------------------
 
 .. code:: Python
