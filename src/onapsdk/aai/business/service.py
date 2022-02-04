@@ -221,7 +221,10 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
                 cloud_region: "CloudRegion" = None,
                 tenant: "Tenant" = None,
                 vnf_instance_name: str = None,
-                vnf_parameters: Iterable["InstantiationParameter"] = None) -> "VnfInstantiation":
+                vnf_parameters: Iterable["InstantiationParameter"] = None,
+                so_vnf: "SoServiceVnf" = None,
+                a_la_carte: bool = True
+                ) -> "VnfInstantiation":
         """Add vnf into service instance.
 
         Instantiate VNF.
@@ -244,6 +247,8 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
                 Defaults to None.
             vnf_parameters (Iterable[InstantiationParameter], optional): InstantiationParameter to
                 be passed as "userParams". Defaults to None.
+            so_vnf: (SoServiceVnf, optional): object with vnf instance parameters. Defaults to None.
+            a_la_carte (bool): instantiation type for vnf. Defaults to True.
 
         Raises:
             StatusError: Service orchestration status is not "Active".
@@ -257,7 +262,21 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
         if self.orchestration_status != required_status:
             msg = f'Service orchestration status must be "{required_status}"'
             raise StatusError(msg)
-        return VnfInstantiation.instantiate_ala_carte(
+
+        if a_la_carte:
+            return VnfInstantiation.instantiate_ala_carte(
+                self,
+                vnf,
+                line_of_business,
+                platform,
+                cloud_region=cloud_region,
+                tenant=tenant,
+                vnf_instance_name=vnf_instance_name,
+                vnf_parameters=vnf_parameters,
+                sdc_service=self.sdc_service
+            )
+
+        return VnfInstantiation.instantiate_macro(
             self,
             vnf,
             line_of_business,
@@ -266,6 +285,7 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
             tenant=tenant,
             vnf_instance_name=vnf_instance_name,
             vnf_parameters=vnf_parameters,
+            so_vnf=so_vnf,
             sdc_service=self.sdc_service
         )
 
