@@ -190,6 +190,26 @@ def test_service_instance_add_vnf(mock_sdc_service, mock_vnf_instantiation):
     mock_vnf_instantiation.assert_called_once()
 
 
+@mock.patch.object(VnfInstantiation, "instantiate_macro")
+@mock.patch.object(ServiceInstance, "sdc_service", new_callable=mock.PropertyMock)
+def test_service_instance_add_vnf_macro(mock_sdc_service, mock_vnf_instantiation):
+    service_instance = ServiceInstance(service_subscription=mock.MagicMock(),
+                                       instance_id="test_service_instance_id")
+    service_instance.orchestration_status = "Inactive"
+    with pytest.raises(StatusError) as exc:
+        service_instance.add_vnf(mock.MagicMock(),
+                                 mock.MagicMock(),
+                                 mock.MagicMock(),
+                                 a_la_carte=False)
+    assert exc.type == StatusError
+    service_instance.orchestration_status = "Active"
+    service_instance.add_vnf(mock.MagicMock(),
+                             mock.MagicMock(),
+                             mock.MagicMock(),
+                             a_la_carte=False)
+    mock_vnf_instantiation.assert_called_once()
+
+
 @mock.patch.object(NetworkInstantiation, "instantiate_ala_carte")
 @mock.patch.object(ServiceInstance, "sdc_service", new_callable=mock.PropertyMock)
 def test_service_instance_add_network(mock_sdc_service, mock_network_instantiation):

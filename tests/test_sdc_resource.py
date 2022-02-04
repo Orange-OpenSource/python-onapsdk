@@ -374,6 +374,9 @@ def test_get_component(mock_components):
     assert sdc_resource.get_component(SdcResource(name="test"))
     with pytest.raises(ResourceNotFound):
         sdc_resource.get_component(SdcResource(name="test2"))
+    assert sdc_resource.get_component_by_name("test")
+    with pytest.raises(ResourceNotFound):
+        sdc_resource.get_component_by_name("invalid_name")
 
 def test_component_properties():
     sdc_resource = mock.MagicMock()
