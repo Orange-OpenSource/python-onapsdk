@@ -10,6 +10,7 @@ from warnings import warn
 
 from dacite import from_dict
 
+from onapsdk.aai.business.owning_entity import OwningEntity
 from onapsdk.exceptions import (
     APIError, InvalidResponse, ParameterError, ResourceNotFound, StatusError
 )
