@@ -32,6 +32,7 @@ class VnfOperation(Enum):
     used for to execute defined action.
 
     """
+
     Operation = namedtuple("Operation", "request_method request_suffix")
     UPDATE = Operation("PUT", "")
     HEALTHCHECK = Operation("POST", "/healthcheck")

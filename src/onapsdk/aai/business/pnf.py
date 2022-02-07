@@ -2,8 +2,8 @@
 
 from typing import Optional, TYPE_CHECKING
 
-from .instance import Instance
 from onapsdk.exceptions import ResourceNotFound
+from .instance import Instance
 
 if TYPE_CHECKING:
     from .service import ServiceInstance  # pylint: disable=cyclic-import
@@ -150,7 +150,7 @@ class PnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
 
     @property
     def pnf(self) -> "Pnf":
-        """pnf associated with that pnf instance.
+        """Pnf associated with that pnf instance.
 
         Raises:
             ResourceNotFound: Could not find PNF for that PNF instance
