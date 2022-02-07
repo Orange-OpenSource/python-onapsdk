@@ -217,7 +217,6 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
     @property
     def active(self) -> bool:
         """Information if service instance's orchestration status is active."""
-
         if self.orchestration_status == "Active":
             return True
         return False

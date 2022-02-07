@@ -463,13 +463,11 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
             vnf_params = []
 
         for pnf in self.service_instance.pnfs:
-            pnf_model = next(
-                _pnf_model for _pnf_model in self.service_instance.sdc_service.pnfs
-                if _pnf_model.model_invariant_id == pnf.model_invariant_id)
             _pnf = {
-                "model_name": pnf_model.model_name,
+                "model_name": pnf.pnf.model_name,
                 "instance_name": pnf.pnf_name
             }
+
             so_pnfs.append(_pnf)
 
         for vnf in self.service_instance.vnf_instances:
@@ -482,14 +480,12 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
 
             _vf_modules = []
             for vf_module in vnf.vf_modules:
-                sdc_vf_module = next(
-                    vf_module for vf_module in vnf.vnf.vf_modules
-                    if vf_module.model_customization_id == vf_module.model_customization_id)
                 _vf_module = {
-                    "model_name": sdc_vf_module.model_name.split('..')[1],
+                    "model_name": vf_module.vf_module.model_name.split('..')[1],
                     "instance_name": vf_module.vf_module_name,
                     "parameters": {}
                 }
+
                 _vf_modules.append(_vf_module)
 
             _vnf["vf_modules"] = _vf_modules

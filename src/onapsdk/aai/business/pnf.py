@@ -3,6 +3,7 @@
 from typing import Optional, TYPE_CHECKING
 
 from .instance import Instance
+from onapsdk.exceptions import ResourceNotFound
 
 if TYPE_CHECKING:
     from .service import ServiceInstance  # pylint: disable=cyclic-import
@@ -126,6 +127,8 @@ class PnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
         self.pnf_ipv4_address: Optional[str] = pnf_ipv4_address
         self.pnf_ipv6_address: Optional[str] = pnf_ipv6_address
 
+        self._pnf: "Pnf" = None
+
     def __repr__(self) -> str:
         """Pnf instance object representation.
 
@@ -144,6 +147,30 @@ class PnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
 
         """
         return f"{self.base_url}{self.api_version}/network/pnfs/pnf/{self.pnf_name}"
+
+    @property
+    def pnf(self) -> "Pnf":
+        """pnf associated with that pnf instance.
+
+        Raises:
+            ResourceNotFound: Could not find PNF for that PNF instance
+
+        Returns:
+            Pnf: Pnf object associated with Pnf instance
+
+        """
+        if not self._pnf:
+            for pnf in self.service_instance.sdc_service.pnfs:
+                if pnf.model_version_id == self.model_version_id:
+                    self._pnf = pnf
+                    return self._pnf
+
+            msg = (
+                f'Could not find PNF for the PNF instance'
+                f' with model version ID "{self.model_version_id}"'
+            )
+            raise ResourceNotFound(msg)
+        return self._pnf
 
     @classmethod
     def create_from_api_response(cls, api_response: dict,
