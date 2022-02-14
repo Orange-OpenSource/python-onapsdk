@@ -4,11 +4,8 @@
 """Instantion module."""
 from abc import ABC
 from dataclasses import dataclass, field
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Dict, Iterable, List, Optional, NamedTuple
 from uuid import uuid4
-from enum import Enum
-from collections import namedtuple
-
 from dacite import from_dict
 
 from onapsdk.aai.business.owning_entity import OwningEntity
@@ -25,15 +22,16 @@ from onapsdk.configuration import settings
 from .so_element import OrchestrationRequest
 
 
-class VnfOperation(Enum):
-    """Class to store possible operations' data for vnfs.
+class Operation(NamedTuple):
+    """Operation class with data about method and suffix for VnfOperation."""
 
-    For each enum element a tuple is assign with data about method and request suffix
-    used for to execute defined action.
+    request_method: str
+    request_suffix: str
 
-    """
 
-    Operation = namedtuple("Operation", "request_method request_suffix")
+class VnfOperation(Operation):
+    """Class to store possible operations' data for vnfs (request method and suffix)."""
+
     UPDATE = Operation("PUT", "")
     HEALTHCHECK = Operation("POST", "/healthcheck")
 
