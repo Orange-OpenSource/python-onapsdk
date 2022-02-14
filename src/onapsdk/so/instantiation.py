@@ -602,12 +602,12 @@ class VnfInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-many-a
             owning_entity_id=owning_entity_id)
 
         response: dict = cls.send_message_json(
-            operation_type.value.request_method,
+            operation_type.request_method,
             (f"So Action {sdc_service.name} "
              f" vnf instance {vnf_instance.vnf_id}"),
             (f"{cls.base_url}/onap/so/infra/serviceInstantiation/{cls.api_version}/"
              f"serviceInstances/{aai_service_instance.instance_id}/vnfs/{vnf_instance.vnf_id}"
-             f"{operation_type.value.request_suffix}"),
+             f"{operation_type.request_suffix}"),
             data=jinja_env().get_template("instantiate_multi_vnf_service_macro.json.j2").render(
                 sdc_service=sdc_service,
                 cloud_region=next(aai_service_instance.service_subscription.cloud_regions),
