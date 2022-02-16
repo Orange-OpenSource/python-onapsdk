@@ -30,8 +30,7 @@ class Operation:
     request_suffix: str
 
 
-@dataclass
-class VnfOperation(Operation):
+class VnfOperation(Operation):  # pylint: disable=too-few-public-methods
     """Class to store possible operations' data for vnfs (request method and suffix)."""
 
     UPDATE = Operation("PUT", "")
