@@ -4,7 +4,7 @@
 """Instantion module."""
 from abc import ABC
 from dataclasses import dataclass, field
-from typing import Any, Dict, Iterable, List, Optional, NamedTuple
+from typing import Any, Dict, Iterable, List, Optional
 from uuid import uuid4
 from dacite import from_dict
 
@@ -22,7 +22,8 @@ from onapsdk.configuration import settings
 from .so_element import OrchestrationRequest
 
 
-class Operation(NamedTuple):
+@dataclass
+class Operation:
     """Operation class with data about method and suffix for VnfOperation."""
 
     request_method: str
