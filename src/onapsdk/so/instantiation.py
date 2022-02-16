@@ -30,6 +30,7 @@ class Operation:
     request_suffix: str
 
 
+@dataclass
 class VnfOperation(Operation):
     """Class to store possible operations' data for vnfs (request method and suffix)."""
 
