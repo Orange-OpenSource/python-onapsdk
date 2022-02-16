@@ -6,10 +6,11 @@ from unittest import mock
 
 import pytest
 
-from onapsdk.aai.business import ServiceInstance, VnfInstance
+from onapsdk.aai.aai_element import AaiElement
+from onapsdk.aai.business import ServiceInstance, VnfInstance, PnfInstance, VfModuleInstance
 from onapsdk.so.deletion import VnfDeletionRequest
-from onapsdk.so.instantiation import VfModuleInstantiation
-from onapsdk.exceptions import ResourceNotFound
+from onapsdk.so.instantiation import VfModuleInstantiation, VnfInstantiation, SoService
+from onapsdk.exceptions import ResourceNotFound, StatusError
 
 
 VNF_INSTANCE = {
@@ -251,3 +252,174 @@ def test_vnf_add_vf_module(mock_vf_module_instantiation):
                                model_version_id="test_model_version_id")
     vnf_instance.add_vf_module(mock.MagicMock())
     mock_vf_module_instantiation.assert_called_once()
+
+
+@mock.patch.object(VnfInstance, "_execute_so_action")
+@mock.patch.object(VnfInstance, "vnf")
+def test_vnf_update(mock_vnf, mock_vnf_instantiation):
+
+    property_skip_true = mock.MagicMock()
+    property_skip_true.name = "skip_post_instantiation_configuration"
+    property_skip_true.value = "false"
+
+    vnf_instance = mock.MagicMock()
+    vnf_instance.vnf = mock_vnf
+    vnf_instance.vnf.properties = (item for item in [property_skip_true])
+
+    vnf_instance = VnfInstance(vnf_instance,
+                               vnf_id="test_vnf_id",
+                               vnf_type="test_vnf_type",
+                               in_maint=False,
+                               is_closed_loop_disabled=True)
+
+    vnf_instance.update([mock.MagicMock()])
+    mock_vnf_instantiation.assert_called_once()
+
+    property_skip_false = mock.MagicMock()
+    property_skip_false.name = "skip_post_instantiation_configuration"
+    property_skip_false.value = "true"
+
+    vnf_instance2 = mock.MagicMock()
+    vnf_instance2.vnf = mock_vnf
+    vnf_instance2.vnf.properties = (item for item in [property_skip_false])
+
+    vnf_instance2 = VnfInstance(vnf_instance2,
+                                vnf_id="test_vnf_id",
+                                vnf_type="test_vnf_type",
+                                in_maint=False,
+                                is_closed_loop_disabled=True)
+
+    with pytest.raises(StatusError):
+        vnf_instance2.update([mock.MagicMock()])
+
+
+@mock.patch.object(VnfInstance, "_execute_so_action")
+def test_vnf_healthcheck(mock_vnf_instantiation):
+
+    instance = mock.MagicMock()
+    vnf_instance = VnfInstance(instance,
+                               vnf_id="test_vnf_id",
+                               vnf_type="test_vnf_type",
+                               in_maint=False,
+                               is_closed_loop_disabled=True)
+
+    vnf_instance.healthcheck()
+    mock_vnf_instantiation.assert_called_once()
+
+
+@mock.patch.object(VnfInstance, "_build_so_input")
+@mock.patch.object(VnfInstantiation, "so_action")
+def test_vnf_execute_so_action(mock_build_so_input, mock_so_action):
+
+    instance = mock.MagicMock()
+
+    relation_1 = mock.MagicMock()
+    relation_1.related_to = "line-of-business"
+    relation_1.relationship_data = [{"relationship-value": "test"}]
+    relation_2 = mock.MagicMock()
+    relation_2.related_to = "platform"
+    relation_2.relationship_data = [{"relationship-value": "test"}]
+
+    vnf_instance = VnfInstance(instance,
+                               vnf_id="test_vnf_id",
+                               vnf_type="test_vnf_type",
+                               in_maint=False,
+                               is_closed_loop_disabled=True)
+
+    vnf_instance.service_instance = mock.MagicMock()
+    vnf_instance.service_instance.active = True
+
+    type(vnf_instance).relationships = mock.PropertyMock(return_value=[relation_1, relation_2])
+
+    vnf_instance._execute_so_action(operation_type="test",
+                                    vnf_parameters=[mock.MagicMock()])
+    mock_so_action.assert_called_once()
+
+    vnf_instance.service_instance.active = False
+    with pytest.raises(StatusError):
+        vnf_instance._execute_so_action(operation_type="test",
+                                        vnf_parameters=[mock.MagicMock()])
+
+
+@mock.patch.object(VnfInstance, "send_message")
+def test_build_so_input(mock_send_message):
+
+    pnf = mock.MagicMock()
+    pnf.model_version_id = "test_pnf_model_version_id"
+    pnf.model_name = "test_model"
+
+    vnf = mock.MagicMock()
+    vnf.model_version_id = "test_vnf_model_version_id"
+    vnf.model_name = "vnf_test_model"
+
+    vf_module = mock.MagicMock()
+    vf_module.model_version_id = "test_vfm_model_version_id"
+    vf_module.model_name = "test..vfm_model..name"
+
+    vnf.vf_modules = [vf_module]
+
+    instance = mock.MagicMock()
+    instance.service_subscription = mock.MagicMock()
+    instance.service_subscription.service_type = "1234"
+
+    instance.sdc_service.pnfs = [pnf]
+    instance.sdc_service.vnfs = [vnf]
+
+    pnf_instance = PnfInstance(instance,
+                               pnf_name="test_pnf",
+                               in_maint=False,
+                               model_version_id="test_pnf_model_version_id")
+
+    vnf_instance = VnfInstance(instance,
+                               vnf_name="test_name",
+                               vnf_id="test_vnf_id",
+                               vnf_type="test_vnf_type",
+                               in_maint=False,
+                               is_closed_loop_disabled=True,
+                               model_version_id="test_vnf_model_version_id")
+
+    vf_module_instance = VfModuleInstance(vnf_instance=vnf_instance,
+                                          vf_module_name="test_vfm_name",
+                                          model_version_id="test_vfm_model_version_id",
+                                          vf_module_id="test_vf_module_id",
+                                          is_base_vf_module=True,
+                                          automated_assignment=False)
+
+    vnf_instance.vnf.vf_modules = [vf_module]
+    type(vnf_instance).vf_modules = mock.PropertyMock(return_value=[vf_module_instance])
+    instance.pnfs = [pnf_instance]
+    instance.vnf_instances = [vnf_instance]
+
+    test_so_input_no_params = vnf_instance._build_so_input()
+
+    assert isinstance(test_so_input_no_params, SoService)
+    assert len(test_so_input_no_params.vnfs[0].parameters) == 0
+
+    vnf_param1 = mock.MagicMock()
+    vnf_param1.name = "test_name"
+    vnf_param1.value = "test_value"
+
+    test_so_input = vnf_instance._build_so_input([vnf_param1])
+
+    assert isinstance(test_so_input, SoService)
+    assert test_so_input.subscription_service_type == "1234"
+    assert not test_so_input.instance_name
+    assert len(test_so_input.vnfs) == 1
+
+    test_so_input_vnf = test_so_input.vnfs[0]
+
+    assert test_so_input_vnf.model_name == "vnf_test_model"
+    assert test_so_input_vnf.instance_name == "test_name"
+    assert len(test_so_input_vnf.parameters) == 1
+    assert test_so_input_vnf.parameters["test_name"] == "test_value"
+    assert len(test_so_input_vnf.vf_modules) == 1
+
+    test_so_input_vnf_vf_module = test_so_input_vnf.vf_modules[0]
+
+    assert test_so_input_vnf_vf_module.model_name == "vfm_model"
+    assert test_so_input_vnf_vf_module.instance_name == "test_vfm_name"
+    assert len(test_so_input_vnf_vf_module.parameters) == 0
+
+    assert len(test_so_input.pnfs) == 1
+    assert test_so_input.pnfs[0].model_name == "test_model"
+    assert test_so_input.pnfs[0].instance_name == "test_pnf"

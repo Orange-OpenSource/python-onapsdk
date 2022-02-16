@@ -1,7 +1,10 @@
 
 from unittest import mock
 
+import pytest
+
 from onapsdk.aai.business import PnfInstance, pnf
+from onapsdk.exceptions import ResourceNotFound
 # from onapsdk.so.deletion import NetworkDeletionRequest
 
 
@@ -87,3 +90,25 @@ def test_delete_pnf_instance(mock_send_message):
     method, _, address = mock_send_message.call_args[0]
     assert method == "DELETE"
     assert address == f"{pnf.url}?resource-version={pnf.resource_version}"
+
+
+def test_pnf_instance_pnf():
+    service_instance = mock.MagicMock()
+    pnf_instance = PnfInstance.create_from_api_response(
+        PNF_INSTANCE,
+        service_instance
+    )
+
+    assert pnf_instance._pnf is None
+    service_instance.sdc_service.pnfs = []
+    with pytest.raises(ResourceNotFound) as exc:
+        pnf_instance.pnf
+    assert exc.type == ResourceNotFound
+    assert pnf_instance._pnf is None
+
+    pnf = mock.MagicMock()
+    pnf.model_version_id = "da467f24-a26d-4620-b185-e1afa1d365ac"
+    service_instance.sdc_service.pnfs = [pnf]
+    assert pnf == pnf_instance.pnf
+    assert pnf_instance._pnf is not None
+    assert pnf_instance.pnf == pnf_instance._pnf
