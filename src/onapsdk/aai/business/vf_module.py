@@ -1,6 +1,7 @@
 """VF module instance."""
 
 from onapsdk.so.deletion import VfModuleDeletionRequest
+from onapsdk.exceptions import ResourceNotFound
 
 from .instance import Instance
 
@@ -78,6 +79,8 @@ class VfModuleInstance(Instance):  # pylint: disable=too-many-instance-attribute
         self.widget_model_id: str = widget_model_id
         self.widget_model_version: str = widget_model_version
 
+        self._vf_module: "VfModule" = None
+
     def __repr__(self) -> str:
         """Object represetation.
 
@@ -107,7 +110,18 @@ class VfModuleInstance(Instance):  # pylint: disable=too-many-instance-attribute
             VfModule: VfModule object associated with vf module instance
 
         """
-        return self.vnf_instance.vnf.vf_module
+        if not self._vf_module:
+            for vf_module in self.vnf_instance.vnf.vf_modules:
+                if vf_module.model_version_id == self.model_version_id:
+                    self._vf_module = vf_module
+                    return self._vf_module
+
+            msg = (
+                f'Could not find VF modules for the VF Module instance'
+                f' with model version ID "{self.model_version_id}"'
+            )
+            raise ResourceNotFound(msg)
+        return self._vf_module
 
     @classmethod
     def create_from_api_response(cls,

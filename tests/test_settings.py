@@ -11,7 +11,7 @@ from onapsdk.exceptions import ModuleError
 
 def test_global_settings():
     """Test global settings."""
-    assert len(settings._settings) == 37
+    assert len(settings._settings) == 40
     assert settings.AAI_URL == "https://aai.api.sparky.simpledemo.onap.org:30233"
     assert settings.CDS_URL == "http://portal.api.simpledemo.onap.org:30449"
     assert settings.SDNC_URL == "https://sdnc.api.simpledemo.onap.org:30267"
@@ -38,6 +38,9 @@ def test_global_settings():
     assert settings.HOLMES_GUI_SERVICE == "https://aai.api.sparky.simpledemo.onap.org:30293/iui/holmes/default.html"
     assert settings.POLICY_GUI_SERVICE == "/onap/login.html"
     assert settings.POLICY_CLAMP_GUI_SERVICE == "https://clamp.api.simpledemo.onap.org:30258/"
+    assert settings.PROJECT == "Onapsdk_project"
+    assert settings.LOB == "Onapsdk_lob"
+    assert settings.PLATFORM == "Onapsdk_platform"
     assert hasattr(settings, "AAI_AUTH")
     assert hasattr(settings, "CDS_AUTH")
     assert hasattr(settings, "SDC_AUTH")

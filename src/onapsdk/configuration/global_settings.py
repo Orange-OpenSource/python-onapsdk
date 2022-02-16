@@ -48,3 +48,8 @@ DCAEMOD_GUI_SERVICE = f"{DCAEMOD_URL}/"
 HOLMES_GUI_SERVICE = f"{HOLMES_URL}/iui/holmes/default.html"
 POLICY_GUI_SERVICE = f"{POLICY_URL}/onap/login.html"
 POLICY_CLAMP_GUI_SERVICE = f"{CLAMP_URL}/"
+
+# VID OBJECTS DEFAULT VALUES
+PROJECT = "Onapsdk_project"
+LOB = "Onapsdk_lob"
+PLATFORM = "Onapsdk_platform"
