@@ -125,7 +125,7 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
                  inputs: List[Union[Property, NestedInput]] = None,
                  instantiation_type: Optional[ServiceInstantiationType] = \
                      None,
-                 category: str = None):
+                 category: str = None, role: str = "", function: str = "", service_type: str = ""):
         """
         Initialize service object.
 
@@ -143,6 +143,7 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
             instantiation_type (ServiceInstantiationType, optional): service instantiation
                 type. ServiceInstantiationType.A_LA_CARTE by default
             category (str, optional): service category name
+            role (str, optional): service role
 
         """
         super().__init__(sdc_values=sdc_values, version=version, properties=properties,
@@ -150,6 +151,9 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
         self.name: str = name or "ONAP-test-Service"
         self.distribution_status = None
         self.category_name: str = category
+        self.role: str = role
+        self.function: str = function
+        self.service_type: str = service_type
         if sdc_values:
             self.distribution_status = sdc_values['distributionStatus']
             self.category_name = sdc_values["category"]
@@ -516,7 +520,8 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
         self._create("service_create.json.j2",
                      name=self.name,
                      instantiation_type=self.instantiation_type.value,
-                     category=self.category)
+                     category=self.category,
+                     role=self.role, service_type=self.service_type, function=self.function)
 
     def declare_resources_and_properties(self) -> None:
         """Delcare resources and properties.
@@ -688,6 +693,7 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
         """
         super()._specific_copy(obj)
         self.category_name = obj.category_name
+        self.role = obj.role
 
     def _verify_distribute_to_sdc(self, desired_status: str,
                                   desired_action: str, **kwargs) -> None:

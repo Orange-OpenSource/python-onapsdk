@@ -393,14 +393,22 @@ def test_create(mock_exists, mock_category, mock_create):
     mock_create.assert_called_once_with("service_create.json.j2",
                                         name="ONAP-test-Service",
                                         instantiation_type="A-la-carte",
-                                        category=svc.category)
+                                        category=svc.category,
+                                        role="",
+                                        function="",
+                                        service_type=""
+                                        )
     mock_create.reset_mock()
     svc = Service(instantiation_type=ServiceInstantiationType.MACRO)
     svc.create()
     mock_create.assert_called_once_with("service_create.json.j2",
                                         name="ONAP-test-Service",
                                         instantiation_type="Macro",
-                                        category=svc.category)
+                                        category=svc.category,
+                                        role="",
+                                        function="",
+                                        service_type=""
+                                        )
 
 @mock.patch.object(Service, 'exists')
 @mock.patch.object(Service, 'send_message')
