@@ -20,8 +20,24 @@ from onapsdk.sdc.service import Network, Service as SdcService, Vnf, VfModule
 from onapsdk.utils.jinja import jinja_env
 from onapsdk.utils.headers_creator import headers_so_creator
 from onapsdk.vid import LineOfBusiness, Platform
+from onapsdk.configuration import settings
 
 from .so_element import OrchestrationRequest
+
+
+@dataclass
+class Operation:
+    """Operation class with data about method and suffix for VnfOperation."""
+
+    request_method: str
+    request_suffix: str
+
+
+class VnfOperation(Operation):  # pylint: disable=too-few-public-methods
+    """Class to store possible operations' data for vnfs (request method and suffix)."""
+
+    UPDATE = Operation("PUT", "")
+    HEALTHCHECK = Operation("POST", "/healthcheck")
 
 
 @dataclass
@@ -283,6 +299,7 @@ class VfModuleInstantiation(Instantiation):  # pytest: disable=too-many-ancestor
             vf_module=vf_module
         )
 
+
 class NodeTemplateInstantiation(Instantiation, ABC):  # pytest: disable=too-many-ancestors
     """Base class for service's node_template object instantiation."""
 
@@ -502,7 +519,7 @@ class VnfInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-many-a
 
         """
         owning_entity_id = None
-        project = "OnapsdkProject"
+        project = settings.PROJECT
 
         for relationship in aai_service_instance.relationships:
             if relationship.related_to == "owning-entity":
@@ -554,6 +571,81 @@ class VnfInstantiation(NodeTemplateInstantiation):  # pylint: disable=too-many-a
             line_of_business=line_of_business,
             platform=platform,
             vnf=vnf_object
+        )
+
+    @classmethod
+    def so_action(cls,  # pylint: disable=too-many-arguments, too-many-locals
+                  vnf_instance: "VnfInstance",
+                  operation_type: VnfOperation,
+                  aai_service_instance: "ServiceInstance",
+                  line_of_business: str,
+                  platform: str,
+                  sdc_service: "SdcService",
+                  so_service: "SoService" = None
+                  ) -> "VnfInstantiation":
+        """Execute SO action (update or healthcheck) for selected vnf with SO macro request.
+
+        Args:
+            vnf_instance (VnfInstance): vnf instance object
+            operation_type (VnfOperation): name of the operation to trigger
+            aai_service_instance (AaiService): Service Instance object from aai
+            line_of_business (LineOfBusiness): LineOfBusiness name to use
+                in instantiation request
+            platform (Platform): Platform name to use in instantiation request
+            sdc_service (SdcService): Service model information
+            so_service (SoService, optional): SO values to use in SO request
+
+        Raises:
+            StatusError: if the provided operation is not supported
+
+        Returns:
+            VnfInstantiation: VnfInstantiation object
+
+        """
+        if operation_type not in (VnfOperation.HEALTHCHECK, VnfOperation.UPDATE):
+            raise StatusError("Operation not supported!")
+
+        owning_entity_id = None
+        project = settings.PROJECT
+
+        for relationship in aai_service_instance.relationships:
+            if relationship.related_to == "owning-entity":
+                owning_entity_id = relationship.relationship_data.pop().get("relationship-value")
+            if relationship.related_to == "project":
+                project = relationship.relationship_data.pop().get("relationship-value")
+
+        owning_entity = OwningEntity.get_by_owning_entity_id(
+            owning_entity_id=owning_entity_id)
+
+        response: dict = cls.send_message_json(
+            operation_type.request_method,
+            (f"So Action {sdc_service.name} "
+             f" vnf instance {vnf_instance.vnf_id}"),
+            (f"{cls.base_url}/onap/so/infra/serviceInstantiation/{cls.api_version}/"
+             f"serviceInstances/{aai_service_instance.instance_id}/vnfs/{vnf_instance.vnf_id}"
+             f"{operation_type.request_suffix}"),
+            data=jinja_env().get_template("instantiate_multi_vnf_service_macro.json.j2").render(
+                sdc_service=sdc_service,
+                cloud_region=next(aai_service_instance.service_subscription.cloud_regions),
+                tenant=next(aai_service_instance.service_subscription.tenants),
+                customer=aai_service_instance.service_subscription.customer,
+                project=project,
+                owning_entity=owning_entity,
+                line_of_business=line_of_business,
+                platform=platform,
+                service_instance_name=aai_service_instance.instance_name,
+                so_service=so_service
+            ),
+            headers=headers_so_creator(OnapService.headers)
+        )
+
+        return VnfInstantiation(
+            name=vnf_instance.vnf_name,
+            request_id=response["requestReferences"]["requestId"],
+            instance_id=response["requestReferences"]["instanceId"],
+            line_of_business=line_of_business,
+            platform=platform,
+            vnf=vnf_instance
         )
 
 

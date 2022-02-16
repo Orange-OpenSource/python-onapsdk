@@ -2,9 +2,11 @@
 
 from typing import Iterable, Iterator
 
-from onapsdk.exceptions import ResourceNotFound
+from onapsdk.exceptions import ResourceNotFound, StatusError
 from onapsdk.so.deletion import VnfDeletionRequest
-from onapsdk.so.instantiation import VfModuleInstantiation
+from onapsdk.so.instantiation import VfModuleInstantiation, VnfInstantiation, SoService, \
+    InstantiationParameter, VnfOperation
+from onapsdk.configuration import settings
 
 from .instance import Instance
 from .vf_module import VfModuleInstance
@@ -368,6 +370,132 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
             vnf_parameters=vnf_parameters,
             use_preload=use_preload
         )
+
+    def update(self,
+               vnf_parameters: Iterable["InstantiationParameter"] = None
+               ) -> VnfInstantiation:
+        """Update vnf instance.
+
+        Args:
+            vnf_parameters (Iterable["InstantiationParameter"], Optional): list of instantiation
+            parameters for update operation.
+        Raises:
+            StatusError: Skip post instantiation configuration  flag for VF to True.
+                It might cause problems with SO component.
+
+        Returns:
+            VnfInstantiation: VnfInstantiation object.
+
+        """
+        skip_flag = next(p for p in self.vnf.properties
+                         if p.name == 'skip_post_instantiation_configuration')
+        if not skip_flag.value or skip_flag.value != "false":
+            raise StatusError("Operation for the vnf is not supported! "
+                              "Skip_post_instantiation_configuration flag for VF should be False")
+
+        return self._execute_so_action(operation_type=VnfOperation.UPDATE,
+                                       vnf_parameters=vnf_parameters)
+
+    def healthcheck(self) -> VnfInstantiation:
+        """Execute healthcheck operation for vnf instance.
+
+        Returns:
+            VnfInstantiation: VnfInstantiation object.
+
+        """
+        return self._execute_so_action(operation_type=VnfOperation.HEALTHCHECK)
+
+    def _execute_so_action(self,
+                           operation_type: VnfOperation,
+                           vnf_parameters: Iterable["InstantiationParameter"] = None
+                           ) -> VnfInstantiation:
+        """Execute SO workflow for selected operation.
+
+        Args:
+            operation_type (str): Name of the operation to execute.
+            vnf_parameters (Iterable["InstantiationParameter"], Optional): list of instantiation
+            parameters for update operation.
+
+        Returns:
+            VnfInstantiation: VnfInstantiation object.
+
+        """
+        if not self.service_instance.active:
+            msg = f'Service orchestration status must be "Active"'
+            raise StatusError(msg)
+
+        lob = settings.LOB
+        platform = settings.PLATFORM
+
+        for relationship in self.relationships:
+            if relationship.related_to == "line-of-business":
+                lob = relationship.relationship_data.pop().get("relationship-value")
+            if relationship.related_to == "platform":
+                platform = relationship.relationship_data.pop().get("relationship-value")
+
+        so_input = self._build_so_input(vnf_params=vnf_parameters)
+
+        return VnfInstantiation.so_action(
+            vnf_instance=self,
+            operation_type=operation_type,
+            aai_service_instance=self.service_instance,
+            line_of_business=lob,
+            platform=platform,
+            sdc_service=self.service_instance.sdc_service,
+            so_service=so_input
+        )
+
+    def _build_so_input(self, vnf_params: Iterable[InstantiationParameter] = None) -> SoService:
+        """Prepare so_input with params retrieved from existing service instance.
+
+        Args:
+            vnf_params (Iterable[InstantiationParameter], Optional): list of instantiation
+            parameters for update operation.
+
+        Returns:
+            SoService: SoService object to store SO Service parameters used for macro instantiation.
+
+        """
+        so_vnfs = []
+        so_pnfs = []
+
+        if not vnf_params:
+            vnf_params = []
+
+        for pnf in self.service_instance.pnfs:
+            _pnf = {
+                "model_name": pnf.pnf.model_name,
+                "instance_name": pnf.pnf_name
+            }
+
+            so_pnfs.append(_pnf)
+
+        for vnf in self.service_instance.vnf_instances:
+            _vnf = {"model_name": vnf.vnf.model_name,
+                    "instance_name": vnf.vnf_name,
+                    "parameters": {}}
+            if vnf.vnf_name == self.vnf_name:
+                for _param in vnf_params:
+                    _vnf["parameters"][_param.name] = _param.value
+
+            _vf_modules = []
+            for vf_module in vnf.vf_modules:
+                _vf_module = {
+                    "model_name": vf_module.vf_module.model_name.split('..')[1],
+                    "instance_name": vf_module.vf_module_name,
+                    "parameters": {}
+                }
+
+                _vf_modules.append(_vf_module)
+
+            _vnf["vf_modules"] = _vf_modules
+            so_vnfs.append(_vnf)
+
+        return SoService.load(data={
+            'subscription_service_type': self.service_instance.service_subscription.service_type,
+            'vnfs': so_vnfs,
+            'pnfs': so_pnfs
+        })
 
     def delete(self, a_la_carte: bool = True) -> "VnfDeletionRequest":
         """Create VNF deletion request.
