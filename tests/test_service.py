@@ -479,6 +479,14 @@ def test_distribute(mock_verify):
         const.CERTIFIED, const.DISTRIBUTE, 'distribution',
         headers=headers_sdc_creator(svc.headers))
 
+@mock.patch.object(Service, '_verify_action_to_sdc')
+def test_redistribute(mock_verify):
+    svc = Service()
+    svc.redistribute()
+    mock_verify.assert_called_once_with(
+        const.DISTRIBUTED, const.DISTRIBUTE, 'distribution',
+        headers=headers_sdc_creator(svc.headers))
+
 @mock.patch.object(Service, 'send_message')
 def test_get_tosca_no_result(mock_send):
     if path.exists('/tmp/tosca_files'):

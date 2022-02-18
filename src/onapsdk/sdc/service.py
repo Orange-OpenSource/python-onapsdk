@@ -567,6 +567,13 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
                                        const.DISTRIBUTE,
                                        headers=headers)
 
+    def redistribute(self) -> None:
+        """Apptove Service in SDC."""
+        headers = headers_sdc_creator(SdcResource.headers)
+        self._verify_distribute_to_sdc(const.DISTRIBUTED,
+                                       const.DISTRIBUTE,
+                                       headers=headers)
+
     def get_tosca(self) -> None:
         """Get Service tosca files and save it."""
         url = "{}/services/{}/toscaModel".format(self._base_url(),
