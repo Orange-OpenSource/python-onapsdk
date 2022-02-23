@@ -5,3 +5,4 @@ oyaml==1.0
 pyOpenSSL==19.1.0
 jsonschema==3.2.0
 dacite==1.6.0
+markupsafe==2.0.1
