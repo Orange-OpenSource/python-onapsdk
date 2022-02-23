@@ -3,4 +3,4 @@
 # SPDX-License-Identifier: Apache-2.0
 """Version module."""
 
-__version__ = "9.2.3"
+__version__ = "9.2.2"
