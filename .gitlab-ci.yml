@@ -13,6 +13,7 @@
     DOCKER_DRIVER: overlay
     # Variables for pytest.gitlab-ci.yml
     PYTHON_VERSIONS: "v3.7 v3.8 v3.9 v3.10"
+    COVERAGE_FILE: sdk-tests-cov.xml
     # Variables for Container-Scanning.gitlab-ci.yml
     CI_APPLICATION_REPOSITORY: $CI_REGISTRY_IMAGE #/$CI_COMMIT_REF_SLUG
     CI_APPLICATION_TAG: $CI_COMMIT_REF_SLUG #$CI_COMMIT_SHA
