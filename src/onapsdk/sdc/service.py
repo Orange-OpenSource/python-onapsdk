@@ -144,6 +144,8 @@ class Service(SdcResource):  # pylint: disable=too-many-instance-attributes, too
                 type. ServiceInstantiationType.A_LA_CARTE by default
             category (str, optional): service category name
             role (str, optional): service role
+            function (str, optional): service function. Empty by default
+            service_type (str, optional): service type. Empty by default
 
         """
         super().__init__(sdc_values=sdc_values, version=version, properties=properties,
