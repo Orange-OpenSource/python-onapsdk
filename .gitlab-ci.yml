@@ -127,6 +127,11 @@
     rules:
       - if: '$CI_COMMIT_TAG'
 
+  # https://docs.gitlab.com/ee/update/deprecations.html#dependency-scanning-python-39-and-36-image-deprecation
+  gemnasium-python-dependency_scanning:
+    image:
+      name: registry.gitlab.com/gitlab-org/security-products/analyzers/gemnasium-python:2-python-3.9
+
   include:
     - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/pylint.gitlab-ci.yml'
     - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/-/raw/master/pytest.gitlab-ci.yml'
