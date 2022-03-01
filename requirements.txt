@@ -1,7 +1,7 @@
-requests[socks]==2.24.0
-jinja2==2.11.2
-simplejson==3.17.2
+requests[socks]==2.27.1
+jinja2==3.0.3
+simplejson==3.17.6
 oyaml==1.0
-pyOpenSSL==19.1.0
-jsonschema==3.2.0
+pyOpenSSL==22.0.0
+jsonschema==4.4.0
 dacite==1.6.0
