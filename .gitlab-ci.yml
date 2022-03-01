@@ -13,6 +13,7 @@
     DOCKER_DRIVER: overlay
     # Variables for pytest.gitlab-ci.yml
     PYTHON_VERSIONS: "v3.7 v3.8 v3.9 v3.10"
+    COVERAGE_FILE: sdk-tests-cov.xml
     # Variables for Container-Scanning.gitlab-ci.yml
     CI_APPLICATION_REPOSITORY: $CI_REGISTRY_IMAGE #/$CI_COMMIT_REF_SLUG
     CI_APPLICATION_TAG: $CI_COMMIT_REF_SLUG #$CI_COMMIT_SHA
@@ -125,6 +126,11 @@
       - twine upload --non-interactive dist/*
     rules:
       - if: '$CI_COMMIT_TAG'
+
+  # https://docs.gitlab.com/ee/update/deprecations.html#dependency-scanning-python-39-and-36-image-deprecation
+  gemnasium-python-dependency_scanning:
+    image:
+      name: registry.gitlab.com/gitlab-org/security-products/analyzers/gemnasium-python:2-python-3.9
 
   include:
     - remote: 'https://gitlab.com/Orange-OpenSource/lfn/ci_cd/gitlab-ci-templates/raw/master/pylint.gitlab-ci.yml'

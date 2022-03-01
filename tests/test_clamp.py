@@ -213,7 +213,7 @@ def test_refresh_status(mock_send_message_json,mock_timer):
     assert loop.details == LOOP_DETAILS
 
 
-def test_validate_details():
+def test_validate():
     """Test Loop instance details validation."""
     loop = LoopInstance(template="template", name="test", details=LOOP_DETAILS)
     valid = loop.validate_details()
