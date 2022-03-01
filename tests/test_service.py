@@ -393,14 +393,22 @@ def test_create(mock_exists, mock_category, mock_create):
     mock_create.assert_called_once_with("service_create.json.j2",
                                         name="ONAP-test-Service",
                                         instantiation_type="A-la-carte",
-                                        category=svc.category)
+                                        category=svc.category,
+                                        role="",
+                                        function="",
+                                        service_type=""
+                                        )
     mock_create.reset_mock()
     svc = Service(instantiation_type=ServiceInstantiationType.MACRO)
     svc.create()
     mock_create.assert_called_once_with("service_create.json.j2",
                                         name="ONAP-test-Service",
                                         instantiation_type="Macro",
-                                        category=svc.category)
+                                        category=svc.category,
+                                        role="",
+                                        function="",
+                                        service_type=""
+                                        )
 
 @mock.patch.object(Service, 'exists')
 @mock.patch.object(Service, 'send_message')
@@ -477,6 +485,14 @@ def test_distribute(mock_verify):
     svc.distribute()
     mock_verify.assert_called_once_with(
         const.CERTIFIED, const.DISTRIBUTE, 'distribution',
+        headers=headers_sdc_creator(svc.headers))
+
+@mock.patch.object(Service, '_verify_action_to_sdc')
+def test_redistribute(mock_verify):
+    svc = Service()
+    svc.redistribute()
+    mock_verify.assert_called_once_with(
+        const.DISTRIBUTED, const.DISTRIBUTE, 'distribution',
         headers=headers_sdc_creator(svc.headers))
 
 @mock.patch.object(Service, 'send_message')
