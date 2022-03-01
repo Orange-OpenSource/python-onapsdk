@@ -110,7 +110,6 @@ class SoService:
         return from_dict(data_class=cls, data=data)
 
 
-
 @dataclass
 class VnfParameters:
     """Class to store vnf parameters used for macro instantiation.
