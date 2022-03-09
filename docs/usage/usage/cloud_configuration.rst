@@ -172,3 +172,39 @@ Add Cloud SIte entry to SO Catalog DB
                                           complex_id="test_clli_1",
                                           identity_service=identity_service,
                                           orchestrator="NULL")
+
+Use A&AI bulk API (experimental)
+--------------------------------
+
+.. code:: Python
+
+    from onapsdk.aai.bulk import AaiBulk, AaiBulkRequest
+    from onapsdk.aai.cloud_infrastructure.cloud_region import CloudRegion
+    from onapsdk.utils.jinja import jinja_env
+
+
+    for resp in AaiBulk.single_transaction(
+        [
+            AaiBulkRequest(
+                action="put",
+                uri=f"/cloud-infrastructure/cloud-regions/cloud-region/aai_bulk_test_cloud_owner_1/aai_bulk_test_cloud_region_id_1",
+                body=jinja_env().get_template("cloud_region_create.json.j2").render(cloud_region=CloudRegion(
+                        cloud_owner="aai_bulk_test_cloud_owner_1",
+                        cloud_region_id="aai_bulk_test_cloud_region_id_1",
+                        orchestration_disabled=False,
+                        in_maint=False
+                    ))
+            ),
+            AaiBulkRequest(
+                action="put",
+                uri=f"/cloud-infrastructure/cloud-regions/cloud-region/aai_bulk_test_cloud_owner_2/aai_bulk_test_cloud_region_id_2",
+                body=jinja_env().get_template("cloud_region_create.json.j2").render(cloud_region=CloudRegion(
+                        cloud_owner="aai_bulk_test_cloud_owner_2",
+                        cloud_region_id="aai_bulk_test_cloud_region_id_2",
+                        orchestration_disabled=False,
+                        in_maint=False
+                    ))
+            )
+        ]
+    ):
+        print(resp)
