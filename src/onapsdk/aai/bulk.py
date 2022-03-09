@@ -57,6 +57,7 @@ class AaiBulk(AaiElement):
         Yields:
             Iterator[Iterable[AaiBulkResponse]]: Bulk request responses. Each object
                 correspond to the sent request.
+
         """
         for response in cls.send_message_json(\
             "POST",\
