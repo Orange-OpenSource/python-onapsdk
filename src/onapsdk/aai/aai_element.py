@@ -47,6 +47,7 @@ class Relationship:
                 return data["relationship-value"]
         return None
 
+
 class AaiElement(OnapService):
     """Mother Class of all A&AI elements."""
 
