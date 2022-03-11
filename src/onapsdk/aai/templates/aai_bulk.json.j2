@@ -1,0 +1,11 @@
+{
+    "operations": [
+    {% for operation in operations %}
+    {
+        "action": "{{ operation.action }}",
+        "uri": "{{ operation.uri }}",
+        "body": {{ operation.body }}
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+    ]
+}
