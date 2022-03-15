@@ -260,18 +260,6 @@ class ServiceSubscription(AaiElement):
             except ResourceNotFound:
                 self._logger.error("Can't get %s tenant", cr_data.tenant_id)
 
-    # @property
-    # def sdc_service(self) -> "SdcService":
-    #     """Sdc service.
-
-    #     SDC service associated with service subscription.
-
-    #     Returns:
-    #         SdcService: SdcService object
-
-    #     """
-    #     return SdcService(self.service_type)
-
     def get_service_instance_by_id(self, service_instance_id) -> ServiceInstance:
         """Get service instance using it's ID.
 
