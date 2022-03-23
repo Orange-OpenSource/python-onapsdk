@@ -12,8 +12,8 @@ COMPLEXES = {
             "complex-name":"integration_test_complex",
             "identity-url":"",
             "resource-version":"1588244056133",
-            "physical-location-type":""
-            ,"street1":"",
+            "physical-location-type":"",
+            "street1":"",
             "street2":"",
             "city":"",
             "state":"",
@@ -23,7 +23,11 @@ COMPLEXES = {
             "latitude":"",
             "longitude":"",
             "elevation":"",
-            "lata":""
+            "lata":"",
+            "time-zone":"",
+            "data-owner":"",
+            "data-source":"",
+            "data-source-version":""
         }
     ]
 }
