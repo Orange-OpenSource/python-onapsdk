@@ -98,3 +98,14 @@ def test_complex_get_by_physical_location_id(mock_send_message_json):
         f"{Complex.base_url}{Complex.api_version}/cloud-infrastructure/"
         f"complexes/complex/test"
     )
+
+@mock.patch.object(Complex, "send_message")
+def test_complex_delete(mock_send_message):
+    cmplx = Complex(physical_location_id="test_location_id",
+                    resource_version="1234")
+    cmplx.delete()
+    mock_send_message.assert_called_once_with(
+        "DELETE",
+        "Delete test_location_id complex",
+        f"{cmplx.url}?resource-version={cmplx.resource_version}"
+    )

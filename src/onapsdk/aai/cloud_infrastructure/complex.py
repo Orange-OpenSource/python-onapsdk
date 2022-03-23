@@ -268,3 +268,11 @@ class Complex(AaiElement):  # pylint: disable=too-many-instance-attributes
             data_source=api_response.get("data-source"),
             data_source_version=api_response.get("data-source-version")
         )
+
+    def delete(self) -> None:
+        """Delete complex."""
+        self.send_message(
+            "DELETE",
+            f"Delete {self.physical_location_id} complex",
+            f"{self.url}?resource-version={self.resource_version}"
+        )
