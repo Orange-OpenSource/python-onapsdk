@@ -4,6 +4,9 @@
 from dataclasses import dataclass
 from typing import Any, Dict, Iterable
 
+from more_itertools import sliced
+
+from onapsdk.configuration import settings
 from onapsdk.utils.jinja import jinja_env
 
 from .aai_element import AaiElement
@@ -59,16 +62,17 @@ class AaiBulk(AaiElement):
                 correspond to the sent request.
 
         """
-        for response in cls.send_message_json(\
-            "POST",\
-            "Send bulk A&AI request",\
-            f"{cls.base_url}{cls.api_version}/bulk/single-transaction",\
-            data=jinja_env().get_template(\
-                "aai_bulk.json.j2").render(operations=aai_requests)\
-        )["operation-responses"]:
-            yield AaiBulkResponse(
-                action=response["action"],
-                uri=response["uri"],
-                status_code=response["response-status-code"],
-                body=response["response-body"]
-            )
+        for requests_chunk in sliced(aai_requests, settings.AAI_BULK_CHUNK):
+            for response in cls.send_message_json(\
+                "POST",\
+                "Send bulk A&AI request",\
+                f"{cls.base_url}{cls.api_version}/bulk/single-transaction",\
+                data=jinja_env().get_template(\
+                    "aai_bulk.json.j2").render(operations=requests_chunk)\
+            )["operation-responses"]:
+                yield AaiBulkResponse(
+                    action=response["action"],
+                    uri=response["uri"],
+                    status_code=response["response-status-code"],
+                    body=response["response-body"]
+                )

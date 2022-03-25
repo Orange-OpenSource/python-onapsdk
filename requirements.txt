@@ -5,3 +5,4 @@ oyaml==1.0
 pyOpenSSL==22.0.0
 jsonschema==4.4.0
 dacite==1.6.0
+more-itertools>=8.12.0
