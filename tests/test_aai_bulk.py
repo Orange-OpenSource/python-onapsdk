@@ -50,7 +50,20 @@ def test_aai_bulk(mock_send_message_json):
     assert resp_2.status_code == 201
     assert resp_2.body == "blabla"
 
-    # Check if requests was splitted into chunks
+    # Check if requests was splitted into chunks for generator
+    mock_send_message_json.reset_mock()
+    responses = list(AaiBulk.single_transaction(
+        (
+            AaiBulkRequest(
+                action="post",
+                uri=f"test-uri-{i}",
+                body={"blabla: blabla"}
+            ) for i in range(31)
+        )
+    ))
+    assert mock_send_message_json.call_count == 2
+
+    # Check if requests was splitted into chunks for list
     mock_send_message_json.reset_mock()
     responses = list(AaiBulk.single_transaction(
         [
