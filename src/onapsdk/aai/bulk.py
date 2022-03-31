@@ -4,7 +4,7 @@
 from dataclasses import dataclass
 from typing import Any, Dict, Iterable
 
-from more_itertools import sliced
+from more_itertools import chunked
 
 from onapsdk.configuration import settings
 from onapsdk.utils.jinja import jinja_env
@@ -62,7 +62,7 @@ class AaiBulk(AaiElement):
                 correspond to the sent request.
 
         """
-        for requests_chunk in sliced(aai_requests, settings.AAI_BULK_CHUNK):
+        for requests_chunk in chunked(aai_requests, settings.AAI_BULK_CHUNK):
             for response in cls.send_message_json(\
                 "POST",\
                 "Send bulk A&AI request",\
