@@ -40,6 +40,16 @@ class Dataspace(CpsElement):
         """
         return f"{self._url}/cps/api/v1/dataspaces/{self.name}"
 
+    @classmethod
+    def create(self, dataspace_name: str) -> "Dataspace":
+        self.send_message(
+            "POST",
+            f"Create {dataspace_name} dataspace",
+            f"{self._url}/cps/api/v1/dataspaces?dataspace-name={dataspace_name}",
+            auth=self.auth
+        )
+        return Dataspace(dataspace_name)
+
     def create_anchor(self, schema_set: SchemaSet, anchor_name: str) -> Anchor:
         """Create anchor.
 
@@ -51,7 +61,7 @@ class Dataspace(CpsElement):
             Anchor: Created anchor
 
         """
-        self.send_message_json(
+        self.send_message(
             "POST",
             "Get all CPS dataspace schemasets",
             f"{self.url}/anchors/?schema-set-name={schema_set.name}&anchor-name={anchor_name}",
