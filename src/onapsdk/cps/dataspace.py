@@ -41,12 +41,21 @@ class Dataspace(CpsElement):
         return f"{self._url}/cps/api/v1/dataspaces/{self.name}"
 
     @classmethod
-    def create(self, dataspace_name: str) -> "Dataspace":
-        self.send_message(
+    def create(cls, dataspace_name: str) -> "Dataspace":
+        """Create dataspace with given name.
+
+        Args:
+            dataspace_name (str): Dataspace name
+
+        Returns:
+            Dataspace: Newly created dataspace
+
+        """
+        cls.send_message(
             "POST",
             f"Create {dataspace_name} dataspace",
-            f"{self._url}/cps/api/v1/dataspaces?dataspace-name={dataspace_name}",
-            auth=self.auth
+            f"{cls._url}/cps/api/v1/dataspaces?dataspace-name={dataspace_name}",
+            auth=cls.auth
         )
         return Dataspace(dataspace_name)
 
