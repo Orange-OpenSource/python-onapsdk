@@ -39,11 +39,11 @@ def test_dataspace():
     assert ds.name == "test_ds"
     assert f"cps/api/v1/dataspaces/{ds.name}" in ds.url
 
-@mock.patch("onapsdk.cps.Dataspace.send_message_json")
-def test_dataspace_create_anchor(mock_send_message_json):
+@mock.patch("onapsdk.cps.Dataspace.send_message")
+def test_dataspace_create_anchor(mock_send_message):
     ds = Dataspace(name="test_ds")
     anchor = ds.create_anchor(mock.MagicMock(), "test_anchor")
-    mock_send_message_json.assert_called_once()
+    mock_send_message.assert_called_once()
     assert anchor.name == "test_anchor"
 
 @mock.patch("onapsdk.cps.Dataspace.send_message_json")
