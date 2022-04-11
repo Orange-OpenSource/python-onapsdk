@@ -11,3 +11,4 @@ A minimum knowledge of ONAP is needed, especially on the onboarding part.
    usage/instantiation
    usage/deletion
    usage/cds
+   usage/cps
