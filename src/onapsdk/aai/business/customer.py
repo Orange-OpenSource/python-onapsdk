@@ -385,6 +385,16 @@ class Customer(AaiElement):
                                                             self)
 
     @classmethod
+    def get_all_url(cls) -> str:
+        """Return an url to get all customers.
+
+        Returns:
+            str: URL to get all customers
+
+        """
+        return f"{cls.base_url}{cls.api_version}/business/customers"
+
+    @classmethod
     def get_all(cls,
                 global_customer_id: str = None,
                 subscriber_name: str = None,
@@ -407,8 +417,7 @@ class Customer(AaiElement):
                 "subscriber-type": subscriber_type,
             }
         )
-        url: str = (f"{cls.base_url}{cls.api_version}/business/customers?"
-                    f"{urlencode(filter_parameters)}")
+        url: str = (f"{cls.get_all_url()}?{urlencode(filter_parameters)}")
         for customer in cls.send_message_json("GET", "get customers", url).get("customer", []):
             yield Customer(
                 global_customer_id=customer["global-customer-id"],

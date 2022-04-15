@@ -114,6 +114,33 @@ class AaiElement(OnapService):
                    f'Server: {self.server}. Url: {self.url}')
             raise RelationshipNotFound(msg) from exc
 
+    @classmethod
+    def get_all_url(cls) -> str:
+        """Returns an url for all objects of given class.
+
+        Returns:
+            str: URL to get all objects of given class
+
+        """
+        raise NotImplementedError
+
+    @classmethod
+    def count(cls) -> int:
+        """Get the count number of all objects of given class.
+
+        Get the response, iterate through response (each class has different response)
+            -- the first key value is the count.
+
+        Returns:
+            int: Count of the objects
+
+        """
+        return next(iter(cls.send_message_json(
+            "GET",
+            f"Get count of {cls.__name__} class instances",
+            f"{cls.get_all_url()}?format=count"
+        )["results"][0].values()))
+
     def add_relationship(self, relationship: Relationship) -> None:
         """Add relationship to aai resource.
 
