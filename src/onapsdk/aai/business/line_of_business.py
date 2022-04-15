@@ -22,7 +22,7 @@ class LineOfBusiness(AaiResource):
         self.resource_version: str = resource_version
 
     @classmethod
-    def get_all_url(cls) -> str:
+    def get_all_url(cls) -> str:  # pylint: disable=arguments-differ
         """Return url to get all lines of business.
 
         Returns:

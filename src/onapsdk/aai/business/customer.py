@@ -85,7 +85,13 @@ class ServiceSubscription(AaiResource):
         )
 
     @classmethod
-    def get_all_url(cls, customer: "Customer") -> str:
+    def get_all_url(cls, customer: "Customer") -> str:  # pylint: disable=arguments-differ
+        """Return url to get all customers.
+
+        Returns:
+            str: Url to get all customers
+
+        """
         return (f"{cls.base_url}{cls.api_version}/business/customers/"
                 f"customer/{customer.global_customer_id}/service-subscriptions/")
 
@@ -390,7 +396,7 @@ class Customer(AaiResource):
                                                             self)
 
     @classmethod
-    def get_all_url(cls) -> str:
+    def get_all_url(cls) -> str:  # pylint: disable=arguments-differ
         """Return an url to get all customers.
 
         Returns:

@@ -128,7 +128,7 @@ class CloudRegion(AaiResource):  # pylint: disable=too-many-instance-attributes
         )
 
     @classmethod
-    def get_all_url(cls) -> str:
+    def get_all_url(cls) -> str:  # pylint: disable=arguments-differ
         """Return url to get all cloud regions.
 
         Returns:

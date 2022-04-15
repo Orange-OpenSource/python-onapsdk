@@ -62,7 +62,7 @@ class SpPartner(AaiResource):  # pylint: disable=too-many-instance-attributes
                 f"sp-partner/{self.sp_partner_id}")
 
     @classmethod
-    def get_all_url(cls) -> str:
+    def get_all_url(cls) -> str:  # pylint: disable=arguments-differ
         """Return url to get all sp partners.
 
         Returns:

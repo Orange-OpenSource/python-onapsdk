@@ -138,7 +138,7 @@ class AaiResource(AaiElement):
 
     @classmethod
     def get_all_url(cls, *args, **kwargs) -> str:
-        """Returns an url for all objects of given class.
+        """Return an url for all objects of given class.
 
         Returns:
             str: URL to get all objects of given class

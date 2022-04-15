@@ -175,7 +175,7 @@ class Complex(AaiResource):  # pylint: disable=too-many-instance-attributes
         return complex_object
 
     @classmethod
-    def get_all_url(cls) -> str:
+    def get_all_url(cls) -> str:  # pylint: disable=arguments-differ
         """Return an url to get all complexes.
 
         Returns:

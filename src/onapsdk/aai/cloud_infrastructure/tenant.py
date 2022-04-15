@@ -46,7 +46,7 @@ class Tenant(AaiResource):
         )
 
     @classmethod
-    def get_all_url(cls, cloud_region: "CloudRegion") -> str:
+    def get_all_url(cls, cloud_region: "CloudRegion") -> str:  # pylint: disable=arguments-differ
         """Return an url to get all tenants for given cloud region.
 
         Args:

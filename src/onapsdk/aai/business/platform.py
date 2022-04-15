@@ -42,7 +42,7 @@ class Platform(AaiResource):
                 f"platform/{self.name}")
 
     @classmethod
-    def get_all_url(cls) -> str:
+    def get_all_url(cls) -> str:  # pylint: disable=arguments-differ
         """Return url to get all platforms.
 
         Returns:

@@ -22,16 +22,6 @@ class Project(AaiResource):
         self.resource_version: str = resource_version
 
     @classmethod
-    def get_all_url(cls) -> str:
-        """Return url to get all projects.
-
-        Returns:
-            str: Url to get all projects
-
-        """
-        return f"{cls.base_url}{cls.api_version}/business/projects"
-
-    @classmethod
     def get_all(cls) -> Iterator["Project"]:
         """Get all project.
 
@@ -47,6 +37,16 @@ class Project(AaiResource):
                 project.get("project-name"),
                 project.get("resource-version")
             )
+
+    @classmethod
+    def get_all_url(cls) -> str:
+        """Return url to get all projects.
+
+        Returns:
+            str: Url to get all projects
+
+        """
+        return f"{cls.base_url}{cls.api_version}/business/projects"
 
     def __repr__(self) -> str:
         """Project object representation.
