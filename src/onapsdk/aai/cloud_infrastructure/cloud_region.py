@@ -7,7 +7,7 @@ from onapsdk.msb.multicloud import Multicloud
 from onapsdk.utils.jinja import jinja_env
 from onapsdk.exceptions import ResourceNotFound
 
-from ..aai_element import AaiElement, Relationship
+from ..aai_element import AaiResource, Relationship
 from .complex import Complex
 from .tenant import Tenant
 
@@ -52,7 +52,7 @@ class EsrSystemInfo:  # pylint: disable=too-many-instance-attributes
     openstack_region_id: str = None
 
 
-class CloudRegion(AaiElement):  # pylint: disable=too-many-instance-attributes
+class CloudRegion(AaiResource):  # pylint: disable=too-many-instance-attributes
     """Cloud region class.
 
     Represents A&AI cloud region object.
@@ -128,6 +128,16 @@ class CloudRegion(AaiElement):  # pylint: disable=too-many-instance-attributes
         )
 
     @classmethod
+    def get_all_url(cls) -> str:
+        """Return url to get all cloud regions.
+
+        Returns:
+            str: Url to get all cloud regions
+
+        """
+        return f"{cls.base_url}{cls.api_version}/cloud-infrastructure/cloud-regions"
+
+    @classmethod
     def get_all(cls,
                 cloud_owner: str = None,
                 cloud_region_id: str = None,
@@ -152,8 +162,7 @@ class CloudRegion(AaiElement):  # pylint: disable=too-many-instance-attributes
                 "owner-defined-type": owner_defined_type,
             }
         )
-        url: str = (f"{cls.base_url}{cls.api_version}/cloud-infrastructure/"
-                    f"cloud-regions?{urlencode(filter_parameters)}")
+        url: str = (f"{cls.get_all_url()}?{urlencode(filter_parameters)}")
         response_json: Dict[str, List[Dict[str, Any]]] = cls.send_message_json(
             "GET", "get cloud regions", url
         )

@@ -4,10 +4,10 @@ from urllib.parse import urlencode
 
 from onapsdk.utils.jinja import jinja_env
 
-from ..aai_element import AaiElement
+from ..aai_element import AaiResource
 
 
-class Complex(AaiElement):  # pylint: disable=too-many-instance-attributes
+class Complex(AaiResource):  # pylint: disable=too-many-instance-attributes
     """Complex class.
 
     Collection of physical locations that can house cloud-regions.

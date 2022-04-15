@@ -4,10 +4,10 @@ from typing import Any, Dict, Iterator
 
 from onapsdk.utils.jinja import jinja_env
 
-from ..aai_element import AaiElement
+from ..aai_element import AaiResource
 
 
-class Platform(AaiElement):
+class Platform(AaiResource):
     """Platform class."""
 
     def __init__(self, name: str, resource_version: str) -> None:
@@ -42,6 +42,16 @@ class Platform(AaiElement):
                 f"platform/{self.name}")
 
     @classmethod
+    def get_all_url(cls) -> str:
+        """Return url to get all platforms.
+
+        Returns:
+            str: Url to get all platforms
+
+        """
+        return f"{cls.base_url}{cls.api_version}/business/platforms"
+
+    @classmethod
     def get_all(cls) -> Iterator["Platform"]:
         """Get all platform.
 
@@ -49,7 +59,7 @@ class Platform(AaiElement):
             Platform: Platform object
 
         """
-        url: str = f"{cls.base_url}{cls.api_version}/business/platforms"
+        url: str = cls.get_all_url()
         for platform in cls.send_message_json("GET",
                                               "Get A&AI platforms",
                                               url).get("platform", []):

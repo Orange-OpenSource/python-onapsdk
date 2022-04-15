@@ -6,7 +6,6 @@ from unittest import mock
 
 import pytest
 
-from onapsdk.aai.aai_element import AaiElement
 from onapsdk.aai.business import ServiceInstance, VnfInstance, PnfInstance, VfModuleInstance
 from onapsdk.so.deletion import VnfDeletionRequest
 from onapsdk.so.instantiation import VfModuleInstantiation, VnfInstantiation, SoService

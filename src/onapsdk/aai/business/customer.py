@@ -6,7 +6,7 @@ from urllib.parse import urlencode
 from onapsdk.utils.jinja import jinja_env
 from onapsdk.exceptions import APIError, ParameterError, ResourceNotFound
 
-from ..aai_element import AaiElement, Relationship
+from ..aai_element import AaiResource, Relationship
 from ..cloud_infrastructure.cloud_region import CloudRegion
 from .service import ServiceInstance
 
@@ -21,7 +21,7 @@ class ServiceSubscriptionCloudRegionTenantData:
 
 
 @dataclass
-class ServiceSubscription(AaiElement):
+class ServiceSubscription(AaiResource):
     """Service subscription class."""
 
     service_type: str
@@ -83,6 +83,11 @@ class ServiceSubscription(AaiElement):
             orchestration_status=service_instance.get("orchestration-status"),
             input_parameters=service_instance.get("input-parameters")
         )
+
+    @classmethod
+    def get_all_url(cls, customer: "Customer") -> str:
+        return (f"{cls.base_url}{cls.api_version}/business/customers/"
+                f"customer/{customer.global_customer_id}/service-subscriptions/")
 
     @classmethod
     def create_from_api_response(cls,
@@ -323,7 +328,7 @@ class ServiceSubscription(AaiElement):
         self.add_relationship(relationship)
 
 
-class Customer(AaiElement):
+class Customer(AaiResource):
     """Customer class."""
 
     def __init__(self,

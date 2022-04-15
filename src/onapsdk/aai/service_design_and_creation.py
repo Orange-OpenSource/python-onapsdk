@@ -4,10 +4,10 @@ from urllib.parse import urlencode
 
 from onapsdk.utils.jinja import jinja_env
 
-from .aai_element import AaiElement
+from .aai_element import AaiResource
 
 
-class Service(AaiElement):
+class Service(AaiResource):
     """SDC service class."""
 
     def __init__(self, service_id: str, service_description: str, resource_version: str) -> None:
@@ -49,6 +49,16 @@ class Service(AaiElement):
                 f"{self.service_id}?resource-version={self.resource_version}")
 
     @classmethod
+    def get_all_url(cls) -> str:
+        """Return url to get all services.
+
+        Returns:
+            str: Url to get all services
+
+        """
+        return f"{cls.base_url}{cls.api_version}/service-design-and-creation/services"
+
+    @classmethod
     def get_all(cls,
                 service_id: str = None,
                 service_description: str = None) -> Iterator["Service"]:
@@ -63,8 +73,7 @@ class Service(AaiElement):
         filter_parameters: dict = cls.filter_none_key_values(
             {"service-id": service_id, "service-description": service_description}
         )
-        url: str = (f"{cls.base_url}{cls.api_version}/service-design-and-creation/"
-                    f"services?{urlencode(filter_parameters)}")
+        url: str = (f"{cls.get_all_url()}?{urlencode(filter_parameters)}")
         for service in cls.send_message_json("GET", "get subscriptions", url).get("service", []):
             yield Service(
                 service_id=service["service-id"],
@@ -97,7 +106,7 @@ class Service(AaiElement):
         )
 
 
-class Model(AaiElement):
+class Model(AaiResource):
     """Model resource class."""
 
     def __init__(self, invariant_id: str, model_type: str, resource_version: str) -> None:
@@ -137,6 +146,16 @@ class Model(AaiElement):
                 f"model/{self.invariant_id}?resource-version={self.resource_version}")
 
     @classmethod
+    def get_all_url(cls) -> str:
+        """Return url to get all models.
+
+        Returns:
+            str: Url to get all models
+
+        """
+        return f"{cls.base_url}{cls.api_version}/service-design-and-creation/models"
+
+    @classmethod
     def get_all(cls) -> Iterator["Model"]:
         """Get all models.
 
@@ -146,9 +165,7 @@ class Model(AaiElement):
         """
         for model in cls.send_message_json("GET",
                                            "Get A&AI sdc models",
-                                           (f"{cls.base_url}{cls.api_version}/"
-                                            "service-design-and-creation/models")).get("model",
-                                                                                       []):
+                                           cls.get_all_url()).get("model", []):
             yield Model(
                 invariant_id=model.get("model-invariant-id"),
                 model_type=model.get("model-type"),

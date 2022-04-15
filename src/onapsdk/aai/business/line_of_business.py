@@ -4,10 +4,10 @@ from typing import Any, Dict, Iterator
 
 from onapsdk.utils.jinja import jinja_env
 
-from ..aai_element import AaiElement
+from ..aai_element import AaiResource
 
 
-class LineOfBusiness(AaiElement):
+class LineOfBusiness(AaiResource):
     """Line of business class."""
 
     def __init__(self, name: str, resource_version: str) -> None:
@@ -20,6 +20,16 @@ class LineOfBusiness(AaiElement):
         super().__init__()
         self.name: str = name
         self.resource_version: str = resource_version
+
+    @classmethod
+    def get_all_url(cls) -> str:
+        """Return url to get all lines of business.
+
+        Returns:
+            str: Url to get all lines of business
+
+        """
+        return f"{cls.base_url}{cls.api_version}/business/lines-of-business/"
 
     @property
     def url(self) -> str:

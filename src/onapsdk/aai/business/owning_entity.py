@@ -6,10 +6,10 @@ from typing import Iterator
 from onapsdk.utils.jinja import jinja_env
 from onapsdk.exceptions import ResourceNotFound
 
-from ..aai_element import AaiElement
+from ..aai_element import AaiResource
 
 
-class OwningEntity(AaiElement):
+class OwningEntity(AaiResource):
     """Owning entity class."""
 
     def __init__(self, name: str, owning_entity_id: str, resource_version: str) -> None:
@@ -46,6 +46,16 @@ class OwningEntity(AaiElement):
                 f"{self.owning_entity_id}?resource-version={self.resource_version}")
 
     @classmethod
+    def get_all_url(cls) -> str:
+        """Return url to get all owning entities.
+
+        Returns:
+            str: Url to get all owning entities
+
+        """
+        return f"{cls.base_url}{cls.api_version}/business/owning-entities"
+
+    @classmethod
     def get_all(cls) -> Iterator["OwningEntity"]:
         """Get all owning entities.
 
@@ -53,7 +63,7 @@ class OwningEntity(AaiElement):
             OwningEntity: OwningEntity object
 
         """
-        url: str = f"{cls.base_url}{cls.api_version}/business/owning-entities"
+        url: str = cls.get_all_url()
         for owning_entity in cls.send_message_json("GET",
                                                    "Get A&AI owning entities",
                                                    url).get("owning-entity", []):

@@ -58,6 +58,28 @@ class AaiElement(OnapService):
     headers = headers_aai_creator(OnapService.headers)
 
     @classmethod
+    def get_guis(cls) -> GuiItem:
+        """Retrieve the status of the AAI GUIs.
+
+        Only one GUI is referenced for AAI
+        the AAI sparky GUI
+
+        Return the list of GUIs
+        """
+        gui_url = settings.AAI_GUI_SERVICE
+        aai_gui_response = cls.send_message(
+            "GET", "Get AAI GUI Status", gui_url)
+        guilist = GuiList([])
+        guilist.add(GuiItem(
+            gui_url,
+            aai_gui_response.status_code))
+        return guilist
+
+
+class AaiResource(AaiElement):
+    """A&AI resource class."""
+
+    @classmethod
     def filter_none_key_values(cls, dict_to_filter: Dict[str, Optional[str]]) -> Dict[str, str]:
         """Filter out None key values from dictionary.
 
@@ -115,7 +137,7 @@ class AaiElement(OnapService):
             raise RelationshipNotFound(msg) from exc
 
     @classmethod
-    def get_all_url(cls) -> str:
+    def get_all_url(cls, *args, **kwargs) -> str:
         """Returns an url for all objects of given class.
 
         Returns:
@@ -125,7 +147,7 @@ class AaiElement(OnapService):
         raise NotImplementedError
 
     @classmethod
-    def count(cls) -> int:
+    def count(cls, *args, **kwargs) -> int:
         """Get the count number of all objects of given class.
 
         Get the response, iterate through response (each class has different response)
@@ -138,7 +160,7 @@ class AaiElement(OnapService):
         return next(iter(cls.send_message_json(
             "GET",
             f"Get count of {cls.__name__} class instances",
-            f"{cls.get_all_url()}?format=count"
+            f"{cls.get_all_url(*args, **kwargs)}?format=count"
         )["results"][0].values()))
 
     def add_relationship(self, relationship: Relationship) -> None:
@@ -159,20 +181,3 @@ class AaiElement(OnapService):
             .render(relationship=relationship),
         )
 
-    @classmethod
-    def get_guis(cls) -> GuiItem:
-        """Retrieve the status of the AAI GUIs.
-
-        Only one GUI is referenced for AAI
-        the AAI sparky GUI
-
-        Return the list of GUIs
-        """
-        gui_url = settings.AAI_GUI_SERVICE
-        aai_gui_response = cls.send_message(
-            "GET", "Get AAI GUI Status", gui_url)
-        guilist = GuiList([])
-        guilist.add(GuiItem(
-            gui_url,
-            aai_gui_response.status_code))
-        return guilist

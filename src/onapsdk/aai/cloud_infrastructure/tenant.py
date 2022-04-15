@@ -1,8 +1,9 @@
 """A&AI Tenant module."""
-from ..aai_element import AaiElement
+# from onapsdk.aai.cloud_infrastructure.cloud_region import CloudRegion
+from ..aai_element import AaiResource
 
 
-class Tenant(AaiElement):
+class Tenant(AaiResource):
     """Tenant class."""
 
     def __init__(self,  # pylint: disable=too-many-arguments
@@ -43,6 +44,21 @@ class Tenant(AaiElement):
             f"resource_version={self.resource_version}, "
             f"cloud_region={self.cloud_region.cloud_region_id})"
         )
+
+    @classmethod
+    def get_all_url(cls, cloud_region: "CloudRegion") -> str:
+        """Return an url to get all tenants for given cloud region.
+
+        Args:
+            cloud_region (CloudRegion): Cloud region object
+
+        Returns:
+            str: Url to get all tenants
+
+        """
+        return (f"{cls.base_url}{cls.api_version}/cloud-infrastructure/cloud-regions/cloud-region/"
+                f"{cloud_region.cloud_owner}/{cloud_region.cloud_region_id}"
+                f"/tenants/")
 
     @property
     def url(self) -> str:
