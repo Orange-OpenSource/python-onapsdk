@@ -2,10 +2,10 @@
 
 from abc import ABC, abstractmethod
 
-from ..aai_element import AaiElement
+from ..aai_element import AaiResource
 
 
-class Instance(AaiElement, ABC):
+class Instance(AaiResource, ABC):
     """Abstract instance class."""
 
     def __init__(self,  # pylint: disable=too-many-arguments

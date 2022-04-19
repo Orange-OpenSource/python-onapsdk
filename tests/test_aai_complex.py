@@ -33,6 +33,15 @@ COMPLEXES = {
 }
 
 
+COMPLEXES_COUNT = {
+    "results":[
+        {
+            "complex":12
+        }
+    ]
+}
+
+
 @mock.patch.object(Complex, "send_message")
 def test_complex(mock_send_message):
     cmplx = Complex(name="test_complex_name",
@@ -109,3 +118,8 @@ def test_complex_delete(mock_send_message):
         "Delete test_location_id complex",
         f"{cmplx.url}?resource-version={cmplx.resource_version}"
     )
+
+@mock.patch.object(Complex, "send_message_json")
+def test_complex_count(mock_send_message_json):
+    mock_send_message_json.return_value = COMPLEXES_COUNT
+    assert Complex.count() == 12
