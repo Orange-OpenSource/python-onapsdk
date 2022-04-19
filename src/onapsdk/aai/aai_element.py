@@ -180,4 +180,3 @@ class AaiResource(AaiElement):
             .get_template("aai_add_relationship.json.j2")
             .render(relationship=relationship),
         )
-

@@ -21,16 +21,6 @@ class LineOfBusiness(AaiResource):
         self.name: str = name
         self.resource_version: str = resource_version
 
-    @classmethod
-    def get_all_url(cls) -> str:  # pylint: disable=arguments-differ
-        """Return url to get all lines of business.
-
-        Returns:
-            str: Url to get all lines of business
-
-        """
-        return f"{cls.base_url}{cls.api_version}/business/lines-of-business/"
-
     @property
     def url(self) -> str:
         """Line of business's url.
@@ -41,6 +31,16 @@ class LineOfBusiness(AaiResource):
         """
         return (f"{self.base_url}{self.api_version}/business/lines-of-business/"
                 f"line-of-business/{self.name}")
+
+    @classmethod
+    def get_all_url(cls) -> str:  # pylint: disable=arguments-differ
+        """Return url to get all lines of business.
+
+        Returns:
+            str: Url to get all lines of business
+
+        """
+        return f"{cls.base_url}{cls.api_version}/business/lines-of-business/"
 
     def __repr__(self) -> str:
         """Line of business object representation.

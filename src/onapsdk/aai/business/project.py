@@ -39,7 +39,7 @@ class Project(AaiResource):
             )
 
     @classmethod
-    def get_all_url(cls) -> str:
+    def get_all_url(cls) -> str:  # pylint: disable=arguments-differ
         """Return url to get all projects.
 
         Returns:
