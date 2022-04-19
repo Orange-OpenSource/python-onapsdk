@@ -4,10 +4,10 @@ from urllib.parse import urlencode
 
 from onapsdk.utils.jinja import jinja_env
 
-from ..aai_element import AaiElement
+from ..aai_element import AaiResource
 
 
-class Complex(AaiElement):  # pylint: disable=too-many-instance-attributes
+class Complex(AaiResource):  # pylint: disable=too-many-instance-attributes
     """Complex class.
 
     Collection of physical locations that can house cloud-regions.
@@ -175,6 +175,16 @@ class Complex(AaiElement):  # pylint: disable=too-many-instance-attributes
         return complex_object
 
     @classmethod
+    def get_all_url(cls) -> str:  # pylint: disable=arguments-differ
+        """Return an url to get all complexes.
+
+        Returns:
+            str: URL to get all complexes
+
+        """
+        return f"{cls.base_url}{cls.api_version}/cloud-infrastructure/complexes"
+
+    @classmethod
     def get_all(cls,
                 physical_location_id: str = None,
                 data_center_code: str = None,
@@ -205,8 +215,7 @@ class Complex(AaiElement):  # pylint: disable=too-many-instance-attributes
                 "identity-url": identity_url,
             }
         )
-        url: str = (f"{cls.base_url}{cls.api_version}/cloud-infrastructure/"
-                    f"complexes?{urlencode(filter_parameters)}")
+        url: str = (f"{cls.get_all_url()}?{urlencode(filter_parameters)}")
         for complex_json in cls.send_message_json("GET",
                                                   "get cloud regions",
                                                   url).get("complex", []):

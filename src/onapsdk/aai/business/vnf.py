@@ -223,6 +223,16 @@ class VnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
                 f"in_maint={self.in_maint}, "
                 f"is_closed_loop_disabled={self.is_closed_loop_disabled})")
 
+    @classmethod
+    def get_all_url(cls) -> str:  # pylint: disable=arguments-differ
+        """Return url to get all vnfs.
+
+        Returns:
+            str: Url to get all vnfs
+
+        """
+        return f"{cls.base_url}{cls.api_version}/network/generic-vnfs/"
+
     @property
     def url(self) -> str:
         """Vnf instance url.

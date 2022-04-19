@@ -145,6 +145,15 @@ NETWORK_INSTANCE = {
 }
 
 
+COUNT = {
+    "results":[
+        {
+            "service-instance":29
+        }
+    ]
+}
+
+
 def test_service_instance():
     service_subscription = mock.MagicMock()
     service_subscription.url = "test_url"
@@ -246,3 +255,8 @@ def test_service_instance_sdc_service(mock_service_get_by_unique_uuid):
     mock_service_get_by_unique_uuid.assert_called_once_with("1234")
     si.sdc_service
     mock_service_get_by_unique_uuid.assert_called_once_with("1234")
+
+@mock.patch.object(ServiceInstance, "send_message_json")
+def test_service_instance_count(mock_send_message_json):
+    mock_send_message_json.return_value = COUNT
+    assert ServiceInstance.count(service_subscription=mock.MagicMock())
