@@ -64,3 +64,7 @@ def test_platform_create(_, mock_send):
 def test_line_of_business_count(mock_send_message_json):
     mock_send_message_json.return_value = COUNT
     assert Platform.count() == 1
+
+def test_platform_url():
+    platform = Platform(name="test-platform", resource_version="123")
+    assert platform.name in platform.url

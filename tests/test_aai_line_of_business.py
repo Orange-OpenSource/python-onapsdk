@@ -64,3 +64,7 @@ def test_line_of_business_create(_, mock_send):
 def test_line_of_business_count(mock_send_message_json):
     mock_send_message_json.return_value = COUNT
     assert LineOfBusiness.count() == 1
+
+def test_line_of_business_url():
+    line_of_business = LineOfBusiness(name="test-lob", resource_version="123")
+    assert line_of_business.name in line_of_business.url

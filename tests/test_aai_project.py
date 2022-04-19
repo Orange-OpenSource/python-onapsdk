@@ -61,6 +61,10 @@ def test_project_create(_, mock_send):
 
 
 @mock.patch("onapsdk.aai.business.project.Project.send_message_json")
-def test_line_of_business_count(mock_send_message_json):
+def test_project_count(mock_send_message_json):
     mock_send_message_json.return_value = COUNT
     assert Project.count() == 1
+
+def test_project_url():
+    project = Project(name="test-project", resource_version="123")
+    assert project.name in project.url
