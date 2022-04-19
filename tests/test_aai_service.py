@@ -5,7 +5,7 @@ from unittest import mock
 
 import pytest
 
-from onapsdk.aai.aai_element import AaiElement, Relationship
+from onapsdk.aai.aai_element import AaiElement, AaiResource, Relationship
 from onapsdk.aai.cloud_infrastructure import (
     CloudRegion,
     Complex,
@@ -626,17 +626,17 @@ def text_get_all_complexes(mock_send):
 
 def test_filter_none_value():
     """Test method to filter out None value keys from dictionary."""
-    ret: dict = AaiElement.filter_none_key_values({"a": None})
+    ret: dict = AaiResource.filter_none_key_values({"a": None})
     assert not ret
 
-    ret: dict = AaiElement.filter_none_key_values({"a": "b", "c": None})
+    ret: dict = AaiResource.filter_none_key_values({"a": "b", "c": None})
     assert ret == {"a": "b"}
 
-    ret: dict = AaiElement.filter_none_key_values({"a": "b", "c": "d"})
+    ret: dict = AaiResource.filter_none_key_values({"a": "b", "c": "d"})
     assert ret == {"a": "b", "c": "d"}
 
 
-@mock.patch.object(AaiElement, "send_message")
+@mock.patch.object(AaiResource, "send_message")
 def test_add_relationship(mock_send):
     """Test add_relationship method."""
     cloud_region = CloudRegion(cloud_owner="tester", cloud_region_id="test",

@@ -132,6 +132,16 @@ class NetworkInstance(Instance):  # pylint: disable=too-many-instance-attributes
                 f"is_external_network={self.is_external_network}, "
                 f"orchestration_status={self.orchestration_status})")
 
+    @classmethod
+    def get_all_url(cls) -> str:  # pylint: disable=arguments-differ
+        """Return url to get all networks.
+
+        Returns:
+            str: Url to get all networks
+
+        """
+        return f"{cls.base_url}{cls.api_version}/network/l3-networks/"
+
     @property
     def url(self) -> str:
         """Network instance url.

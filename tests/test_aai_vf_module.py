@@ -6,6 +6,16 @@ from onapsdk.aai.business import VfModuleInstance
 from onapsdk.so.deletion import VfModuleDeletionRequest
 from onapsdk.exceptions import ResourceNotFound
 
+
+COUNT = {
+    "results":[
+        {
+            "vf-module":1
+        }
+    ]
+}
+
+
 def test_vf_module():
     vnf_instance = mock.MagicMock()
     vnf_instance.url = "test_url"
@@ -54,5 +64,7 @@ def test_vnf_vf_module():
     assert vf_module_instance._vf_module is not None
     assert vf_module_instance.vf_module == vf_module_instance._vf_module
 
-
-    
+@mock.patch.object(VfModuleInstance, "send_message_json")
+def test_vf_module_instance_count(mock_send_message_json):
+    mock_send_message_json.return_value = COUNT
+    assert VfModuleInstance.count(vnf_instance=mock.MagicMock()) == 1
