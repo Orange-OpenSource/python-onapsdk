@@ -180,6 +180,15 @@ VF_MODULE = {
 }
 
 
+COUNT = {
+    "results":[
+        {
+            "generic-vnf":17
+        }
+    ]
+}
+
+
 @mock.patch.object(VnfDeletionRequest, "send_request")
 def test_vnf_instance(mock_vnf_deletion_request):
     service_instance = ServiceInstance(None,
@@ -422,3 +431,8 @@ def test_build_so_input(mock_send_message):
     assert len(test_so_input.pnfs) == 1
     assert test_so_input.pnfs[0].model_name == "test_model"
     assert test_so_input.pnfs[0].instance_name == "test_pnf"
+
+@mock.patch.object(VnfInstance, "send_message_json")
+def test_vnf_instance_mock(mock_send_message_json):
+    mock_send_message_json.return_value = COUNT
+    assert VnfInstance.count() == 17

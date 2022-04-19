@@ -18,6 +18,15 @@ PLATFORMS = {
 }
 
 
+COUNT = {
+    "results":[
+        {
+            "platform":1
+        }
+    ]
+}
+
+
 @mock.patch("onapsdk.aai.business.platform.Platform.send_message_json")
 def test_platform_get_all(mock_send_message_json):
     mock_send_message_json.return_value = {}
@@ -49,3 +58,9 @@ def test_platform_create(_, mock_send):
                                       "Declare A&AI platform",
                                       "https://aai.api.sparky.simpledemo.onap.org:30233/aai/v23/business/platforms/platform/test-name",
                                       data='{\n    "platform-name": "test-name"\n}')
+
+
+@mock.patch("onapsdk.aai.business.platform.Platform.send_message_json")
+def test_line_of_business_count(mock_send_message_json):
+    mock_send_message_json.return_value = COUNT
+    assert Platform.count() == 1

@@ -18,6 +18,15 @@ LINES_OF_BUSINESS = {
 }
 
 
+COUNT = {
+    "results":[
+        {
+            "line-of-business":1
+        }
+    ]
+}
+
+
 @mock.patch("onapsdk.aai.business.line_of_business.LineOfBusiness.send_message_json")
 def test_line_of_business_get_all(mock_send_message_json):
     mock_send_message_json.return_value = {}
@@ -49,3 +58,9 @@ def test_line_of_business_create(_, mock_send):
                                       "Declare A&AI line of business",
                                       "https://aai.api.sparky.simpledemo.onap.org:30233/aai/v23/business/lines-of-business/line-of-business/test-name",
                                       data='{\n    "line-of-business-name": "test-name"\n}')
+
+
+@mock.patch("onapsdk.aai.business.line_of_business.LineOfBusiness.send_message_json")
+def test_line_of_business_count(mock_send_message_json):
+    mock_send_message_json.return_value = COUNT
+    assert LineOfBusiness.count() == 1
