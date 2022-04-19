@@ -4,10 +4,10 @@ from typing import Iterator, Optional
 
 from onapsdk.utils.jinja import jinja_env
 
-from ..aai_element import AaiElement
+from ..aai_element import AaiResource
 
 
-class SpPartner(AaiElement):  # pylint: disable=too-many-instance-attributes
+class SpPartner(AaiResource):  # pylint: disable=too-many-instance-attributes
     """Sp partner class."""
 
     def __init__(self, sp_partner_id: str, resource_version: str, url: str = None,  # pylint: disable=too-many-arguments, too-many-locals
@@ -62,6 +62,16 @@ class SpPartner(AaiElement):  # pylint: disable=too-many-instance-attributes
                 f"sp-partner/{self.sp_partner_id}")
 
     @classmethod
+    def get_all_url(cls) -> str:  # pylint: disable=arguments-differ
+        """Return url to get all sp partners.
+
+        Returns:
+            str: Url to get all sp partners
+
+        """
+        return f"{cls.base_url}{cls.api_version}/business/sp-partners"
+
+    @classmethod
     def get_all(cls) -> Iterator["SpPartner"]:
         """Get all sp partners.
 
@@ -69,7 +79,7 @@ class SpPartner(AaiElement):  # pylint: disable=too-many-instance-attributes
             SpPartner: SpPartner object
 
         """
-        url: str = f"{cls.base_url}{cls.api_version}/business/sp-partners"
+        url: str = cls.get_all_url()
         for sp_partner in cls.send_message_json("GET",
                                                 "Get A&AI sp-partners",
                                                 url).get("sp-partner", []):

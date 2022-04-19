@@ -252,6 +252,19 @@ class ServiceInstance(Instance):  # pylint: disable=too-many-instance-attributes
                          ))
         return service_instance
 
+    @classmethod
+    def get_all_url(cls, service_subscription: "ServiceSubscription") -> str:  # pylint: disable=arguments-differ
+        """Return an url to get all service instances for service subscription.
+
+        Args:
+            service_subscription (ServiceSubscription): Service subscription object
+
+        Returns:
+            str: Url to get all service instances for service subscription
+
+        """
+        return f"{service_subscription.url}/service-instances/"
+
     @property
     def url(self) -> str:
         """Service instance resource URL.

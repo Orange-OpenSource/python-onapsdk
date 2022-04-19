@@ -18,6 +18,15 @@ PROJECTS = {
 }
 
 
+COUNT = {
+    "results":[
+        {
+            "project":1
+        }
+    ]
+}
+
+
 @mock.patch("onapsdk.aai.business.project.Project.send_message_json")
 def test_project_get_all(mock_send_message_json):
     mock_send_message_json.return_value = {}
@@ -49,3 +58,13 @@ def test_project_create(_, mock_send):
                                       "Declare A&AI project",
                                       "https://aai.api.sparky.simpledemo.onap.org:30233/aai/v23/business/projects/project/test-name",
                                       data='{\n    "project-name": "test-name"\n}')
+
+
+@mock.patch("onapsdk.aai.business.project.Project.send_message_json")
+def test_project_count(mock_send_message_json):
+    mock_send_message_json.return_value = COUNT
+    assert Project.count() == 1
+
+def test_project_url():
+    project = Project(name="test-project", resource_version="123")
+    assert project.name in project.url

@@ -1,13 +1,20 @@
 
-from collections import namedtuple
 from unittest import mock
 
-import pytest
 from onapsdk.aai.cloud_infrastructure.cloud_region import CloudRegion, Tenant
 from onapsdk.exceptions import ResourceNotFound
 
 
-@mock.patch("onapsdk.aai.cloud_infrastructure.cloud_region.AaiElement.relationships", new_callable=mock.PropertyMock)
+COUNT = {
+    "results":[
+        {
+            "cloud-region":2
+        }
+    ]
+}
+
+
+@mock.patch("onapsdk.aai.cloud_infrastructure.cloud_region.AaiResource.relationships", new_callable=mock.PropertyMock)
 @mock.patch("onapsdk.aai.cloud_infrastructure.cloud_region.Complex.get_by_physical_location_id")
 def test_cloud_region_complex_property(mock_complex_get, mock_relationships):
     cr = CloudRegion("test_cloud_owner", "test_cloud_region_id", False, False)
@@ -45,3 +52,8 @@ def test_cloud_region_get_tenants_by_name(mock_tenants):
     assert len(tenants) == 1
     assert isinstance(tenants[0], Tenant)
     assert tenants[0].name == "test-tenant"
+
+@mock.patch("onapsdk.aai.cloud_infrastructure.cloud_region.CloudRegion.send_message_json")
+def test_cloud_region_count(mock_send_message_json):
+    mock_send_message_json.return_value = COUNT
+    assert CloudRegion.count() == 2
