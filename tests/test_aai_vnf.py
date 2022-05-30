@@ -6,7 +6,6 @@ from unittest import mock
 
 import pytest
 
-from onapsdk.aai.aai_element import AaiElement
 from onapsdk.aai.business import ServiceInstance, VnfInstance, PnfInstance, VfModuleInstance
 from onapsdk.so.deletion import VnfDeletionRequest
 from onapsdk.so.instantiation import VfModuleInstantiation, VnfInstantiation, SoService
@@ -176,6 +175,15 @@ VF_MODULE = {
             "resource-version": "1590395148980",
             "model-invariant-id": "test_model_invariant_id",
             "model-version-id": "test_model_version_id"
+        }
+    ]
+}
+
+
+COUNT = {
+    "results":[
+        {
+            "generic-vnf":17
         }
     ]
 }
@@ -423,3 +431,8 @@ def test_build_so_input(mock_send_message):
     assert len(test_so_input.pnfs) == 1
     assert test_so_input.pnfs[0].model_name == "test_model"
     assert test_so_input.pnfs[0].instance_name == "test_pnf"
+
+@mock.patch.object(VnfInstance, "send_message_json")
+def test_vnf_instance_mock(mock_send_message_json):
+    mock_send_message_json.return_value = COUNT
+    assert VnfInstance.count() == 17

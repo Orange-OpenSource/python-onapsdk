@@ -4,15 +4,15 @@
 import pytest
 from unittest import mock
 
-from onapsdk.aai.aai_element import AaiElement, Relationship
+from onapsdk.aai.aai_element import AaiResource, Relationship
 from onapsdk.exceptions import RequestError, ResourceNotFound, RelationshipNotFound
 from onapsdk.utils.gui import GuiList
 
-@mock.patch.object(AaiElement, "send_message_json")
-@mock.patch.object(AaiElement, "url")
+@mock.patch.object(AaiResource, "send_message_json")
+@mock.patch.object(AaiResource, "url")
 def test_relationship_not_found(mock_send, mock_url):
 
-    aai_element = AaiElement()
+    aai_element = AaiResource()
     mock_url.return_value = "http://my.url/"
 
     mock_send.side_effect = ResourceNotFound
@@ -38,9 +38,9 @@ def test_relationship_get_relationship_data():
     assert r.get_relationship_data("invalid key") is None
     assert r.get_relationship_data("test") == "test"
 
-@mock.patch.object(AaiElement, "send_message")
+@mock.patch.object(AaiResource, "send_message")
 def test_get_guis(send_message_mock):
-    component = AaiElement()
+    component = AaiResource()
     send_message_mock.return_value.status_code = 200
     send_message_mock.return_value.url = "https://aai.api.sparky.simpledemo.onap.org:30220/services/aai/webapp/index.html#/browse"
     gui_results = component.get_guis()

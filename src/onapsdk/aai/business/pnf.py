@@ -138,6 +138,16 @@ class PnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
         """
         return f"PnfInstance(pnf_name={self.pnf_name})"
 
+    @classmethod
+    def get_all_url(cls) -> str:  # pylint: disable=arguments-differ
+        """Return an url to get all pnfs.
+
+        Returns:
+            str: Url to get all pnfs
+
+        """
+        return f"{cls.base_url}{cls.api_version}/network/pnfs/"
+
     @property
     def url(self) -> str:
         """Network instance url.

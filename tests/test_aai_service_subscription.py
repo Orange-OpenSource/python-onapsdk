@@ -105,6 +105,15 @@ MULTIPLE_CLOUD_REGIONS_AND_TENATS_RELATIONSHIP = {
 }
 
 
+COUNT = {
+    "results":[
+        {
+            "service-subscription":1
+        }
+    ]
+}
+
+
 @mock.patch.object(ServiceSubscription, "send_message_json")
 def test_get_service_instance_by_filter_parameter(mock_send_message_json):
     """Test Service Subscription get_service_instance_by_filter_parameter method"""
@@ -165,3 +174,8 @@ def test_tenants(mock_cloud_region_get_tenant, mock_cloud_region_get_by_id, mock
                                                resource_version="test_resource_version")
     mock_send_message_json.return_value = MULTIPLE_CLOUD_REGIONS_AND_TENATS_RELATIONSHIP
     assert len(list(service_subscription.tenants)) == 2
+
+@mock.patch.object(ServiceSubscription, "send_message_json")
+def test_service_subscription_count(mock_send_message_json):
+    mock_send_message_json.return_value = COUNT
+    assert ServiceSubscription.count(customer=mock.MagicMock()) == 1

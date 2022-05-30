@@ -1,0 +1,22 @@
+{
+    "service-instance-id": "{{ service_instance.instance_id }}"
+    {% if service_instance.instance_name %}, "service-instance-name":  "{{ service_instance.instance_name }}"{% endif %}
+    {% if service_instance.service_type %}, "service-type":  "{{ service_instance.service_type }}"{% endif %}
+    {% if service_instance.service_role %}, "service-role":  "{{ service_instance.service_role }}"{% endif %}
+    {% if service_instance.environment_context %}, "environment-context":  "{{ service_instance.environment_context }}"{% endif %}
+    {% if service_instance.workload_context %}, "workload-context":  "{{ service_instance.workload_context }}"{% endif %}
+    {% if service_instance.created_at %}, "created-at":  "{{ service_instance.created_at }}"{% endif %}
+    {% if service_instance.updated_at %}, "updated-at":  "{{ service_instance.updated_at }}"{% endif %}
+    {% if service_instance.description %}, "description":  "{{ service_instance.description }}"{% endif %}
+    {% if service_instance.model_invariant_id %}, "model-invariant-id":  "{{ service_instance.model_invariant_id }}"{% endif %}
+    {% if service_instance.model_version_id %}, "model-version-id":  "{{ service_instance.model_version_id }}"{% endif %}
+    {% if service_instance.persona_model_version %}, "persona-model-version":  "{{ service_instance.persona_model_version }}"{% endif %}
+    {% if service_instance.widget_model_id %}, "widget-model-id":  "{{ service_instance.widget_model_id }}"{% endif %}
+    {% if service_instance.widget_model_version %}, "widget-model-version":  "{{ service_instance.widget_model_version }}"{% endif %}
+    {% if service_instance.bandwith_total %}, "bandwidth-total":  "{{ service_instance.bandwith_total }}"{% endif %}
+    {% if service_instance.vhn_portal_url %}, "vhn-portal-url":  "{{ service_instance.vhn_portal_url }}"{% endif %}
+    {% if service_instance.service_instance_location_id %}, "service-instance-location-id":  "{{ service_instance.service_instance_location_id }}"{% endif %}
+    {% if service_instance.selflink %}, "selflink":  "{{ service_instance.selflink }}"{% endif %}
+    {% if service_instance.orchestration_status %}, "orchestration-status":  "{{ service_instance.orchestration_status }}"{% endif %}
+    {% if service_instance.input_parameters %}, "input-parameters":  "{{ service_instance.input_parameters }}"{% endif %}
+}

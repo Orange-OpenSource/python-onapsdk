@@ -21,6 +21,14 @@ onapsdk.aai.aai\_element module
    :undoc-members:
    :show-inheritance:
 
+onapsdk.aai.bulk module
+-----------------------
+
+.. automodule:: onapsdk.aai.bulk
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 onapsdk.aai.service\_design\_and\_creation module
 -------------------------------------------------
 

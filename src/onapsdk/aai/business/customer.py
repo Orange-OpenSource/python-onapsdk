@@ -6,7 +6,7 @@ from urllib.parse import urlencode
 from onapsdk.utils.jinja import jinja_env
 from onapsdk.exceptions import APIError, ParameterError, ResourceNotFound
 
-from ..aai_element import AaiElement, Relationship
+from ..aai_element import AaiResource, Relationship
 from ..cloud_infrastructure.cloud_region import CloudRegion
 from .service import ServiceInstance
 
@@ -21,7 +21,7 @@ class ServiceSubscriptionCloudRegionTenantData:
 
 
 @dataclass
-class ServiceSubscription(AaiElement):
+class ServiceSubscription(AaiResource):
     """Service subscription class."""
 
     service_type: str
@@ -83,6 +83,17 @@ class ServiceSubscription(AaiElement):
             orchestration_status=service_instance.get("orchestration-status"),
             input_parameters=service_instance.get("input-parameters")
         )
+
+    @classmethod
+    def get_all_url(cls, customer: "Customer") -> str:  # pylint: disable=arguments-differ
+        """Return url to get all customers.
+
+        Returns:
+            str: Url to get all customers
+
+        """
+        return (f"{cls.base_url}{cls.api_version}/business/customers/"
+                f"customer/{customer.global_customer_id}/service-subscriptions/")
 
     @classmethod
     def create_from_api_response(cls,
@@ -260,18 +271,6 @@ class ServiceSubscription(AaiElement):
             except ResourceNotFound:
                 self._logger.error("Can't get %s tenant", cr_data.tenant_id)
 
-    # @property
-    # def sdc_service(self) -> "SdcService":
-    #     """Sdc service.
-
-    #     SDC service associated with service subscription.
-
-    #     Returns:
-    #         SdcService: SdcService object
-
-    #     """
-    #     return SdcService(self.service_type)
-
     def get_service_instance_by_id(self, service_instance_id) -> ServiceInstance:
         """Get service instance using it's ID.
 
@@ -335,7 +334,7 @@ class ServiceSubscription(AaiElement):
         self.add_relationship(relationship)
 
 
-class Customer(AaiElement):
+class Customer(AaiResource):
     """Customer class."""
 
     def __init__(self,
@@ -397,6 +396,16 @@ class Customer(AaiElement):
                                                             self)
 
     @classmethod
+    def get_all_url(cls) -> str:  # pylint: disable=arguments-differ
+        """Return an url to get all customers.
+
+        Returns:
+            str: URL to get all customers
+
+        """
+        return f"{cls.base_url}{cls.api_version}/business/customers"
+
+    @classmethod
     def get_all(cls,
                 global_customer_id: str = None,
                 subscriber_name: str = None,
@@ -419,8 +428,7 @@ class Customer(AaiElement):
                 "subscriber-type": subscriber_type,
             }
         )
-        url: str = (f"{cls.base_url}{cls.api_version}/business/customers?"
-                    f"{urlencode(filter_parameters)}")
+        url: str = (f"{cls.get_all_url()}?{urlencode(filter_parameters)}")
         for customer in cls.send_message_json("GET", "get customers", url).get("customer", []):
             yield Customer(
                 global_customer_id=customer["global-customer-id"],
