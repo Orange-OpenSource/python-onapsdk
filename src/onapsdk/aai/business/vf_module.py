@@ -92,6 +92,19 @@ class VfModuleInstance(Instance):  # pylint: disable=too-many-instance-attribute
                 f"is_base_vf_module={self.is_base_vf_module}, "
                 f"automated_assignment={self.automated_assignment})")
 
+    @classmethod
+    def get_all_url(cls, vnf_instance: "VnfInstance") -> str:  # pylint: disable=arguments-differ
+        """Return url to get all vf modules for vnf instance.
+
+        Args:
+            vnf_instance (VnfInstance): VNF instance object
+
+        Returns:
+            str: Url to get all vf modules for vnf instance
+
+        """
+        return f"{vnf_instance.url}/vf-modules/"
+
     @property
     def url(self) -> str:
         """Resource url.
