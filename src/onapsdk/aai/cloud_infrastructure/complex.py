@@ -4,10 +4,10 @@ from urllib.parse import urlencode
 
 from onapsdk.utils.jinja import jinja_env
 
-from ..aai_element import AaiElement
+from ..aai_element import AaiResource
 
 
-class Complex(AaiElement):  # pylint: disable=too-many-instance-attributes
+class Complex(AaiResource):  # pylint: disable=too-many-instance-attributes
     """Complex class.
 
     Collection of physical locations that can house cloud-regions.
@@ -31,7 +31,11 @@ class Complex(AaiElement):  # pylint: disable=too-many-instance-attributes
                  latitude: str = "",
                  longitude: str = "",
                  elevation: str = "",
-                 lata: str = "") -> None:
+                 lata: str = "",
+                 timezone: str = "",
+                 data_owner: str = "",
+                 data_source: str = "",
+                 data_source_version: str = "") -> None:
         """Complex object initialization.
 
         Args:
@@ -52,6 +56,12 @@ class Complex(AaiElement):  # pylint: disable=too-many-instance-attributes
             longitude (str, optional): complex geographical location longitude. Defaults to "".
             elevation (str, optional): complex elevation. Defaults to "".
             lata (str, optional): complex lata. Defaults to "".
+            timezone (str, optional): the time zone where the complex is located. Defaults to "".
+            data_owner (str, optional): Identifies the entity that is responsible managing this
+                inventory object. Defaults to "".
+            data_source (str, optional): Identifies the upstream source of the data. Defaults to "".
+            data_source_version (str, optional): Identifies the version of the upstream source.
+                Defaults to "".
 
         """
         super().__init__()
@@ -72,6 +82,10 @@ class Complex(AaiElement):  # pylint: disable=too-many-instance-attributes
         self.longitude: str = longitude
         self.elevation: str = elevation
         self.lata: str = lata
+        self.timezone: str = timezone
+        self.data_owner: str = data_owner
+        self.data_source: str = data_source
+        self.data_source_version: str = data_source_version
 
     def __repr__(self) -> str:
         """Complex object description.
@@ -114,7 +128,11 @@ class Complex(AaiElement):  # pylint: disable=too-many-instance-attributes
                latitude: str = "",
                longitude: str = "",
                elevation: str = "",
-               lata: str = "") -> "Complex":
+               lata: str = "",
+               timezone: str = "",
+               data_owner: str = "",
+               data_source: str = "",
+               data_source_version: str = "") -> "Complex":
         """Create complex.
 
         Create complex object by calling A&AI API.
@@ -142,6 +160,10 @@ class Complex(AaiElement):  # pylint: disable=too-many-instance-attributes
             longitude=longitude,
             elevation=elevation,
             lata=lata,
+            timezone=timezone,
+            data_owner=data_owner,
+            data_source=data_source,
+            data_source_version=data_source_version
         )
         payload: str = jinja_env().get_template("complex_create.json.j2").render(
             complex=complex_object)
@@ -151,6 +173,16 @@ class Complex(AaiElement):  # pylint: disable=too-many-instance-attributes
         )
         cls.send_message("PUT", "create complex", url, data=payload)
         return complex_object
+
+    @classmethod
+    def get_all_url(cls) -> str:  # pylint: disable=arguments-differ
+        """Return an url to get all complexes.
+
+        Returns:
+            str: URL to get all complexes
+
+        """
+        return f"{cls.base_url}{cls.api_version}/cloud-infrastructure/complexes"
 
     @classmethod
     def get_all(cls,
@@ -183,8 +215,7 @@ class Complex(AaiElement):  # pylint: disable=too-many-instance-attributes
                 "identity-url": identity_url,
             }
         )
-        url: str = (f"{cls.base_url}{cls.api_version}/cloud-infrastructure/"
-                    f"complexes?{urlencode(filter_parameters)}")
+        url: str = (f"{cls.get_all_url()}?{urlencode(filter_parameters)}")
         for complex_json in cls.send_message_json("GET",
                                                   "get cloud regions",
                                                   url).get("complex", []):
@@ -240,5 +271,17 @@ class Complex(AaiElement):  # pylint: disable=too-many-instance-attributes
             latitude=api_response.get("latitude"),
             longitude=api_response.get("longitude"),
             elevation=api_response.get("elevation"),
-            lata=api_response.get("lata")
+            lata=api_response.get("lata"),
+            timezone=api_response.get("time-zone"),
+            data_owner=api_response.get("data-owner"),
+            data_source=api_response.get("data-source"),
+            data_source_version=api_response.get("data-source-version")
+        )
+
+    def delete(self) -> None:
+        """Delete complex."""
+        self.send_message(
+            "DELETE",
+            f"Delete {self.physical_location_id} complex",
+            f"{self.url}?resource-version={self.resource_version}"
         )

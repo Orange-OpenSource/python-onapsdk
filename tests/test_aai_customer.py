@@ -247,6 +247,15 @@ TENANT = {
 }
 
 
+CUSTOMERS_COUNT = {
+    "results":[
+        {
+            "customer":12
+        }
+    ]
+}
+
+
 @mock.patch.object(Customer, 'send_message_json')
 def test_customer_service_tenant_relations(mock_send):
     """Test the retrieval of service/tenant relations in A&AI."""
@@ -552,3 +561,9 @@ def test_delete_cloud_region(mock_send_message):
     assert method == "DELETE"
     assert descritption == f"Delete cloud region test_cloud_region"
     assert url == cloud_region.url
+
+@mock.patch.object(Customer, "send_message_json")
+def test_customer_count(mock_send_message_json):
+    mock_send_message_json.return_value = CUSTOMERS_COUNT
+    assert Customer.count() == 12
+

@@ -15,7 +15,7 @@ class DeletionRequest(OrchestrationRequest, ABC):
     """Deletion request base class."""
 
     @classmethod
-    def send_request(cls, instance: "AaiElement", a_la_carte: bool = True) -> "Deletion":
+    def send_request(cls, instance: "AaiResource", a_la_carte: bool = True) -> "Deletion":
         """Abstract method to send instance deletion request.
 
         Raises:
