@@ -57,6 +57,15 @@ PNF_INSTANCE = {
 }
 
 
+COUNT = {
+    "results":[
+        {
+            "pnf":12
+        }
+    ]
+}
+
+
 def test_create_pnf_instance_from_api_response():
     service_instance = mock.MagicMock()
     pnf_instance = PnfInstance.create_from_api_response(
@@ -112,3 +121,8 @@ def test_pnf_instance_pnf():
     assert pnf == pnf_instance.pnf
     assert pnf_instance._pnf is not None
     assert pnf_instance.pnf == pnf_instance._pnf
+
+@mock.patch.object(PnfInstance, "send_message_json")
+def test_pnf_count(mock_send_message_json):
+    mock_send_message_json.return_value = COUNT
+    assert PnfInstance.count() == 12
