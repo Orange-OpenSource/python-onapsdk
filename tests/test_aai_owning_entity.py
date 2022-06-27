@@ -44,8 +44,7 @@ def test_owning_entity_get_all(mock_send):
     assert owning_entity.name == "OE-Generic"
     assert owning_entity.url == (f"{owning_entity.base_url}{owning_entity.api_version}/"
                                  "business/owning-entities/owning-entity/"
-                                 f"{owning_entity.owning_entity_id}?resource-version="
-                                 f"{owning_entity.resource_version}")
+                                 f"{owning_entity.owning_entity_id}")
 
 
 @mock.patch.object(OwningEntity, "send_message_json")

@@ -43,7 +43,7 @@ class OwningEntity(AaiResource):
 
         """
         return (f"{self.base_url}{self.api_version}/business/owning-entities/owning-entity/"
-                f"{self.owning_entity_id}?resource-version={self.resource_version}")
+                f"{self.owning_entity_id}")
 
     @classmethod
     def get_all_url(cls) -> str:  # pylint: disable=arguments-differ
