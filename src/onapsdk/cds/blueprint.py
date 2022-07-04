@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from io import BytesIO
 from typing import Any, Dict, Generator, Iterator, List, Optional
-from urllib.parse import urlencode, urljoin
+from urllib.parse import urlencode
 from uuid import uuid4
 from zipfile import ZipFile
 
@@ -406,15 +406,15 @@ class ResolvedTemplate(CdsElement):
             str: Retrieve resolved template url
 
         """
-        params_dict: Dict[str, str] = {
+        params_dict: Dict[str, str] = urlencode(dict(filter(lambda item: item[1] is not None, {
             "bpName": self.blueprint.metadata.template_name,
             "bpVersion": self.blueprint.metadata.template_version,
             "artifactName": self.artifact_name,
             "resolutionKey": self.resolution_key,
             "resourceType": self.resource_type,
             "resourceId": self.resource_id
-        }
-        return f"{self.url}?{urlencode(dict(filter(lambda item: item[1] is not None, params_dict.items())))}"
+        }.items())))
+        return f"{self.url}?{params_dict}"
 
     def get_resolved_template(self) -> Dict[str, str]:
         """Get resolved template.
