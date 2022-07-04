@@ -5,7 +5,8 @@ import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from io import BytesIO
-from typing import Any, Dict, Generator, Iterator, List
+from typing import Any, Dict, Generator, Iterator, List, Optional
+from urllib.parse import urlencode
 from uuid import uuid4
 from zipfile import ZipFile
 
@@ -353,6 +354,142 @@ class Workflow(CdsElement):
         return response["payload"]
 
 
+class ResolvedTemplate(CdsElement):
+    """Resolved template class.
+
+    Store and retrieve rendered template results.
+    """
+
+    def __init__(self, blueprint: "Blueprint",  # pylint: disable=too-many-arguments
+                 artifact_name: Optional[str] = None,
+                 resolution_key: Optional[str] = None,
+                 resource_id: Optional[str] = None,
+                 resource_type: Optional[str] = None) -> None:
+        """Init resolved template class instance.
+
+        Args:
+            blueprint (Blueprint): Blueprint object.
+            artifact_name (Optional[str], optional): Artifact name for which to retrieve
+                a resolved resource. Defaults to None.
+            resolution_key (Optional[str], optional): Resolution Key associated with
+                the resolution. Defaults to None.
+            resource_id (Optional[str], optional): Resource Id associated with
+                the resolution. Defaults to None.
+            resource_type (Optional[str], optional): Resource Type associated
+                with the resolution. Defaults to None.
+
+        """
+        super().__init__()
+        self.blueprint: "Blueprint" = blueprint
+        self.artifact_name: Optional[str] = artifact_name
+        self.resolution_key: Optional[str] = resolution_key
+        self.resource_id: Optional[str] = resource_id
+        self.resource_type: Optional[str] = resource_type
+
+    @property
+    def url(self) -> str:
+        """Url property.
+
+        Returns:
+            str: Url
+
+        """
+        return f"{self._url}/api/v1/template"
+
+    @property
+    def resolved_template_url(self) -> str:
+        """Url to retrieve resolved template.
+
+        Filter None parameters.
+
+        Returns:
+            str: Retrieve resolved template url
+
+        """
+        params_dict: Dict[str, str] = urlencode(dict(filter(lambda item: item[1] is not None, {
+            "bpName": self.blueprint.metadata.template_name,
+            "bpVersion": self.blueprint.metadata.template_version,
+            "artifactName": self.artifact_name,
+            "resolutionKey": self.resolution_key,
+            "resourceType": self.resource_type,
+            "resourceId": self.resource_id
+        }.items())))
+        return f"{self.url}?{params_dict}"
+
+    def get_resolved_template(self) -> Dict[str, str]:
+        """Get resolved template.
+
+        Returns:
+            Dict[str, str]: Resolved template
+
+        """
+        return self.send_message_json(
+            "GET",
+            f"Get resolved template {self.artifact_name} for "
+            f"{self.blueprint.metadata.template_name} version "
+            f"{self.blueprint.metadata.template_version}",
+            self.resolved_template_url,
+            auth=self.auth
+        )
+
+    def store_resolved_template(self, resolved_template: str) -> None:
+        """Store resolved template.
+
+        Args:
+            resolved_template (str): Template to store
+
+        Raises:
+            ParameterError: To store template it's needed to pass artifact name and:
+             - resolution key, or
+             - resource type and resource id.
+            If not all needed parameters are given that exception will be raised.
+
+        """
+        if self.artifact_name and self.resolution_key:
+            return self.store_resolved_template_with_resolution_key(resolved_template)
+        if self.artifact_name and self.resource_type and self.resource_id:
+            return self.store_resolved_template_with_resource_type_and_id(resolved_template)
+        raise ParameterError("To store template artifact name with resolution key or both "
+                             "resource type and id is needed")
+
+    def store_resolved_template_with_resolution_key(self, resolved_template: str) -> None:
+        """Store template using resolution key.
+
+        Args:
+            resolved_template (str): Template to store
+
+        """
+        return self.send_message(
+            "POST",
+            f"Store resolved template {self.artifact_name} for "
+            f"{self.blueprint.metadata.template_name} version "
+            f"{self.blueprint.metadata.template_version}",
+            f"{self.url}/{self.blueprint.metadata.template_name}/"
+            f"{self.blueprint.metadata.template_version}/{self.artifact_name}/"
+            f"{self.resolution_key}",
+            auth=self.auth,
+            data=resolved_template
+        )
+
+    def store_resolved_template_with_resource_type_and_id(self, resolved_template: str) -> None:
+        """Store template using resource type and resource ID.
+
+        Args:
+            resolved_template (str): Template to store
+
+        """
+        return self.send_message(
+            "POST",
+            f"Store resolved template {self.artifact_name} for "
+            f"{self.blueprint.metadata.template_name} version "
+            f"{self.blueprint.metadata.template_version}",
+            f"{self.url}/{self.blueprint.metadata.template_name}/"
+            f"{self.blueprint.metadata.template_version}/{self.artifact_name}/"
+            f"{self.resource_type}/{self.resource_id}",
+            auth=self.auth,
+            data=resolved_template
+        )
+
 class Blueprint(CdsElement):
     """CDS blueprint representation."""
 
@@ -616,3 +753,27 @@ class Blueprint(CdsElement):
             return next(filter(lambda workflow: workflow.name == workflow_name, self.workflows))
         except StopIteration:
             raise ParameterError("Workflow with given name does not exist")
+
+    def get_resolved_template(self, artifact_name: str, resolution_key: str) -> Dict[str, str]:
+        """Get resolved template for Blueprint.
+
+        Args:
+            artifact_name (str): Resolved template's artifact name
+            resolution_key (str): Resolved template's resolution key
+
+        Returns:
+            Dict[str, str]: Resolved template
+
+        """
+        return ResolvedTemplate(self, artifact_name, resolution_key).get_resolved_template()
+
+    def store_resolved_template(self, artifact_name: str, resolution_key: str, data: str) -> None:
+        """Store resolved template for Blueprint.
+
+        Args:
+            artifact_name (str): Resolved template's artifact name
+            resolution_key (str): Resolved template's resolution key
+            data (str): Resolved template
+
+        """
+        ResolvedTemplate(self, artifact_name, resolution_key).store_resolved_template(data)
