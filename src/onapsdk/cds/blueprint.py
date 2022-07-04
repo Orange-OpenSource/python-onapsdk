@@ -360,7 +360,7 @@ class ResolvedTemplate(CdsElement):
     Store and retrieve rendered template results.
     """
 
-    def __init__(self, blueprint: "Blueprint",
+    def __init__(self, blueprint: "Blueprint",  # pylint: disable=too-many-arguments
                  artifact_name: Optional[str] = None,
                  resolution_key: Optional[str] = None,
                  resource_id: Optional[str] = None,
@@ -369,12 +369,17 @@ class ResolvedTemplate(CdsElement):
 
         Args:
             blueprint (Blueprint): Blueprint object.
-            artifact_name (Optional[str], optional): Artifact name for which to retrieve a resolved resource. Defaults to None.
-            resolution_key (Optional[str], optional): Resolution Key associated with the resolution. Defaults to None.
-            resource_id (Optional[str], optional): Resource Id associated with the resolution. Defaults to None.
-            resource_type (Optional[str], optional): Resource Type associated with the resolution. Defaults to None.
+            artifact_name (Optional[str], optional): Artifact name for which to retrieve
+                a resolved resource. Defaults to None.
+            resolution_key (Optional[str], optional): Resolution Key associated with
+                the resolution. Defaults to None.
+            resource_id (Optional[str], optional): Resource Id associated with
+                the resolution. Defaults to None.
+            resource_type (Optional[str], optional): Resource Type associated
+                with the resolution. Defaults to None.
 
         """
+        super().__init__()
         self.blueprint: "Blueprint" = blueprint
         self.artifact_name: Optional[str] = artifact_name
         self.resolution_key: Optional[str] = resolution_key
@@ -383,7 +388,7 @@ class ResolvedTemplate(CdsElement):
 
     @property
     def url(self) -> str:
-        """Base url property.
+        """Url property.
 
         Returns:
             str: Url
@@ -750,7 +755,7 @@ class Blueprint(CdsElement):
             raise ParameterError("Workflow with given name does not exist")
 
     def get_resolved_template(self, artifact_name: str, resolution_key: str) -> Dict[str, str]:
-        """Get resolved template for Blueprint
+        """Get resolved template for Blueprint.
 
         Args:
             artifact_name (str): Resolved template's artifact name
@@ -763,7 +768,7 @@ class Blueprint(CdsElement):
         return ResolvedTemplate(self, artifact_name, resolution_key).get_resolved_template()
 
     def store_resolved_template(self, artifact_name: str, resolution_key: str, data: str) -> None:
-        """Store resolved template for Blueprint
+        """Store resolved template for Blueprint.
 
         Args:
             artifact_name (str): Resolved template's artifact name
