@@ -345,6 +345,30 @@ def test_get_guis(send_message_mock):
 
 @patch.object(ResolvedTemplate, "send_message_json")
 @patch.object(CdsElement, "_url", new_callable=PropertyMock)
+def test_blueprint_get_resolved_template(cds_element_url_property_mock, mock_send_message_json):
+    cds_element_url_property_mock.return_value = "http://127.0.0.1"
+
+    with open(Path(Path(__file__).resolve().parent, "data/vLB_CBA_Python.zip"), "rb") as cba_file:
+        b = Blueprint(cba_file.read())
+    b.get_resolved_template("test_artifact")
+    assert mock_send_message_json.called_once()
+    assert mock_send_message_json.call_args[0][2] == 'http://127.0.0.1/api/v1/template?bpName=vDNS-CDS-test1&bpVersion=1.0&artifactName=test_artifact&format=application%2Fjson'
+
+
+@patch.object(ResolvedTemplate, "send_message")
+@patch.object(CdsElement, "_url", new_callable=PropertyMock)
+def test_blueprint_store_resolved_template(cds_element_url_property_mock, mock_send_message):
+    cds_element_url_property_mock.return_value = "http://127.0.0.1"
+
+    with open(Path(Path(__file__).resolve().parent, "data/vLB_CBA_Python.zip"), "rb") as cba_file:
+        b = Blueprint(cba_file.read())
+    b.store_resolved_template("test_artifact", resolution_key="resolution_key", data={"a": "b"})
+    assert mock_send_message.called_once()
+    assert mock_send_message.call_args[0][2] == 'http://127.0.0.1/api/v1/template/vDNS-CDS-test1/1.0/test_artifact/resolution_key'
+
+
+@patch.object(ResolvedTemplate, "send_message_json")
+@patch.object(CdsElement, "_url", new_callable=PropertyMock)
 def test_resolved_template_get_template_url(cds_element_url_property_mock, mock_send_message_json):
     cds_element_url_property_mock.return_value = "http://127.0.0.1"
     blueprint = MagicMock()
@@ -353,7 +377,7 @@ def test_resolved_template_get_template_url(cds_element_url_property_mock, mock_
     rt = ResolvedTemplate(blueprint, "test_artifact")
     rt.get_resolved_template()
     assert mock_send_message_json.called_once()
-    assert mock_send_message_json.call_args[0][2] == 'http://127.0.0.1/api/v1/template?bpName=test_blueprint&bpVersion=v1.0.0&artifactName=test_artifact'
+    assert mock_send_message_json.call_args[0][2] == 'http://127.0.0.1/api/v1/template?bpName=test_blueprint&bpVersion=v1.0.0&artifactName=test_artifact&format=application%2Fjson'
 
     mock_send_message_json.reset_mock()
     blueprint = MagicMock()
@@ -362,7 +386,7 @@ def test_resolved_template_get_template_url(cds_element_url_property_mock, mock_
     rt = ResolvedTemplate(blueprint, resolution_key="test_rk")
     rt.get_resolved_template()
     assert mock_send_message_json.called_once()
-    assert mock_send_message_json.call_args[0][2] == 'http://127.0.0.1/api/v1/template?bpName=test_blueprint&bpVersion=v1.0.0&resolutionKey=test_rk'
+    assert mock_send_message_json.call_args[0][2] == 'http://127.0.0.1/api/v1/template?bpName=test_blueprint&bpVersion=v1.0.0&resolutionKey=test_rk&format=application%2Fjson'
 
     mock_send_message_json.reset_mock()
     blueprint = MagicMock()
@@ -371,7 +395,7 @@ def test_resolved_template_get_template_url(cds_element_url_property_mock, mock_
     rt = ResolvedTemplate(blueprint, resource_id="r_id", resource_type="r_type")
     rt.get_resolved_template()
     assert mock_send_message_json.called_once()
-    assert mock_send_message_json.call_args[0][2] == 'http://127.0.0.1/api/v1/template?bpName=test_blueprint&bpVersion=v1.0.0&resourceType=r_type&resourceId=r_id'
+    assert mock_send_message_json.call_args[0][2] == 'http://127.0.0.1/api/v1/template?bpName=test_blueprint&bpVersion=v1.0.0&resourceType=r_type&resourceId=r_id&format=application%2Fjson'
 
 
 @patch.object(ResolvedTemplate, "send_message")

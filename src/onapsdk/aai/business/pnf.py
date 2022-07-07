@@ -1,6 +1,6 @@
 """Pnf instance module."""
 
-from typing import Optional, TYPE_CHECKING
+from typing import Iterator, Optional, TYPE_CHECKING
 
 from onapsdk.exceptions import ResourceNotFound
 from .instance import Instance
@@ -147,6 +147,21 @@ class PnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
 
         """
         return f"{cls.base_url}{cls.api_version}/network/pnfs/"
+
+    @classmethod
+    def get_all(cls) -> Iterator["PnfInstance"]:
+        """Get all PNF instances.
+
+        Yields:
+            PnfInstance: Pnf instance
+
+        """
+        for pnf_data in cls.send_message_json(
+            "GET",
+            "Get all pnf instances",
+            cls.get_all_url()
+        ).get("pnf", []):
+            yield cls.create_from_api_response(pnf_data, None)
 
     @property
     def url(self) -> str:
