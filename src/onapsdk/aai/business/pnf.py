@@ -156,10 +156,10 @@ class PnfInstance(Instance):  # pylint: disable=too-many-instance-attributes
             PnfInstance: Pnf instance
 
         """
-        for pnf_data in cls.send_message_json(
-            "GET",
-            "Get all pnf instances",
-            cls.get_all_url()
+        for pnf_data in cls.send_message_json( \
+            "GET", \
+            "Get all pnf instances", \
+            cls.get_all_url() \
         ).get("pnf", []):
             yield cls.create_from_api_response(pnf_data, None)
 
