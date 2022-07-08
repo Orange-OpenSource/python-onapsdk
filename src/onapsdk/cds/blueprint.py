@@ -382,11 +382,8 @@ class ResolvedTemplate(CdsElement):
             occurrence (Optional[str], optional): Occurrence of the template resolution (1-n).
                 Defaults to None.
             response_format (str): Expected format of the template being retrieved.
-                Default to "application/json".
 
         """
-        super().__init__()
-        self.blueprint: "Blueprint" = blueprint
         self.artifact_name: Optional[str] = artifact_name
         self.resolution_key: Optional[str] = resolution_key
         self.resource_id: Optional[str] = resource_id
