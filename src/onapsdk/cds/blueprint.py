@@ -364,7 +364,9 @@ class ResolvedTemplate(CdsElement):
                  artifact_name: Optional[str] = None,
                  resolution_key: Optional[str] = None,
                  resource_id: Optional[str] = None,
-                 resource_type: Optional[str] = None) -> None:
+                 resource_type: Optional[str] = None,
+                 occurrence: Optional[str] = None,
+                 response_format: str = "application/json") -> None:
         """Init resolved template class instance.
 
         Args:
@@ -377,6 +379,9 @@ class ResolvedTemplate(CdsElement):
                 the resolution. Defaults to None.
             resource_type (Optional[str], optional): Resource Type associated
                 with the resolution. Defaults to None.
+            occurrence (Optional[str], optional): Occurrence of the template resolution (1-n).
+                Defaults to None.
+            response_format (str): Expected format of the template being retrieved.
 
         """
         super().__init__()
@@ -385,6 +390,8 @@ class ResolvedTemplate(CdsElement):
         self.resolution_key: Optional[str] = resolution_key
         self.resource_id: Optional[str] = resource_id
         self.resource_type: Optional[str] = resource_type
+        self.occurrence: Optional[str] = occurrence
+        self.response_format: str = response_format
 
     @property
     def url(self) -> str:
@@ -412,7 +419,9 @@ class ResolvedTemplate(CdsElement):
             "artifactName": self.artifact_name,
             "resolutionKey": self.resolution_key,
             "resourceType": self.resource_type,
-            "resourceId": self.resource_id
+            "resourceId": self.resource_id,
+            "occurrence": self.occurrence,
+            "format": self.response_format
         }.items())))
         return f"{self.url}?{params_dict}"
 
@@ -754,26 +763,56 @@ class Blueprint(CdsElement):
         except StopIteration:
             raise ParameterError("Workflow with given name does not exist")
 
-    def get_resolved_template(self, artifact_name: str, resolution_key: str) -> Dict[str, str]:
+    def get_resolved_template(self,  # pylint: disable=too-many-arguments
+                              artifact_name: str,
+                              resolution_key: Optional[str] = None,
+                              resource_type: Optional[str] = None,
+                              resource_id: Optional[str] = None,
+                              occurrence: Optional[str] = None) -> Dict[str, str]:
         """Get resolved template for Blueprint.
 
         Args:
             artifact_name (str): Resolved template's artifact name
-            resolution_key (str): Resolved template's resolution key
+            resolution_key (Optional[str], optional): Resolved template's resolution key.
+                Defaults to None.
+            resource_type (Optional[str], optional): Resolved template's resource type.
+                Defaults to None.
+            resource_id (Optional[str], optional): Resolved template's resource ID.
+                Defaults to None.
+            occurrence: (Optional[str], optional): Resolved template's occurrence value.
+                Defaults to None.
 
         Returns:
             Dict[str, str]: Resolved template
 
         """
-        return ResolvedTemplate(self, artifact_name, resolution_key).get_resolved_template()
+        return ResolvedTemplate(blueprint=self,
+                                artifact_name=artifact_name,
+                                resolution_key=resolution_key,
+                                resource_type=resource_type,
+                                resource_id=resource_id,
+                                occurrence=occurrence).get_resolved_template()
 
-    def store_resolved_template(self, artifact_name: str, resolution_key: str, data: str) -> None:
+    def store_resolved_template(self,  # pylint: disable=too-many-arguments
+                                artifact_name: str,
+                                data: str,
+                                resolution_key: Optional[str] = None,
+                                resource_type: Optional[str] = None,
+                                resource_id: Optional[str] = None) -> None:
         """Store resolved template for Blueprint.
 
         Args:
             artifact_name (str): Resolved template's artifact name
-            resolution_key (str): Resolved template's resolution key
             data (str): Resolved template
-
+            resolution_key (Optional[str], optional): Resolved template's resolution key.
+                Defaults to None.
+            resource_type (Optional[str], optional): Resolved template's resource type.
+                Defaults to None.
+            resource_id (Optional[str], optional): Resolved template's resource ID.
+                Defaults to None.
         """
-        ResolvedTemplate(self, artifact_name, resolution_key).store_resolved_template(data)
+        ResolvedTemplate(blueprint=self,
+                         artifact_name=artifact_name,
+                         resolution_key=resolution_key,
+                         resource_type=resource_type,
+                         resource_id=resource_id).store_resolved_template(data)

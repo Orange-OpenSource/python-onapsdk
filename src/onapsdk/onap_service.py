@@ -147,8 +147,8 @@ class OnapService(ABC):
                 "[%s][%s] response: %s",
                 cls.server, action,
                 response.text if (response is not None and
-                                  response.headers.get("Content-Type", "") == \
-                                      "application/json") else "n/a")
+                                  response.headers.get("Content-Type", "") in \
+                                      ["application/json", "text/plain"]) else "n/a")
 
             response.raise_for_status()
             return response
