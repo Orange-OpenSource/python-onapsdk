@@ -366,7 +366,7 @@ class ResolvedTemplate(CdsElement):
                  resource_id: Optional[str] = None,
                  resource_type: Optional[str] = None,
                  occurrence: Optional[str] = None,
-                 format: str = "application/json") -> None:
+                 response_format: str = "application/json") -> None:
         """Init resolved template class instance.
 
         Args:
@@ -381,7 +381,7 @@ class ResolvedTemplate(CdsElement):
                 with the resolution. Defaults to None.
             occurrence (Optional[str], optional): Occurrence of the template resolution (1-n).
                 Defaults to None.
-            format (str): Expected format of the template being retrieved.
+            response_format (str): Expected format of the template being retrieved.
                 Default to "application/json".
 
         """
@@ -392,7 +392,7 @@ class ResolvedTemplate(CdsElement):
         self.resource_id: Optional[str] = resource_id
         self.resource_type: Optional[str] = resource_type
         self.occurrence: Optional[str] = occurrence
-        self.format: str = format
+        self.response_format: str = response_format
 
     @property
     def url(self) -> str:
@@ -422,7 +422,7 @@ class ResolvedTemplate(CdsElement):
             "resourceType": self.resource_type,
             "resourceId": self.resource_id,
             "occurrence": self.occurrence,
-            "format": self.format
+            "format": self.response_format
         }.items())))
         return f"{self.url}?{params_dict}"
 
@@ -764,7 +764,7 @@ class Blueprint(CdsElement):
         except StopIteration:
             raise ParameterError("Workflow with given name does not exist")
 
-    def get_resolved_template(self,
+    def get_resolved_template(self,  # pylint: disable=too-many-arguments
                               artifact_name: str,
                               resolution_key: Optional[str] = None,
                               resource_type: Optional[str] = None,
@@ -794,7 +794,7 @@ class Blueprint(CdsElement):
                                 resource_id=resource_id,
                                 occurrence=occurrence).get_resolved_template()
 
-    def store_resolved_template(self,
+    def store_resolved_template(self,  # pylint: disable=too-many-arguments
                                 artifact_name: str,
                                 data: str,
                                 resolution_key: Optional[str] = None,
@@ -809,7 +809,8 @@ class Blueprint(CdsElement):
                 Defaults to None.
             resource_type (Optional[str], optional): Resolved template's resource type.
                 Defaults to None.
-            resource_id (Optional[str], optional): Resolved template's resource ID. Defaults to None.
+            resource_id (Optional[str], optional): Resolved template's resource ID.
+                Defaults to None.
         """
         ResolvedTemplate(blueprint=self,
                          artifact_name=artifact_name,
