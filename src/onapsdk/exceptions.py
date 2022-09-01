@@ -3,6 +3,9 @@
 # SPDX-License-Identifier: Apache-2.0
 """ONAP Exception module."""
 
+from typing import Optional
+
+
 class SDKException(Exception):
     """Generic exception for ONAP SDK."""
 
@@ -17,6 +20,42 @@ class ConnectionFailed(RequestError):
 
 class APIError(RequestError):
     """API error occured."""
+
+    def __init__(self, message: Optional[str] = None, response_status_code: Optional[int] = None) -> None:
+        """Api error exception init.
+
+        Save message and optional response status code.
+
+        Args:
+            message (Optional[str]): Response error message. Defaults to None.
+            response_status_code (Optional[int], optional): Response status code. Defaults to None.
+
+        """
+        if message:
+            super().__init__(message)
+        else:
+            super().__init__()
+        self._response_status_code: int = response_status_code if response_status_code else 0
+
+    @property
+    def response_status_code(self) -> int:
+        """Response status code property.
+
+        Returns:
+            int: Response status code. If not set, returns 0
+
+        """
+        return self._response_status_code
+
+    @response_status_code.setter
+    def response_status_code(self, status_code: int) -> None:
+        """Response status code property setter.
+
+        Args:
+            status_code (int): Response status code
+
+        """
+        self._response_status_code = status_code
 
 
 class InvalidResponse(RequestError):
