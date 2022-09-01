@@ -21,8 +21,10 @@ class ConnectionFailed(RequestError):
 class APIError(RequestError):
     """API error occured."""
 
-    def __init__(self, message: Optional[str] = None, response_status_code: Optional[int] = None) -> None:
-        """Api error exception init.
+    def __init__(self,
+                 message: Optional[str] = None,
+                 response_status_code: Optional[int] = None) -> None:
+        """Init api error exception.
 
         Save message and optional response status code.
 
