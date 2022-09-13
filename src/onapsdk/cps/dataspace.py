@@ -2,20 +2,11 @@
 """ONAP SDK CPS dataspace module."""
 
 from typing import Any, Dict, Iterable
-
+from onapsdk.exceptions import (APIError, ResourceNotFound)
 from .anchor import Anchor
 from .cps_element import CpsElement
 from .schemaset import SchemaSet, SchemaSetModuleReference
-from onapsdk.exceptions import (
-    RequestError, APIError, ResourceNotFound, InvalidResponse,
-    ConnectionFailed, NoGuiError
-)
-from urllib3.util.retry import Retry
 
-from requests.adapters import HTTPAdapter
-from requests import (  # pylint: disable=redefined-builtin
-    HTTPError, RequestException, ConnectionError
-)
 
 class Dataspace(CpsElement):
     """CPS dataspace class."""
@@ -87,7 +78,7 @@ class Dataspace(CpsElement):
                 auth=self.auth
             )
             return Anchor(name=anchor_name, schema_set=schema_set)
-        except APIError as error :
+        except APIError as error:
             msg = f'Code: {error.response.status_code}. Info: {error.response.text}.' # pylint: disable=E1101
             if error.response.status_code != 200:
                 #exc = ResourceNotFound(msg)
