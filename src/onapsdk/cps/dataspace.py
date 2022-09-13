@@ -80,7 +80,7 @@ class Dataspace(CpsElement):
             return Anchor(name=anchor_name, schema_set=schema_set)
         except APIError as error:
             msg = f'Code: {error.response.status_code}. Info: {error.response.text}.' # pylint: disable=E1101
-            if error.response.status_code != 200:
+            if error.response.status_code != 200: # pylint: disable=E1101
                 #exc = ResourceNotFound(msg)
                 raise ResourceNotFound(msg) from error
             string = str(error)
