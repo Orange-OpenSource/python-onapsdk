@@ -79,15 +79,15 @@ class Dataspace(CpsElement):
             )
             return Anchor(name=anchor_name, schema_set=schema_set)
         except APIError as error:
-            msg = f'Code: {error.response.status_code}. Info: {error.response.text}.' # pylint: disable=E1101
-            if error.response.status_code != 200: # pylint: disable=E1101
+            msg = f'Code: {error.response.status_code}. Info: {error.response.text}.' # pylint: disable=no-member
+            if error.response.status_code != 200: # pylint: disable=no-member
                 #exc = ResourceNotFound(msg)
                 raise ResourceNotFound(msg) from error
             string = str(error)
             if 'Dataspace' in string:
-                print('Dataspace does not exist')
                 raise ResourceNotFound(msg) from error
             raise
+
     def get_anchors(self) -> Iterable[Anchor]:
         """Get all dataspace's anchors.
 

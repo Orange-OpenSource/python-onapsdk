@@ -164,6 +164,8 @@ class OnapService(ABC):
             else:
                 exc = APIError(msg)
 
+            exc.response_status_code = cause.response.status_code
+
             raise exc from cause
 
         except ConnectionError as cause:
