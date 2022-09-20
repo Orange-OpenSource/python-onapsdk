@@ -225,3 +225,11 @@ def test_anchor_delete_nodes(mock_send_message):
     mock_send_message.assert_called_once()
     url = mock_send_message.call_args[0][2]
     assert "xpath=test-xpath" in url
+
+@mock.patch("onapsdk.cps.Dataspace.send_message")
+def test_creating(mock_requests):
+    ds = Dataspace(name="test_creating_anchor")
+    mock_requests.exceptions = requests.exceptions
+    mock_requests.side_effect = APIError('Dataspace not found', 400)
+    with pytest.raises(ResourceNotFound):
+        ds.create_anchor(mock.MagicMock(), "test_creating_anchor")
