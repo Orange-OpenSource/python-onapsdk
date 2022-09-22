@@ -79,9 +79,8 @@ class Dataspace(CpsElement):
             )
             return Anchor(name=anchor_name, schema_set=schema_set)
         except APIError as error:
-            msg = f'Code: {error.response_status_code}'
-            if (error.response_status_code == 400 and 'Dataspace not found' in str(error)) :
-                raise ResourceNotFound(msg) from error
+            if (error.response_status_code == 400 and 'Dataspace not found' in str(error)):
+                raise ResourceNotFound(error) from error
             raise
 
     def get_anchors(self) -> Iterable[Anchor]:

@@ -315,3 +315,4 @@ class OnapService(ABC):
     def get_guis(cls):
         """Return the list of GUI and its status."""
         raise NoGuiError
+        
