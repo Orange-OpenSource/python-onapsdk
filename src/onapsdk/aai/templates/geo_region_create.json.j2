@@ -1,0 +1,10 @@
+{
+    {% if geo_region_name is not none %}"geo-region-name": "{{ geo_region_name }}",{% endif %}
+    {% if geo_region_type is not none %}"geo-region-type": "{{ geo_region_type }}",{% endif %}
+    {% if geo_region_role is not none %}"geo-region-role": "{{ geo_region_role }}",{% endif %}
+    {% if geo_region_function is not none %}"geo-region-function": "{{ geo_region_function }}",{% endif %}
+    {% if data_owner is not none %}"data-owner": "{{ data_owner }}",{% endif %}
+    {% if data_source is not none %}"data-source": "{{ data_source }}",{% endif %}
+    {% if data_source_version is not none %}"data-source-version": "{{ data_source_version }}",{% endif %}
+    "geo-region-id": "{{ geo_region_id }}"
+}
