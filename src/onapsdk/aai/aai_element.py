@@ -101,7 +101,7 @@ class AaiResource(AaiElement):
         """Resource's url.
 
         Returns:
-            str: Resource's urldataclasse init a field
+            str: Resource's url
 
         """
         raise NotImplementedError

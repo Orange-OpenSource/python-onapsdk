@@ -1,0 +1,16 @@
+{
+    {% if site_resource_name is not none %}"site-resource-name": "{{ site_resource_name }}",{% endif %}
+    {% if description is not none %}"description": "{{ description }}",{% endif %}
+    {% if site_resource_type is not none %}"type": "{{ site_resource_type }}",{% endif %}
+    {% if role is not none %}"role": "{{ role }}",{% endif %}
+    {% if generated_site_id is not none %}"generated-site-id": "{{ generated_site_id }}",{% endif %}
+    {% if selflink is not none %}"selflink": "{{ selflink }}",{% endif %}
+    {% if operational_status is not none %}"operational-status": "{{ operational_status }}",{% endif %}
+    {% if model_customization_id is not none %}"model-customization-id": "{{ model_customization_id }}",{% endif %}
+    {% if model_invariant_id is not none %}"model-invariant-id": "{{ model_invariant_id }}",{% endif %}
+    {% if model_version_id is not none %}"model-version-id": "{{ model_version_id }}",{% endif %}
+    {% if data_owner is not none %}"data-owner": "{{ data_owner }}",{% endif %}
+    {% if data_source is not none %}"data-source": "{{ data_source }}",{% endif %}
+    {% if data_source_version is not none %}"data-source-version": "{{ data_source_version }}",{% endif %}
+    "site-resource-id": "{{ site_resource_id }}"
+}
