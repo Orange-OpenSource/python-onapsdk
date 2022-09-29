@@ -92,15 +92,21 @@ class Dataspace(CpsElement):
             Iterator[Anchor]: Anchor object
 
         """
-        for anchor_data in self.send_message_json(\
-            "GET",\
-            "Get all CPS dataspace anchors",\
-            f"{self.url}/anchors",\
-            auth=self.auth\
-        ):
-            yield Anchor(name=anchor_data["name"],
-                         schema_set=SchemaSet(name=anchor_data["schemaSetName"],
-                                              dataspace=self))
+        try:
+            for anchor_data in self.send_message_json(\
+                "GET",\
+                "Get all CPS dataspace anchors",\
+                f"{self.url}/anchors",\
+                auth=self.auth\
+            ):
+                yield Anchor(name=anchor_data["name"],
+                            schema_set=SchemaSet(name=anchor_data["schemaSetName"],
+                                                dataspace=self))
+
+        except APIError as error:
+            if (error.response_status_code == 400 and 'Dataspace not found' in str(error)):
+                raise ResourceNotFound(error) from error
+            raise
 
     def get_anchor(self, anchor_name: str) -> Anchor:
         """Get dataspace anchor by name.
@@ -114,15 +120,21 @@ class Dataspace(CpsElement):
             Anchor: Anchor object
 
         """
-        anchor_data: Dict[str, Any] = self.send_message_json(
-            "GET",
-            f"Get {anchor_name} anchor",
-            f"{self.url}/anchors/{anchor_name}",
-            auth=self.auth
-        )
-        return Anchor(name=anchor_data["name"],
-                      schema_set=SchemaSet(name=anchor_data["schemaSetName"],
-                                           dataspace=self))
+        try:
+            anchor_data: Dict[str, Any] = self.send_message_json(
+                "GET",
+                f"Get {anchor_name} anchor",
+                f"{self.url}/anchors/{anchor_name}",
+                auth=self.auth
+            )
+            return Anchor(name=anchor_data["name"],
+                        schema_set=SchemaSet(name=anchor_data["schemaSetName"],
+                                            dataspace=self))
+
+        except APIError as error:
+            if (error.response_status_code == 400 and 'Dataspace not found' in str(error)):
+                raise ResourceNotFound(error) from error
+            raise
 
     def get_schema_set(self, schema_set_name: str) -> SchemaSet:
         """Get schema set by name.
@@ -134,23 +146,29 @@ class Dataspace(CpsElement):
             SchemaSet: Schema set object
 
         """
-        schema_set_data: Dict[str, Any] = self.send_message_json(
-            "GET",
-            "Get all CPS dataspace schemasets",
-            f"{self._url}/cps/api/v1/dataspaces/{self.name}/schema-sets/{schema_set_name}",
-            auth=self.auth
-        )
-        return SchemaSet(
-            name=schema_set_data["name"],
-            dataspace=self,
-            module_references=[
-                SchemaSetModuleReference(
-                    name=module_reference_data["name"],
-                    namespace=module_reference_data["namespace"],
-                    revision=module_reference_data["revision"]
-                ) for module_reference_data in schema_set_data["moduleReferences"]
-            ]
-        )
+        try:
+            schema_set_data: Dict[str, Any] = self.send_message_json(
+                "GET",
+                "Get all CPS dataspace schemasets",
+                f"{self._url}/cps/api/v1/dataspaces/{self.name}/schema-sets/{schema_set_name}",
+                auth=self.auth
+            )
+            return SchemaSet(
+                name=schema_set_data["name"],
+                dataspace=self,
+                module_references=[
+                    SchemaSetModuleReference(
+                        name=module_reference_data["name"],
+                        namespace=module_reference_data["namespace"],
+                        revision=module_reference_data["revision"]
+                    ) for module_reference_data in schema_set_data["moduleReferences"]
+                ]
+            )
+
+        except APIError as error:
+            if (error.response_status_code == 400 and 'Dataspace not found' in str(error)):
+                raise ResourceNotFound(error) from error
+            raise
 
     def create_schema_set(self, schema_set_name: str, schema_set: bytes) -> SchemaSet:
         """Create schema set.
@@ -165,17 +183,23 @@ class Dataspace(CpsElement):
             SchemaSet: Created schema set object
 
         """
-        self.send_message(
-            "POST",
-            "Create schema set",
-            f"{self._url}/cps/api/v1/dataspaces/{self.name}/schema-sets/",
-            files={"file": schema_set},
-            data={"schema-set-name": schema_set_name},
-            headers={},  # Leave headers empty to fill it correctly by `requests` library
-            auth=self.auth
-        )
-        return self.get_schema_set(schema_set_name)
+        try:
+            self.send_message(
+                "POST",
+                "Create schema set",
+                f"{self._url}/cps/api/v1/dataspaces/{self.name}/schema-sets/",
+                files={"file": schema_set},
+                data={"schema-set-name": schema_set_name},
+                headers={},  # Leave headers empty to fill it correctly by `requests` library
+                auth=self.auth
+            )
+            return self.get_schema_set(schema_set_name)
 
+        except APIError as error:
+            if (error.response_status_code == 400 and 'Dataspace not found' in str(error)):
+                raise ResourceNotFound(error) from error
+            raise
+        
     def delete(self) -> None:
         """Delete dataspace."""
         self.send_message(
