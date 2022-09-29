@@ -1,0 +1,21 @@
+{
+    {% if cell_local_id is not none %}"cell-local-id": "{{ cell_local_id }}",{% endif %}
+    {% if mno_id is not none %}"mno-id": "{{ mno_id }}",{% endif %}
+    {% if node_id is not none %}"node-id": "{{ node_id }}",{% endif %}
+    {% if latitude is not none %}"latitude": {{ latitude }},{% endif %}
+    {% if longitude is not none %}"longitude": {{ longitude }},{% endif %}
+    {% if azimuth is not none %}"azimuth": {{ azimuth }},{% endif %}
+    {% if height is not none %}"height": {{ height }},{% endif %}
+    {% if mechanical_tilt is not none %}"mechanical-tilt": {{ mechanical_tilt }},{% endif %}
+    {% if electrical_tilt is not none %}"electrical-tilt": {{ electrical_tilt }},{% endif %}
+    {% if beamwidth is not none %}"beamwidth": {{ beamwidth }},{% endif %}
+    {% if cell_type is not none %}"cell-type": "{{ cell_type }}",{% endif %}
+    {% if coverage_area is not none %}"coverage-area": "{{ coverage_area }}",{% endif %}
+    {% if frequency_band is not none %}"frequency-band": "{{ frequency_band }}",{% endif %}
+    {% if mnc is not none %}"mnc": "{{ mnc }}",{% endif %}
+    {% if mcc is not none %}"mcc": "{{ mcc }}",{% endif %}
+    {% if selflink is not none %}"selflink": "{{ selflink }}",{% endif %}
+    "cell-id": "{{ cell_id }}",
+    "cell-name": "{{ cell_name }}",
+    "radio-access-technology": "{{ radio_access_technology }}"
+}

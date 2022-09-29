@@ -1,9 +1,11 @@
 """A&AI site resource module."""
 
 from typing import Iterable, Optional
+from onapsdk.aai.network.cell import Cell
 
 from onapsdk.utils.jinja import jinja_env
-from ..aai_element import AaiResource
+from ..aai_element import AaiResource, Relationship
+from ..cloud_infrastructure import Complex
 
 
 class SiteResource(AaiResource):  # pylint: disable=too-many-instance-attributes
@@ -229,3 +231,31 @@ class SiteResource(AaiResource):  # pylint: disable=too-many-instance-attributes
                                  data_source=data_source,
                                  data_source_version=data_source_version))
         return cls.get_by_site_resource_id(site_resource_id)
+
+    def link_to_complex(self, cmplx: Complex) -> None:
+        relationship: Relationship = Relationship(
+            related_to="complex",
+            related_link=cmplx.url,
+            relationship_data=[
+                {
+                    "relationship-key": "complex.physical-location-id",
+                    "relationship-value": cmplx.physical_location_id,
+                }
+            ],
+            relationship_label="org.onap.relationships.inventory.Uses",
+        )
+        self.add_relationship(relationship)
+
+    def link_to_cell(self, cell: Cell) -> None:
+        relationship: Relationship = Relationship(
+            related_to="cell",
+            related_link=cell.url,
+            relationship_data=[
+                {
+                    "relationship-key": "cell.cell-id",
+                    "relationship-value": cell.cell_id,
+                }
+            ],
+            relationship_label="org.onap.relationships.inventory.ControlledBy",
+        )
+        self.add_relationship(relationship)

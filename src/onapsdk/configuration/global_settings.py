@@ -9,7 +9,7 @@
 
 ## API
 AAI_URL         = "https://aai.api.sparky.simpledemo.onap.org:30233"
-AAI_API_VERSION = "v23"
+AAI_API_VERSION = "v26"
 AAI_AUTH        = "Basic QUFJOkFBSQ=="
 AAI_BULK_CHUNK  = 30
 CDS_URL         = "http://portal.api.simpledemo.onap.org:30449"
