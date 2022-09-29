@@ -101,7 +101,7 @@ class Dataspace(CpsElement):
             ):
                 yield Anchor(name=anchor_data["name"],
                              schema_set=SchemaSet(name=anchor_data["schemaSetName"],
-                                                 dataspace=self))
+                                                  dataspace=self))
 
         except APIError as error:
             if (error.response_status_code == 400 and 'Dataspace not found' in str(error)):
@@ -129,7 +129,7 @@ class Dataspace(CpsElement):
             )
             return Anchor(name=anchor_data["name"],
                           schema_set=SchemaSet(name=anchor_data["schemaSetName"],
-                                             dataspace=self))
+                                               dataspace=self))
 
         except APIError as error:
             if (error.response_status_code == 400 and 'Dataspace not found' in str(error)):
