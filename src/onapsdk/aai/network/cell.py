@@ -4,9 +4,7 @@ from typing import Any, Dict, Iterable, Optional
 
 from onapsdk.utils.jinja import jinja_env
 from ..aai_element import AaiResource, Relationship
-# from ..aai_element import AaiResource
-# from ..cloud_infrastructure import GeoRegion
-from ..cloud_infrastructure import Complex
+from ..cloud_infrastructure import Complex, GeoRegion
 from ..mixins import AaiResourceLinkToGeoRegionMixin
 
 
@@ -183,21 +181,21 @@ class Cell(AaiResource, AaiResourceLinkToGeoRegionMixin):
         )
         self.add_relationship(relationship)
 
+    def link_to_geo_region(self, geo_region: GeoRegion) -> None:
+        relationship: Relationship = Relationship(
+            related_to="geo-region",
+            related_link=geo_region.url,
+            relationship_data=[
+                {
+                    "relationship-key": "geo-region.geo-region-id",
+                    "relationship-value": geo_region.geo_region_id,
+                }
+            ],
+            relationship_label="org.onap.relationships.inventory.MemberOf",
+        )
+        self.add_relationship(relationship)
+
     def delete(self) -> None:
         self.send_message("DELETE",
                           f"Delete cell {self.cell_id}",
                           f"{self.url}?resource-version={self.resource_verion}")
-
-    # def link_to_geo_region(self, geo_region: GeoRegion) -> None:
-    #     relationship: Relationship = Relationship(
-    #         related_to="geo-region",
-    #         related_link=geo_region.url,
-    #         relationship_data=[
-    #             {
-    #                 "relationship-key": "geo-region.geo-region-id",
-    #                 "relationship-value": geo_region.geo_region_id,
-    #             }
-    #         ],
-    #         relationship_label="org.onap.relationships.inventory.MemberOf",
-    #     )
-    #     self.add_relationship(relationship)
