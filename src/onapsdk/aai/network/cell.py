@@ -4,10 +4,13 @@ from typing import Any, Dict, Iterable, Optional
 
 from onapsdk.utils.jinja import jinja_env
 from ..aai_element import AaiResource, Relationship
-from ..cloud_infrastructure import GeoRegion
+# from ..aai_element import AaiResource
+# from ..cloud_infrastructure import GeoRegion
+from ..cloud_infrastructure import Complex
+from ..mixins import AaiResourceLinkToGeoRegionMixin
 
 
-class Cell(AaiResource):
+class Cell(AaiResource, AaiResourceLinkToGeoRegionMixin):
 
     def __init__(self,
                  cell_id: str,
@@ -70,8 +73,8 @@ class Cell(AaiResource):
     @classmethod
     def get_all(cls) -> Iterable["Cell"]:
         for cell_data in cls.send_message_json("GET",
-                                                    "Get all cells",
-                                                    cls.get_all_url()).get("cells", []):
+                                               "Get all cells",
+                                               cls.get_all_url()).get("cells", []):
             yield Cell(cell_id=cell_data["cell-id"],
                        cell_name=cell_data["cell-name"],
                        radio_access_technology=cell_data["radio-access-technology"],
@@ -166,16 +169,35 @@ class Cell(AaiResource):
                                  selflink=selflink))
         return cls.get_by_cell_id(cell_id)
 
-    def link_to_geo_region(self, geo_region: GeoRegion) -> None:
+    def link_to_complex(self, cmplx: Complex) -> None:
         relationship: Relationship = Relationship(
-            related_to="geo-region",
-            related_link=geo_region.url,
+            related_to="complex",
+            related_link=cmplx.url,
             relationship_data=[
                 {
-                    "relationship-key": "geo-region.geo-region-id",
-                    "relationship-value": geo_region.geo_region_id,
+                    "relationship-key": "complex.physical-location-id",
+                    "relationship-value": cmplx.physical_location_id,
                 }
             ],
-            relationship_label="org.onap.relationships.inventory.MemberOf",
+            relationship_label="org.onap.relationships.inventory.LocatedIn",
         )
         self.add_relationship(relationship)
+
+    def delete(self) -> None:
+        self.send_message("DELETE",
+                          f"Delete cell {self.cell_id}",
+                          f"{self.url}?resource-version={self.resource_verion}")
+
+    # def link_to_geo_region(self, geo_region: GeoRegion) -> None:
+    #     relationship: Relationship = Relationship(
+    #         related_to="geo-region",
+    #         related_link=geo_region.url,
+    #         relationship_data=[
+    #             {
+    #                 "relationship-key": "geo-region.geo-region-id",
+    #                 "relationship-value": geo_region.geo_region_id,
+    #             }
+    #         ],
+    #         relationship_label="org.onap.relationships.inventory.MemberOf",
+    #     )
+    #     self.add_relationship(relationship)

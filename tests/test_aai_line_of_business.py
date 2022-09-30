@@ -47,7 +47,7 @@ def test_line_of_business_get_by_name(mock_send):
     LineOfBusiness.get_by_name(name="test-name")
     mock_send.assert_called_once_with("GET",
                                       "Get test-name line of business",
-                                      "https://aai.api.sparky.simpledemo.onap.org:30233/aai/v23/business/lines-of-business/line-of-business/test-name")
+                                      "https://aai.api.sparky.simpledemo.onap.org:30233/aai/v27/business/lines-of-business/line-of-business/test-name")
 
 
 @mock.patch("onapsdk.aai.business.line_of_business.LineOfBusiness.send_message")
@@ -56,7 +56,7 @@ def test_line_of_business_create(_, mock_send):
     LineOfBusiness.create(name="test-name")
     mock_send.assert_called_once_with("PUT",
                                       "Declare A&AI line of business",
-                                      "https://aai.api.sparky.simpledemo.onap.org:30233/aai/v23/business/lines-of-business/line-of-business/test-name",
+                                      "https://aai.api.sparky.simpledemo.onap.org:30233/aai/v27/business/lines-of-business/line-of-business/test-name",
                                       data='{\n    "line-of-business-name": "test-name"\n}')
 
 

@@ -69,5 +69,5 @@ def test_sp_partner_create(_, mock_send):
     )
     mock_send.assert_called_once_with("PUT",
                                       "Declare A&AI sp partner",
-                                      "https://aai.api.sparky.simpledemo.onap.org:30233/aai/v23/business/sp-partners/sp-partner/123",
+                                      "https://aai.api.sparky.simpledemo.onap.org:30233/aai/v27/business/sp-partners/sp-partner/123",
                                       data='{\n    "sp-partner-id": "123"\n    \n    \n    \n    \n    \n    \n}')

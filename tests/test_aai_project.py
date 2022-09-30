@@ -47,7 +47,7 @@ def test_project_get_by_name(mock_send):
     Project.get_by_name(name="test-name")
     mock_send.assert_called_once_with("GET",
                                       "Get test-name project",
-                                      "https://aai.api.sparky.simpledemo.onap.org:30233/aai/v23/business/projects/project/test-name")
+                                      "https://aai.api.sparky.simpledemo.onap.org:30233/aai/v27/business/projects/project/test-name")
 
 
 @mock.patch("onapsdk.aai.business.project.Project.send_message")
@@ -56,7 +56,7 @@ def test_project_create(_, mock_send):
     Project.create(name="test-name")
     mock_send.assert_called_once_with("PUT",
                                       "Declare A&AI project",
-                                      "https://aai.api.sparky.simpledemo.onap.org:30233/aai/v23/business/projects/project/test-name",
+                                      "https://aai.api.sparky.simpledemo.onap.org:30233/aai/v27/business/projects/project/test-name",
                                       data='{\n    "project-name": "test-name"\n}')
 
 

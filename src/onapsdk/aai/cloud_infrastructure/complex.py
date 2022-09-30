@@ -4,11 +4,12 @@ from urllib.parse import urlencode
 
 from onapsdk.utils.jinja import jinja_env
 
-from ..aai_element import AaiResource, Relationship
-from .geo_region import GeoRegion
+from ..aai_element import AaiResource
+from ..mixins import AaiResourceLinkToGeoRegionMixin
+# from .geo_region import GeoRegion
 
 
-class Complex(AaiResource):  # pylint: disable=too-many-instance-attributes
+class Complex(AaiResource, AaiResourceLinkToGeoRegionMixin):  # pylint: disable=too-many-instance-attributes
     """Complex class.
 
     Collection of physical locations that can house cloud-regions.
@@ -278,20 +279,6 @@ class Complex(AaiResource):  # pylint: disable=too-many-instance-attributes
             data_source=api_response.get("data-source"),
             data_source_version=api_response.get("data-source-version")
         )
-
-    def link_to_geo_region(self, geo_region: GeoRegion) -> None:
-        relationship: Relationship = Relationship(
-            related_to="geo-region",
-            related_link=geo_region.url,
-            relationship_data=[
-                {
-                    "relationship-key": "geo-region.geo-region-id",
-                    "relationship-value": geo_region.geo_region_id,
-                }
-            ],
-            relationship_label="org.onap.relationships.inventory.MemberOf",
-        )
-        self.add_relationship(relationship)
 
     def delete(self) -> None:
         """Delete complex."""
