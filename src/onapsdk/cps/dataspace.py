@@ -63,7 +63,7 @@ class Dataspace(CpsElement):
             if (error.response_status_code == 400 and 'Dataspace not found' in str(error)):
                 raise ResourceNotFound(error) from error
             raise SDKException(error) from error
-            
+
     def create_anchor(self, schema_set: SchemaSet, anchor_name: str) -> Anchor:
         """Create anchor.
 
