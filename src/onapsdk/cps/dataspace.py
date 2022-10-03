@@ -2,7 +2,7 @@
 """ONAP SDK CPS dataspace module."""
 
 from typing import Any, Dict, Iterable
-from onapsdk.exceptions import (APIError, ResourceNotFound)
+from onapsdk.exceptions import (APIError, ResourceNotFound, SDKException)
 from .anchor import Anchor
 from .cps_element import CpsElement
 from .schemaset import SchemaSet, SchemaSetModuleReference
@@ -51,14 +51,19 @@ class Dataspace(CpsElement):
             Dataspace: Newly created dataspace
 
         """
-        cls.send_message(
-            "POST",
-            f"Create {dataspace_name} dataspace",
-            f"{cls._url}/cps/api/v1/dataspaces?dataspace-name={dataspace_name}",
-            auth=cls.auth
-        )
-        return Dataspace(dataspace_name)
-
+        try:
+            cls.send_message(
+                "POST",
+                f"Create {dataspace_name} dataspace",
+                f"{cls._url}/cps/api/v1/dataspaces?dataspace-name={dataspace_name}",
+                auth=cls.auth
+            )
+            return Dataspace(dataspace_name)
+        except APIError as error:
+            if (error.response_status_code == 400 and 'Dataspace not found' in str(error)):
+                raise ResourceNotFound(error) from error
+            raise SDKException(error) from error
+            
     def create_anchor(self, schema_set: SchemaSet, anchor_name: str) -> Anchor:
         """Create anchor.
 
@@ -81,7 +86,7 @@ class Dataspace(CpsElement):
         except APIError as error:
             if (error.response_status_code == 400 and 'Dataspace not found' in str(error)):
                 raise ResourceNotFound(error) from error
-            raise
+            raise SDKException(error) from error
 
     def get_anchors(self) -> Iterable[Anchor]:
         """Get all dataspace's anchors.
@@ -106,7 +111,7 @@ class Dataspace(CpsElement):
         except APIError as error:
             if (error.response_status_code == 400 and 'Dataspace not found' in str(error)):
                 raise ResourceNotFound(error) from error
-            raise
+            raise SDKException(error) from error
 
     def get_anchor(self, anchor_name: str) -> Anchor:
         """Get dataspace anchor by name.
@@ -134,7 +139,7 @@ class Dataspace(CpsElement):
         except APIError as error:
             if (error.response_status_code == 400 and 'Dataspace not found' in str(error)):
                 raise ResourceNotFound(error) from error
-            raise
+            raise SDKException(error) from error
 
     def get_schema_set(self, schema_set_name: str) -> SchemaSet:
         """Get schema set by name.
@@ -168,7 +173,7 @@ class Dataspace(CpsElement):
         except APIError as error:
             if (error.response_status_code == 400 and 'Dataspace not found' in str(error)):
                 raise ResourceNotFound(error) from error
-            raise
+            raise SDKException(error) from error
 
     def create_schema_set(self, schema_set_name: str, schema_set: bytes) -> SchemaSet:
         """Create schema set.
@@ -198,7 +203,7 @@ class Dataspace(CpsElement):
         except APIError as error:
             if (error.response_status_code == 400 and 'Dataspace not found' in str(error)):
                 raise ResourceNotFound(error) from error
-            raise
+            raise SDKException(error) from error
 
     def delete(self) -> None:
         """Delete dataspace."""
