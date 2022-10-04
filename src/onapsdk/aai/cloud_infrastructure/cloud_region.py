@@ -7,7 +7,8 @@ from onapsdk.msb.multicloud import Multicloud
 from onapsdk.utils.jinja import jinja_env
 from onapsdk.exceptions import ResourceNotFound
 
-from ..aai_element import AaiResource, Relationship
+from ..aai_element import AaiResource
+from ..mixins.link_to_complex import AaiResourceLinkToComplexMixin
 from .complex import Complex
 from .tenant import Tenant
 
@@ -52,7 +53,7 @@ class EsrSystemInfo:  # pylint: disable=too-many-instance-attributes
     openstack_region_id: str = None
 
 
-class CloudRegion(AaiResource):  # pylint: disable=too-many-instance-attributes
+class CloudRegion(AaiResource, AaiResourceLinkToComplexMixin):  # pylint: disable=too-many-instance-attributes
     """Cloud region class.
 
     Represents A&AI cloud region object.
@@ -589,20 +590,3 @@ class CloudRegion(AaiResource):  # pylint: disable=too-many-instance-attributes
             self.url,
             params={"resource-version": self.resource_version}
         )
-
-    def link_to_complex(self, complex_object: Complex) -> None:
-        """Link cloud region to comples.
-
-        It creates relationhip object and add it into cloud region.
-        """
-        relationship = Relationship(
-            related_to="complex",
-            related_link=(f"aai/v13/cloud-infrastructure/complexes/"
-                          f"complex/{complex_object.physical_location_id}"),
-            relationship_data={
-                "relationship-key": "complex.physical-location-id",
-                "relationship-value": f"{complex_object.physical_location_id}",
-            },
-            relationship_label="org.onap.relationships.inventory.LocatedIn",
-        )
-        self.add_relationship(relationship)

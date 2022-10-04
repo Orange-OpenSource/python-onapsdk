@@ -5,7 +5,7 @@ from urllib.parse import urlencode
 from onapsdk.utils.jinja import jinja_env
 
 from ..aai_element import AaiResource
-from ..mixins import AaiResourceLinkToGeoRegionMixin
+from ..mixins.link_to_geo_region import AaiResourceLinkToGeoRegionMixin
 # from .geo_region import GeoRegion
 
 

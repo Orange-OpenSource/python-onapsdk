@@ -233,6 +233,12 @@ class SiteResource(AaiResource):  # pylint: disable=too-many-instance-attributes
         return cls.get_by_site_resource_id(site_resource_id)
 
     def link_to_complex(self, cmplx: Complex) -> None:
+        """Create a relationship with complex resource.
+
+        Args:
+            cmplx (Complex): Complex object ot create relationship with.
+
+        """
         relationship: Relationship = Relationship(
             related_to="complex",
             related_link=cmplx.url,
@@ -247,6 +253,12 @@ class SiteResource(AaiResource):  # pylint: disable=too-many-instance-attributes
         self.add_relationship(relationship)
 
     def link_to_cell(self, cell: Cell) -> None:
+        """Create a relationship with cell resource.
+
+        Args:
+            cell (Cell): Cell object ot create relationship with.
+
+        """
         relationship: Relationship = Relationship(
             related_to="cell",
             related_link=cell.url,

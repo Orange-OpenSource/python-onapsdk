@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from onapsdk.aai.network.site_resource import SiteResource
 
@@ -42,3 +42,36 @@ def test_site_resource_create(mock_get_by_site_resource_id, mock_send_message):
     SiteResource.create("123")
     mock_send_message.assert_called_once()
     assert mock_get_by_site_resource_id.called_once_with("123")
+
+@patch("onapsdk.aai.network.site_resource.SiteResource.add_relationship")
+def test_site_resource_link_to_complex(mock_add_relationship):
+    cmplx = MagicMock(physical_location_id="test-complex-physical-location-id",
+                      url="test-complex-url")
+    site_resource = SiteResource("test-site-resource")
+    site_resource.link_to_complex(cmplx)
+    mock_add_relationship.assert_called_once()
+    relationship = mock_add_relationship.call_args.args[0]
+    assert relationship.related_to == "complex"
+    assert relationship.related_link == "test-complex-url"
+    assert relationship.relationship_label == "org.onap.relationships.inventory.Uses"
+    assert relationship.relationship_data == [{
+        "relationship-key": "complex.physical-location-id",
+        "relationship-value": "test-complex-physical-location-id",
+    }]
+
+
+@patch("onapsdk.aai.network.site_resource.SiteResource.add_relationship")
+def test_site_resource_link_to_cell(mock_add_relationship):
+    cell = MagicMock(cell_id="test-cell-id",
+                      url="test-cell-url")
+    site_resource = SiteResource("test-site-resource")
+    site_resource.link_to_cell(cell)
+    mock_add_relationship.assert_called_once()
+    relationship = mock_add_relationship.call_args.args[0]
+    assert relationship.related_to == "cell"
+    assert relationship.related_link == "test-cell-url"
+    assert relationship.relationship_label == "org.onap.relationships.inventory.ControlledBy"
+    assert relationship.relationship_data == [{
+        "relationship-key": "cell.cell-id",
+        "relationship-value": "test-cell-id",
+    }]

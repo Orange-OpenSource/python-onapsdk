@@ -1,10 +1,9 @@
-"""A&AI mixins module."""
 
-from .aai_element import Relationship
-from .cloud_infrastructure.geo_region import GeoRegion
-
+from ..aai_element import Relationship
+from ..cloud_infrastructure.geo_region import GeoRegion
 
 class AaiResourceLinkToGeoRegionMixin:  # pylint: disable=too-few-public-methods
+    """Link aai resource to geo region mixin."""
 
     def link_to_geo_region(self, geo_region: GeoRegion) -> None:
         """Create a relationship with geo region.

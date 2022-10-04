@@ -39,3 +39,7 @@ def test_geo_region_create(mock_get_geo_region_by_id, mock_send_message):
     GeoRegion.create("123")
     mock_send_message.assert_called_once()
     assert mock_get_geo_region_by_id.called_once_with("123")
+
+def test_geo_region_url():
+    geo_region = GeoRegion("test-geo-region")
+    assert geo_region.url == "https://aai.api.sparky.simpledemo.onap.org:30233/aai/v26/cloud-infrastructure/geo-regions/geo-region/test-geo-region"

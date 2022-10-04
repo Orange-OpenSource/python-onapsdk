@@ -92,9 +92,10 @@ def test_cloud_region_link_to_complex(mock_add_rel):
     mock_add_rel.assert_called_once()
     relationship = mock_add_rel.call_args[0][0]
     assert relationship.related_to == "complex"
-    assert relationship.related_link == (f"aai/v13/cloud-infrastructure/complexes/"
-                                         f"complex/test_location_id")
-    assert len(relationship.relationship_data) == 2
+    assert relationship.related_link == (f"https://aai.api.sparky.simpledemo.onap.org:30233/aai/"
+                                         f"v26/cloud-infrastructure/complexes/complex"
+                                         f"/test_location_id")
+    assert len(relationship.relationship_data) == 1
 
 
 @mock.patch.object(Complex, "send_message_json")

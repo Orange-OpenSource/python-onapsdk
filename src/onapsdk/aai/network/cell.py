@@ -4,11 +4,17 @@ from typing import Any, Dict, Iterable, Optional
 
 from onapsdk.utils.jinja import jinja_env
 from ..aai_element import AaiResource, Relationship
-from ..cloud_infrastructure import Complex, GeoRegion
-from ..mixins import AaiResourceLinkToGeoRegionMixin
+from ..cloud_infrastructure import Complex
+from ..mixins.link_to_complex import AaiResourceLinkToComplexMixin
+from ..mixins.link_to_geo_region import AaiResourceLinkToGeoRegionMixin
 
 
-class Cell(AaiResource, AaiResourceLinkToGeoRegionMixin):
+class Cell(AaiResource, AaiResourceLinkToComplexMixin, AaiResourceLinkToGeoRegionMixin):
+    """Cell resource class.
+
+    Inherits from aai.mixinx.AaiResourceLinkToGeoRegionMixin so
+        relationship to GeoRegion object is available for that resource.
+    """
 
     def __init__(self,
                  cell_id: str,
@@ -31,7 +37,7 @@ class Cell(AaiResource, AaiResourceLinkToGeoRegionMixin):
                  mnc: str = "",
                  mcc: str = "",
                  selflink: str = "",
-                 resource_verion: str = "") -> None:
+                 resource_version: str = "") -> None:
         super().__init__()
         self.cell_id: str = cell_id
         self.cell_name: str = cell_name
@@ -52,7 +58,7 @@ class Cell(AaiResource, AaiResourceLinkToGeoRegionMixin):
         self.mnc: str = mnc
         self.mcc: str = mcc
         self.selflink: str = selflink
-        self.resource_verion: str = resource_verion
+        self.resource_version: str = resource_version
 
     @property
     def url(self) -> str:
@@ -72,7 +78,7 @@ class Cell(AaiResource, AaiResourceLinkToGeoRegionMixin):
     def get_all(cls) -> Iterable["Cell"]:
         for cell_data in cls.send_message_json("GET",
                                                "Get all cells",
-                                               cls.get_all_url()).get("cells", []):
+                                               cls.get_all_url()).get("cell", []):
             yield Cell(cell_id=cell_data["cell-id"],
                        cell_name=cell_data["cell-name"],
                        radio_access_technology=cell_data["radio-access-technology"],
@@ -92,7 +98,7 @@ class Cell(AaiResource, AaiResourceLinkToGeoRegionMixin):
                        mnc=cell_data.get("mnc", ""),
                        mcc=cell_data.get("mcc", ""),
                        selflink=cell_data.get("selflink", ""),
-                       resource_verion=cell_data["resource_version"])
+                       resource_version=cell_data["resource-version"])
 
     @classmethod
     def get_by_cell_id(cls, cell_id: str) -> "Cell":
@@ -118,7 +124,7 @@ class Cell(AaiResource, AaiResourceLinkToGeoRegionMixin):
                     mnc=cell_data.get("mnc", ""),
                     mcc=cell_data.get("mcc", ""),
                     selflink=cell_data.get("selflink", ""),
-                    resource_verion=cell_data["resource-version"])
+                    resource_version=cell_data["resource-version"])
 
     @classmethod
     def create(cls,
@@ -167,35 +173,28 @@ class Cell(AaiResource, AaiResourceLinkToGeoRegionMixin):
                                  selflink=selflink))
         return cls.get_by_cell_id(cell_id)
 
-    def link_to_complex(self, cmplx: Complex) -> None:
-        relationship: Relationship = Relationship(
-            related_to="complex",
-            related_link=cmplx.url,
-            relationship_data=[
-                {
-                    "relationship-key": "complex.physical-location-id",
-                    "relationship-value": cmplx.physical_location_id,
-                }
-            ],
-            relationship_label="org.onap.relationships.inventory.LocatedIn",
-        )
-        self.add_relationship(relationship)
+    # def link_to_complex(self, cmplx: Complex) -> None:
+    #     """Create a relationship with complex resource.
 
-    def link_to_geo_region(self, geo_region: GeoRegion) -> None:
-        relationship: Relationship = Relationship(
-            related_to="geo-region",
-            related_link=geo_region.url,
-            relationship_data=[
-                {
-                    "relationship-key": "geo-region.geo-region-id",
-                    "relationship-value": geo_region.geo_region_id,
-                }
-            ],
-            relationship_label="org.onap.relationships.inventory.MemberOf",
-        )
-        self.add_relationship(relationship)
+    #     Args:
+    #         cmplx (Complex): Complex object ot create relationship with.
+
+    #     """
+    #     relationship: Relationship = Relationship(
+    #         related_to="complex",
+    #         related_link=cmplx.url,
+    #         relationship_data=[
+    #             {
+    #                 "relationship-key": "complex.physical-location-id",
+    #                 "relationship-value": cmplx.physical_location_id,
+    #             }
+    #         ],
+    #         relationship_label="org.onap.relationships.inventory.LocatedIn",
+    #     )
+    #     self.add_relationship(relationship)
 
     def delete(self) -> None:
+        """Delete cell."""
         self.send_message("DELETE",
                           f"Delete cell {self.cell_id}",
                           f"{self.url}?resource-version={self.resource_verion}")
