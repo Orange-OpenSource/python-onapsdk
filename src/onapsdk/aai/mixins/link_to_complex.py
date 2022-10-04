@@ -1,12 +1,14 @@
-
-from ..aai_element import Relationship
+"""A&AI link to complex module."""
+from ..aai_element import Relationship, RelationshipLabelEnum
 from ..cloud_infrastructure.complex import Complex
 
 
 class AaiResourceLinkToComplexMixin:  # pylint: disable=too-few-public-methods
     """Link aai resource to complex mixin."""
 
-    def link_to_complex(self, cmplx: Complex) -> None:
+    def link_to_complex(self, cmplx: Complex,
+                        relationship_label: RelationshipLabelEnum =\
+                            RelationshipLabelEnum.LOCATED_IN) -> None:
         """Create a relationship with complex resource.
 
         Args:
@@ -22,6 +24,6 @@ class AaiResourceLinkToComplexMixin:  # pylint: disable=too-few-public-methods
                     "relationship-value": cmplx.physical_location_id,
                 }
             ],
-            relationship_label="org.onap.relationships.inventory.LocatedIn",
+            relationship_label=relationship_label.value,
         )
         self.add_relationship(relationship)

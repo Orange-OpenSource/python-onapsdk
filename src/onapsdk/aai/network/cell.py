@@ -3,20 +3,19 @@
 from typing import Any, Dict, Iterable, Optional
 
 from onapsdk.utils.jinja import jinja_env
-from ..aai_element import AaiResource, Relationship
-from ..cloud_infrastructure import Complex
+from ..aai_element import AaiResource
 from ..mixins.link_to_complex import AaiResourceLinkToComplexMixin
 from ..mixins.link_to_geo_region import AaiResourceLinkToGeoRegionMixin
 
 
-class Cell(AaiResource, AaiResourceLinkToComplexMixin, AaiResourceLinkToGeoRegionMixin):
+class Cell(AaiResource, AaiResourceLinkToComplexMixin, AaiResourceLinkToGeoRegionMixin):  # pylint: disable=too-many-instance-attributes
     """Cell resource class.
 
     Inherits from aai.mixinx.AaiResourceLinkToGeoRegionMixin so
         relationship to GeoRegion object is available for that resource.
     """
 
-    def __init__(self,
+    def __init__(self,  # pylint: disable=too-many-locals
                  cell_id: str,
                  cell_name: str,
                  radio_access_technology: str,
@@ -38,6 +37,39 @@ class Cell(AaiResource, AaiResourceLinkToComplexMixin, AaiResourceLinkToGeoRegio
                  mcc: str = "",
                  selflink: str = "",
                  resource_version: str = "") -> None:
+        """Cell object init.
+
+        Args:
+            cell_id (str): unique identifier of the cell (i.e. could be globally unique
+                like NCGI or unique within operator domain like NCI)
+            cell_name (str): individual name of cell
+            radio_access_technology (str): cell radio access technology (i.e. GSM, UMTS, LTE, NR)
+            cell_local_id (str, optional): unique identifier of the cell within node
+                (like eNodeb, gNodeb). Defaults to "".
+            mno_id (str, optional): operator specific cell identifier. Defaults to "".
+            node_id (str, optional): cell's node id (like gNodeb id, eNodeb id).
+                Defaults to "".
+            latitude (Optional[float], optional): latitude of cell. Defaults to None.
+            longitude (Optional[float], optional): longitude of cell. Defaults to None.
+            azimuth (Optional[float], optional): direction of cell beam  (range: 0-360).
+                Defaults to None.
+            height (Optional[float], optional): cell height above ground. Defaults to None.
+            mechanical_tilt (Optional[float], optional): mechanical tilt of cell. Defaults to None.
+            electrical_tilt (Optional[float], optional): electrical tilt of cell. Defaults to None.
+            beamwidth (Optional[float], optional): horizontal beamwidth of cell. Defaults to None.
+            cell_type (str): type of cell (i.e. macro, micro, indoor, outdoor,
+                string). Defaults to "".
+            coverage_area (str): type of coverage area (i.e. urban, suburban,
+                rural, string). Defaults to "".
+            frequency_band (str): cell operating frequency band. Defaults to "".
+            mnc (str): operator mobile network code. Defaults to "".
+            mcc (str): operator country code. Defaults to "".
+            selflink (str): CPS link to additional cell info
+                (it may be a collection of links e.g. operator-specific cell attributes,
+                3gpp-config, vendor-config, NRCellDU, NRCellCU in CPS). Defaults to "".
+            resource_version (str, optional): Cell object resource version. Defaults to "".
+
+        """
         super().__init__()
         self.cell_id: str = cell_id
         self.cell_name: str = cell_name
@@ -62,6 +94,12 @@ class Cell(AaiResource, AaiResourceLinkToComplexMixin, AaiResourceLinkToGeoRegio
 
     @property
     def url(self) -> str:
+        """Cell object url.
+
+        Returns:
+            str: Cell object url string
+
+        """
         return f"{self.get_all_url()}/cell/{self.cell_id}"
 
     @classmethod
@@ -76,6 +114,12 @@ class Cell(AaiResource, AaiResourceLinkToComplexMixin, AaiResourceLinkToGeoRegio
 
     @classmethod
     def get_all(cls) -> Iterable["Cell"]:
+        """Get all cell resources.
+
+        Yields:
+            Cell: Cell resource object
+
+        """
         for cell_data in cls.send_message_json("GET",
                                                "Get all cells",
                                                cls.get_all_url()).get("cell", []):
@@ -102,6 +146,15 @@ class Cell(AaiResource, AaiResourceLinkToComplexMixin, AaiResourceLinkToGeoRegio
 
     @classmethod
     def get_by_cell_id(cls, cell_id: str) -> "Cell":
+        """Get cell object by id.
+
+        Args:
+            cell_id (str): Cell id.
+
+        Returns:
+            Cell: Cell resource object
+
+        """
         cell_data: Dict[str, Any] = cls.send_message_json("GET",
                                                           f"Get cell with {cell_id} cell id",
                                                           f"{cls.get_all_url()}/cell/{cell_id}")
@@ -127,7 +180,7 @@ class Cell(AaiResource, AaiResourceLinkToComplexMixin, AaiResourceLinkToGeoRegio
                     resource_version=cell_data["resource-version"])
 
     @classmethod
-    def create(cls,
+    def create(cls,  # pylint: disable=too-many-arguments, too-many-locals
                cell_id: str,
                cell_name: str,
                radio_access_technology: str,
@@ -147,6 +200,42 @@ class Cell(AaiResource, AaiResourceLinkToComplexMixin, AaiResourceLinkToGeoRegio
                mnc: Optional[str] = None,
                mcc: Optional[str] = None,
                selflink: Optional[str] = None) -> "Cell":
+        """Create cell resource.
+
+        Args:
+            cell_id (str): unique identifier of the cell (i.e. could be globally unique
+                like NCGI or unique within operator domain like NCI)
+            cell_name (str): individual name of cell
+            radio_access_technology (str): cell radio access technology (i.e. GSM, UMTS, LTE, NR)
+            cell_local_id (Optional[str], optional): unique identifier of the cell within node
+                (like eNodeb, gNodeb). Defaults to None.
+            mno_id (Optional[str], optional): operator specific cell identifier. Defaults to None.
+            node_id (Optional[str], optional): cell's node id (like gNodeb id, eNodeb id).
+                Defaults to None.
+            latitude (Optional[float], optional): latitude of cell. Defaults to None.
+            longitude (Optional[float], optional): longitude of cell. Defaults to None.
+            azimuth (Optional[float], optional): direction of cell beam  (range: 0-360).
+                Defaults to None.
+            height (Optional[float], optional): cell height above ground. Defaults to None.
+            mechanical_tilt (Optional[float], optional): mechanical tilt of cell. Defaults to None.
+            electrical_tilt (Optional[float], optional): electrical tilt of cell. Defaults to None.
+            beamwidth (Optional[float], optional): horizontal beamwidth of cell. Defaults to None.
+            cell_type (Optional[str], optional): type of cell (i.e. macro, micro, indoor, outdoor,
+                string). Defaults to None.
+            coverage_area (Optional[str], optional): type of coverage area (i.e. urban, suburban,
+                rural, string). Defaults to None.
+            frequency_band (Optional[str], optional): cell operating frequency band.
+                Defaults to None.
+            mnc (Optional[str], optional): operator mobile network code. Defaults to None.
+            mcc (Optional[str], optional): operator country code. Defaults to None.
+            selflink (Optional[str], optional): CPS link to additional cell info
+                (it may be a collection of links e.g. operator-specific cell attributes,
+                3gpp-config, vendor-config, NRCellDU, NRCellCU in CPS). Defaults to None.
+
+        Returns:
+            Cell: Created cell object
+
+        """
         cls.send_message("PUT",
                          f"Create cell {cell_id}",
                          f"{cls.get_all_url()}/cell/{cell_id}",
@@ -173,28 +262,8 @@ class Cell(AaiResource, AaiResourceLinkToComplexMixin, AaiResourceLinkToGeoRegio
                                  selflink=selflink))
         return cls.get_by_cell_id(cell_id)
 
-    # def link_to_complex(self, cmplx: Complex) -> None:
-    #     """Create a relationship with complex resource.
-
-    #     Args:
-    #         cmplx (Complex): Complex object ot create relationship with.
-
-    #     """
-    #     relationship: Relationship = Relationship(
-    #         related_to="complex",
-    #         related_link=cmplx.url,
-    #         relationship_data=[
-    #             {
-    #                 "relationship-key": "complex.physical-location-id",
-    #                 "relationship-value": cmplx.physical_location_id,
-    #             }
-    #         ],
-    #         relationship_label="org.onap.relationships.inventory.LocatedIn",
-    #     )
-    #     self.add_relationship(relationship)
-
     def delete(self) -> None:
         """Delete cell."""
         self.send_message("DELETE",
                           f"Delete cell {self.cell_id}",
-                          f"{self.url}?resource-version={self.resource_verion}")
+                          f"{self.url}?resource-version={self.resource_version}")

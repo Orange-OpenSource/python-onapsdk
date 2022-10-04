@@ -1,4 +1,4 @@
-
+"""A&AI link to geo region mixin module."""
 from ..aai_element import Relationship
 from ..cloud_infrastructure.geo_region import GeoRegion
 
