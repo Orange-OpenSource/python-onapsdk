@@ -1,12 +1,12 @@
 # SPDX-License-Identifier: Apache-2.0
 """ONAP SDK CPS dataspace module."""
 
+from functools import wraps
 from typing import Any, Dict, Iterable
 from onapsdk.exceptions import (APIError, ResourceNotFound, SDKException)
 from .anchor import Anchor
 from .cps_element import CpsElement
 from .schemaset import SchemaSet, SchemaSetModuleReference
-from functools import wraps
 
 class Dataspace(CpsElement):
     """CPS dataspace class."""
