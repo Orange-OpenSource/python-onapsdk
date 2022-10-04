@@ -235,9 +235,6 @@ def test_anchor_delete_nodes(mock_send_message):
 def test_dataspace_create_except(mock_send_message_json):
     ds = Dataspace(name="test_creating_anchor")
     mock_send_message_json.exceptions = requests.exceptions
-    mock_send_message_json.side_effect = APIError('Dataspace not found', 400)
-    with pytest.raises(ResourceNotFound):
-        ds.create(mock.MagicMock())
     mock_send_message_json.side_effect = APIError()
     with pytest.raises(SDKException):
         ds.create(mock.MagicMock())
@@ -254,7 +251,7 @@ def test_dataspace_create_anchor_except(mock_send_message_json):
         ds.create_anchor(mock.MagicMock(), "test_creating_anchor")
 
 @mock.patch("onapsdk.cps.Dataspace.send_message_json")
-def test_dataspace_get_anchors_except(mock_send_message_json):
+def test_dataspace_get_anchors_except(mock_send_message_json): 
     ds = Dataspace(name="test_ds")
     mock_send_message_json.exceptions = requests.exceptions
     mock_send_message_json.side_effect = APIError('Dataspace not found', 400)
