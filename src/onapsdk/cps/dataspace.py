@@ -2,11 +2,8 @@
 """ONAP SDK CPS dataspace module."""
 
 from functools import wraps
-from glob import glob
-import inspect
-import types
 from typing import Any, Dict, Iterable
-from onapsdk.exceptions import (APIError, ResourceNotFound, SDKException)
+from onapsdk.exceptions import (APIError, ResourceNotFound)
 from .anchor import Anchor
 from .cps_element import CpsElement
 from .schemaset import SchemaSet, SchemaSetModuleReference
@@ -44,11 +41,10 @@ class Dataspace(CpsElement):
         return f"{self._url}/cps/api/v1/dataspaces/{self.name}"
 
     def exception_handler(function): # pylint: disable= no-self-argument
-
         """Exception handler.
-        Handling APIError and throwing ResourceNotFound if Data space does not exist and throwing
-        SDKException if Generic exception for ONAP SDK occures for
-        create_anchor(), get_anchors(), get_anchor(), get_schema_set(), create_schema_set()
+
+        Handling APIError and throwing ResourceNotFound if Data space does not exist.
+
         """
         @wraps(function)
         def wrapper(*args):
@@ -117,12 +113,13 @@ class Dataspace(CpsElement):
                 auth=self.auth\
             ):
                 yield Anchor(name=anchor_data["name"],
-                                schema_set=SchemaSet(name=anchor_data["schemaSetName"],
-                                                    dataspace=self))
+                             schema_set=SchemaSet(name=anchor_data["schemaSetName"],
+                                                  dataspace=self))
         except APIError as error:
             if (error.response_status_code == 400 and 'Dataspace not found' in str(error)):
                 raise ResourceNotFound(error) from error
             raise
+
 
     @exception_handler
     def get_anchor(self, anchor_name: str) -> Anchor:
@@ -144,8 +141,8 @@ class Dataspace(CpsElement):
             auth=self.auth
         )
         return Anchor(name=anchor_data["name"],
-                        schema_set=SchemaSet(name=anchor_data["schemaSetName"],
-                                            dataspace=self))
+                      schema_set=SchemaSet(name=anchor_data["schemaSetName"],
+                                           dataspace=self))
 
     @exception_handler
     def get_schema_set(self, schema_set_name: str) -> SchemaSet:
