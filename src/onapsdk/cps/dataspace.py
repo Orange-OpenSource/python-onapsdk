@@ -49,15 +49,14 @@ class Dataspace(CpsElement):
         @wraps(function)
         def wrapper(*args):
             try:
-                return function(*args) # pylint: disable= not-callable
+                return function(*args) # pylint: disable= not-callable           
             except APIError as error:
                 if (error.response_status_code == 400 and 'Dataspace not found' in str(error)):
                     raise ResourceNotFound(error) from error
-                raise SDKException(error) from error
+                raise
         return wrapper
 
     @classmethod
-    @exception_handler
     def create(cls, dataspace_name: str) -> "Dataspace":
         """Create dataspace with given name.
 
@@ -96,7 +95,6 @@ class Dataspace(CpsElement):
         )
         return Anchor(name=anchor_name, schema_set=schema_set)
 
-    #@exception_handler
     def get_anchors(self) -> Iterable[Anchor]:
         """Get all dataspace's anchors.
 
