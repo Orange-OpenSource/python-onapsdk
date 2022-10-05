@@ -52,12 +52,7 @@ class Dataspace(CpsElement):
         @wraps(function)
         def wrapper(*args):
             try:
-                ret = function(*args) # pylint: disable= not-callable
-                if isinstance(ret, types.GeneratorType):
-                    yield from ret
-                else:
-                    return ret
-            #   return function(*args) # pylint: disable= not-callable
+                return function(*args) # pylint: disable= not-callable
             except APIError as error:
                 if (error.response_status_code == 400 and 'Dataspace not found' in str(error)):
                     raise ResourceNotFound(error) from error
@@ -113,15 +108,20 @@ class Dataspace(CpsElement):
             Iterator[Anchor]: Anchor object
 
         """
-        for anchor_data in self.send_message_json(\
-            "GET",\
-            "Get all CPS dataspace anchors",\
-            f"{self.url}/anchors",\
-            auth=self.auth\
-        ):
-            yield Anchor(name=anchor_data["name"],
-                            schema_set=SchemaSet(name=anchor_data["schemaSetName"],
-                                                dataspace=self))
+        try:
+            for anchor_data in self.send_message_json(\
+                "GET",\
+                "Get all CPS dataspace anchors",\
+                f"{self.url}/anchors",\
+                auth=self.auth\
+            ):
+                yield Anchor(name=anchor_data["name"],
+                                schema_set=SchemaSet(name=anchor_data["schemaSetName"],
+                                                    dataspace=self))
+        except APIError as error:
+            if (error.response_status_code == 400 and 'Dataspace not found' in str(error)):
+                raise ResourceNotFound(error) from error
+            raise
 
     @exception_handler
     def get_anchor(self, anchor_name: str) -> Anchor:
