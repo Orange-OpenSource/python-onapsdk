@@ -49,7 +49,7 @@ class Dataspace(CpsElement):
         @wraps(function)
         def wrapper(*args):
             try:
-                return function(*args) # pylint: disable= not-callable           
+                return function(*args) # pylint: disable= not-callable
             except APIError as error:
                 if (error.response_status_code == 400 and 'Dataspace not found' in str(error)):
                     raise ResourceNotFound(error) from error
