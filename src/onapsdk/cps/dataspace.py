@@ -44,8 +44,9 @@ class Dataspace(CpsElement):
         return f"{self._url}/cps/api/v1/dataspaces/{self.name}"
 
     def exception_handler(function): # pylint: disable= no-self-argument
+
         """Exception handler.
-        Handling APIError and throwing ResourceNotFound if Data space does not exist and throwing 
+        Handling APIError and throwing ResourceNotFound if Data space does not exist and throwing
         SDKException if Generic exception for ONAP SDK occures for
         create_anchor(), get_anchors(), get_anchor(), get_schema_set(), create_schema_set()
         """
