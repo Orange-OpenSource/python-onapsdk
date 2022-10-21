@@ -1,3 +1,7 @@
+# ARCHIVED
+
+This repository is not used anymore - migrated to [ONAP Gerrit](https://gerrit.onap.org/r/integration/python-onapsdk)
+
 # Python ONAP SDK
 
 an SDK to use ONAP programmatically with Python code
